@@ -1,9 +1,10 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/pages/auth/login_page.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:reauth/pages/dashboard/dashboard_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -13,23 +14,35 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  User? user = FirebaseAuth.instance.currentUser;
   @override
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const LoginPage(),
-        ),
-      );
-    });
+    if (user != null) {
+      Timer(const Duration(seconds: 3), () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const DashboardPage(),
+          ),
+        );
+      });
+    } else {
+      Timer(const Duration(seconds: 3), () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LoginPage(),
+          ),
+        );
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 36, 45, 58),
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SizedBox(
           height: MediaQuery.of(context).size.height * .95,
@@ -54,19 +67,8 @@ class _SplashPageState extends State<SplashPage> {
                 ),
                 Text(
                   "ReAuth",
-                  style: GoogleFonts.karla(
-                      color: const Color.fromARGB(255, 255, 255, 255),
-                      fontSize: 25,
-                      letterSpacing: .75,
-                      fontWeight: FontWeight.w600),
-                ).animate().fade(delay: 1250.ms)
-                // .scale(delay: 750.ms)
-                // .slideY(
-                //       delay: 250.ms,
-                //       duration: 1000.ms,
-                //       begin: -1.2,
-                //     ),
-                ,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ).animate(delay: 1000.ms).fade(duration: 1000.ms),
                 const SizedBox(
                   height: 75,
                 ),

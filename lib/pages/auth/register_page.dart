@@ -14,8 +14,8 @@ class _RegisterPageState extends State<RegisterPage> {
       body: SizedBox(
         height: MediaQuery.of(context).size.height * .95,
         width: MediaQuery.of(context).size.width * .95,
-        child: Column(
-          children: const [Text("Register"), Text("Sign In")],
+        child: const Column(
+          children: [Text("Register"), Text("Sign In")],
         ),
       ),
     );

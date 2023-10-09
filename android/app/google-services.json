@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "340957486786",
+    "project_id": "reauth-cf863",
+    "storage_bucket": "reauth-cf863.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340957486786:android:ac76be9ac251f92c37e55b",
+        "android_client_info": {
+          "package_name": "com.example.reauth"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "340957486786-6kvfujdgpjdjoo4hv4gfm3pgsenachin.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBW9w35lktZ3-aLtjxwA35fkI55o7Mvg4g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "340957486786-6kvfujdgpjdjoo4hv4gfm3pgsenachin.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
