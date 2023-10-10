@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -26,14 +27,13 @@ class AuthsProviderCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             child: Row(
               children: [
-                Image.network(
-                  providerImage,
-                  height: 50,
-                  width: 50,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(
-                  width: 5,
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 8.0, right: 10, top: 8, bottom: 8),
+                  child: CachedNetworkImage(
+                    imageUrl: providerImage,
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -41,22 +41,22 @@ class AuthsProviderCard extends StatelessWidget {
                   children: [
                     Text(
                       providerName,
-                      style: GoogleFonts.oxygenMono(
+                      style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 14,
+                          fontSize: 16,
                           letterSpacing: .75,
-                          fontWeight: FontWeight.w400),
+                          fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(
                       height: 5,
                     ),
                     Text(
                       providerId,
-                      style: GoogleFonts.oxygenMono(
+                      style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 125, 125, 125),
-                          fontSize: 12,
-                          letterSpacing: 0,
-                          fontWeight: FontWeight.w400),
+                          fontSize: 14,
+                          letterSpacing: 0.5,
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 )

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reauth/bloc/cubit/provider_cubit.dart';
+import 'package:reauth/bloc/states/provider_state.dart';
 import 'package:reauth/components/authsprovider_card.dart';
-import 'package:reauth/components/authsproviderImage_card.dart';
+import 'package:reauth/components/authsproviderimage_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,8 +25,7 @@ class _HomePageState extends State<HomePage> {
 
   final List auths = [
     {
-      "providerImage":
-          "https://pngimg.com/uploads/facebook_logos/small/facebook_logos_PNG19753.png",
+      "providerImage": "http://pngimg.com/uploads/google/google_PNG19635.png",
       "providerName": "Facebook",
       "providerId": "aadarshghimire524@gmail.com"
     },
@@ -33,8 +35,7 @@ class _HomePageState extends State<HomePage> {
       "providerId": "aadarshghimire524@gmail.com"
     },
     {
-      "providerImage":
-          "https://pngimg.com/uploads/github/small/github_PNG6.png",
+      "providerImage": "http://pngimg.com/uploads/google/google_PNG19635.png",
       "providerName": "Github",
       "providerId": "aadarshghimire524@gmail.com"
     }
@@ -42,6 +43,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final providerCubit = BlocProvider.of<ProviderCubit>(context);
+    providerCubit.fetchProviders();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -137,21 +140,39 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 5,
                 ),
-                SizedBox(
-                  height: 60,
-                  width: MediaQuery.of(context).size.width,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: auths.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      double margin = index == 0 ? 0 : 5;
-                      final auth = auths[index];
-                      return AuthsProviderImageCard(
-                        margin: margin,
-                        providerImage: auth['providerImage'],
+                BlocConsumer<ProviderCubit, ProviderState>(
+                  listener: (context, state) {
+                    if (state is ProviderLoadFailure) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Failed to load providers: ${state.error}')),
                       );
-                    },
-                  ),
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is ProviderLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is ProviderLoadSuccess) {
+                      return SizedBox(
+                        height: 60,
+                        width: MediaQuery.of(context).size.width,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: state.providers.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final provider = state.providers[index];
+
+                            return AuthsProviderImageCard(
+                              providerImage: provider.faviconUrl,
+                            );
+                          },
+                        ),
+                      );
+                    } else {
+                      return Container(); // Placeholder for other states
+                    }
+                  },
                 ),
                 const SizedBox(
                   height: 10,
@@ -168,16 +189,37 @@ class _HomePageState extends State<HomePage> {
                   height: MediaQuery.of(context).size.height * .45,
                   width: MediaQuery.of(context).size.width,
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-                    child: ListView.builder(
-                      itemCount: auths.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final auth = auths[index];
-                        return AuthsProviderCard(
-                            providerImage: auth["providerImage"],
-                            providerName: auth["providerName"],
-                            providerId: auth["providerId"]);
+                    padding: const EdgeInsets.all(5.0),
+                    child: BlocConsumer<ProviderCubit, ProviderState>(
+                      listener: (context, state) {
+                        if (state is ProviderLoadFailure) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Failed to load providers: ${state.error}')),
+                          );
+                        }
+                      },
+                      builder: (context, state) {
+                        if (state is ProviderLoading) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (state is ProviderLoadSuccess) {
+                          return ListView.builder(
+                            itemCount: state.providers.length,
+                            itemBuilder: (context, index) {
+                              final provider = state.providers[index];
+
+                              return AuthsProviderCard(
+                                providerImage: provider.faviconUrl,
+                                providerName: provider.authProviderLink,
+                                providerId: provider.username,
+                              );
+                            },
+                          );
+                        } else {
+                          return Container(); // Placeholder for other states
+                        }
                       },
                     ),
                   ),

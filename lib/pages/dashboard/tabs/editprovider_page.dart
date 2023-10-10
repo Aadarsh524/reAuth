@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reauth/bloc/cubit/provider_cubit.dart';
+import 'package:reauth/bloc/states/provider_state.dart';
 import 'package:reauth/components/authsprovideredit_card.dart';
 import 'package:reauth/pages/addprovider_page.dart';
 
@@ -37,6 +40,8 @@ class _EditProviderPageState extends State<EditProviderPage> {
   ];
   @override
   Widget build(BuildContext context) {
+    final providerCubit = BlocProvider.of<ProviderCubit>(context);
+    providerCubit.fetchProviders();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -144,24 +149,37 @@ class _EditProviderPageState extends State<EditProviderPage> {
                   ),
                 ),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * .45,
-                  width: MediaQuery.of(context).size.width,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-                    child: ListView.builder(
-                      itemCount: auths.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final auth = auths[index];
-                        return AuthsProviderEditCard(
-                          providerImage: auth["providerImage"],
-                          providerName: auth["providerName"],
-                          providerId: auth['providerId'],
+                    height: MediaQuery.of(context).size.height * .45,
+                    width: MediaQuery.of(context).size.width,
+                    child: BlocConsumer<ProviderCubit, ProviderState>(
+                        listener: (context, state) {
+                      if (state is ProviderLoadFailure) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Failed to load providers: ${state.error}')),
                         );
-                      },
-                    ),
-                  ),
-                )
+                      }
+                    }, builder: (context, state) {
+                      if (state is ProviderLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is ProviderLoadSuccess) {
+                        return ListView.builder(
+                          itemCount: state.providers.length,
+                          itemBuilder: (context, index) {
+                            final provider = state.providers[index];
+
+                            return AuthsProviderEditCard(
+                              providerImage: provider.faviconUrl,
+                              providerName: provider.authProviderLink,
+                              providerId: provider.username,
+                            );
+                          },
+                        );
+                      } else {
+                        return Container(); // Placeholder for other states
+                      }
+                    }))
               ],
             ),
           ),

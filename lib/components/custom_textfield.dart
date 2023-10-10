@@ -6,6 +6,7 @@ class CustomTextField extends StatelessWidget {
   final String hintText;
   final String labelText;
   final bool obscureText;
+
   final TextInputType keyboardType;
   final Function(String)? onChanged;
 

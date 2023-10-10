@@ -7,6 +7,7 @@ import 'package:reauth/bloc/states/provider_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
 import 'package:reauth/models/provider_model.dart';
+import 'package:reauth/pages/dashboard/dashboard_page.dart';
 
 class AddProviderPage extends StatefulWidget {
   const AddProviderPage({Key? key}) : super(key: key);
@@ -25,6 +26,17 @@ class _AddProviderPageState extends State<AddProviderPage> {
       TextEditingController();
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
+  var authCategories = [
+    'Social Media App',
+    'Educational App',
+    'Lifestyle App',
+    'Productivity App',
+    'Entertainment apps',
+    'Game App',
+  ];
+  String dropdownvalue = 'Social Media App';
+
   @override
   Widget build(BuildContext context) {
     final providerCubit = BlocProvider.of<ProviderCubit>(context);
@@ -40,15 +52,13 @@ class _AddProviderPageState extends State<AddProviderPage> {
             padding: const EdgeInsets.only(right: 10.0),
             child: TextButton(
               onPressed: () {
-                providerCubit.submitProvider(
-                  ProviderModel(
+                providerCubit.submitProvider(ProviderModel(
                     username: usernameController.text,
                     password: passwordController.text,
                     note: noteController.text,
                     providerCategory: providerCategoryController.text,
-                    authproviderLink: authProviderLinkController.text,
-                  ),
-                );
+                    authProviderLink: authProviderLinkController.text,
+                    faviconUrl: ''));
               },
               child: Text(
                 "Save",
@@ -111,7 +121,14 @@ class _AddProviderPageState extends State<AddProviderPage> {
                     if (state is ProviderSubmissionSuccess) {
                       CustomSnackbar customSnackbar =
                           CustomSnackbar("Submission Completed");
+
                       customSnackbar.showCustomSnackbar(context);
+
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardPage(),
+                        ),
+                      );
                     } else if (state is ProviderSubmissionFailure) {
                       CustomSnackbar customSnackbar =
                           CustomSnackbar("Submission Error: ${state.error}");
@@ -123,24 +140,85 @@ class _AddProviderPageState extends State<AddProviderPage> {
                       child: Column(
                         children: [
                           CustomTextField(
+                            keyboardType: TextInputType.text,
                             controller: authProviderLinkController,
                             hintText: 'enter auth url',
                             labelText: 'Auth Url',
                           ),
                           CustomTextField(
-                            controller: passwordController,
+                            keyboardType: TextInputType.text,
+                            controller: usernameController,
                             hintText: 'enter auth username',
                             labelText: 'Username ',
                           ),
                           CustomTextField(
-                            controller: noteController,
+                            keyboardType: TextInputType.visiblePassword,
+                            controller: passwordController,
                             hintText: 'enter auth passwrod',
                             labelText: 'Password',
                           ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5.0, vertical: 10),
+                            child: Container(
+                              width: double.infinity,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color:
+                                        const Color.fromARGB(255, 53, 64, 79),
+                                    width: 2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: DropdownButton<String>(
+                                // Initial Value
+                                value: dropdownvalue,
+                                dropdownColor:
+                                    const Color.fromARGB(255, 53, 64, 79),
+
+                                icon: const Icon(Icons.keyboard_arrow_down),
+
+                                isExpanded: true,
+
+                                // Array list of items
+                                items: authCategories.map((String items) {
+                                  return DropdownMenuItem(
+                                    value: items,
+                                    child: Text(items,
+                                        // Customize the style of each item
+                                        style: GoogleFonts.karla(
+                                            color: const Color.fromARGB(
+                                                255, 255, 255, 255),
+                                            fontSize: 14,
+                                            letterSpacing: .75,
+                                            fontWeight: FontWeight.w600)),
+                                  );
+                                }).toList(),
+
+                                style: GoogleFonts.karla(
+                                    color: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                    fontSize: 14,
+                                    letterSpacing: .75,
+                                    fontWeight: FontWeight.w600),
+                                underline: Container(),
+
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    dropdownvalue = newValue!;
+                                    providerCategoryController.text =
+                                        dropdownvalue;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
                           CustomTextField(
-                            controller: providerCategoryController,
-                            hintText: 'Enter App Category',
-                            labelText: 'ProviderCategory',
+                            keyboardType: TextInputType.text,
+                            controller: noteController,
+                            hintText: 'enter note',
+                            labelText: 'Note',
                           ),
                         ],
                       ),

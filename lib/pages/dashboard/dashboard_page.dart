@@ -16,8 +16,8 @@ class _DashboardPageState extends State<DashboardPage> {
   int selectedIndex = 0;
   final List<Widget> bottomTabs = const [
     HomePage(),
-    SecurityPage(),
     EditProviderPage(),
+    SecurityPage(),
     NotificationPage(),
     SettingsPage()
   ];
