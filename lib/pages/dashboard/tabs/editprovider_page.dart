@@ -19,23 +19,20 @@ class _EditProviderPageState extends State<EditProviderPage> {
   TextEditingController searchController = TextEditingController();
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
-  final List auths = [
+  final List authUtils = [
     {
       "providerImage":
           "https://pngimg.com/uploads/facebook_logos/small/facebook_logos_PNG19753.png",
       "providerName": "Facebook",
-      "providerId": "aadarshghimire524@gmail.com"
     },
     {
       "providerImage": "http://pngimg.com/uploads/google/google_PNG19635.png",
       "providerName": "Google",
-      "providerId": "aadarshghimire524@gmail.com"
     },
     {
       "providerImage":
           "https://pngimg.com/uploads/github/small/github_PNG6.png",
       "providerName": "Github",
-      "providerId": "aadarshghimire524@gmail.com"
     }
   ];
   @override
@@ -96,7 +93,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
                   ),
                 ),
                 Text(
-                  "Edit Your Auths",
+                  "Popular Auths",
                   style: GoogleFonts.karla(
                       color: const Color.fromARGB(255, 125, 125, 125),
                       fontSize: 18,

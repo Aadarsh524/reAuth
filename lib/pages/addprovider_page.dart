@@ -6,6 +6,7 @@ import 'package:reauth/bloc/cubit/provider_cubit.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
+import 'package:reauth/components/formatter.dart';
 import 'package:reauth/models/provider_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
 
@@ -36,6 +37,14 @@ class _AddProviderPageState extends State<AddProviderPage> {
     'Game App',
   ];
   String dropdownvalue = 'Social Media App';
+  RegExp noUpperCase = RegExp(r'[A-Z]');
+
+  @override
+  void initState() {
+    super.initState();
+
+    providerCategoryController.text = dropdownvalue;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +67,7 @@ class _AddProviderPageState extends State<AddProviderPage> {
                     note: noteController.text,
                     providerCategory: providerCategoryController.text,
                     authProviderLink: authProviderLinkController.text,
-                    faviconUrl: ''));
+                    faviconUrl: authProviderLinkController.text));
               },
               child: Text(
                 "Save",
@@ -140,6 +149,7 @@ class _AddProviderPageState extends State<AddProviderPage> {
                       child: Column(
                         children: [
                           CustomTextField(
+                            textInputFormatter: [NoUppercaseInputFormatter()],
                             keyboardType: TextInputType.text,
                             controller: authProviderLinkController,
                             hintText: 'enter auth url',

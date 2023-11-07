@@ -65,22 +65,22 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           BottomNavigationBarItem(
             activeIcon: Icon(
-              Icons.health_and_safety,
+              Icons.add_box,
               color: Colors.white,
             ),
             icon: Icon(
-              Icons.health_and_safety_outlined,
+              Icons.add_box_outlined,
               color: Color.fromARGB(255, 125, 125, 125),
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             activeIcon: Icon(
-              Icons.add_box,
+              Icons.health_and_safety,
               color: Colors.white,
             ),
             icon: Icon(
-              Icons.add_box_outlined,
+              Icons.health_and_safety_outlined,
               color: Color.fromARGB(255, 125, 125, 125),
             ),
             label: '',

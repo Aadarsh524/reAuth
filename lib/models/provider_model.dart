@@ -15,16 +15,6 @@ class ProviderModel {
     required this.faviconUrl,
   });
 
-  // Map<String, dynamic> toMap() {
-  //   return {
-  //     'username': username,
-  //     'password': password,
-  //     'note': note,
-  //     'authProviderLink': authProviderLink,
-  //     'providerCategory': providerCategory,
-  //   };
-  // }
-
   factory ProviderModel.fromMap(Map<String, dynamic> map) {
     return ProviderModel(
       username: map['username'],

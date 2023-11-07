@@ -20,7 +20,6 @@ class ProviderCubit extends Cubit<ProviderState> {
 
       final providers = snapshot.docs.map((doc) {
         final data = doc.data();
-        final faviconUrl = 'https://${data['faviconUrl']}';
 
         return ProviderModel.fromMap({
           'username': data['username'] ?? '',
@@ -28,7 +27,7 @@ class ProviderCubit extends Cubit<ProviderState> {
           'note': data['note'] ?? '',
           'authProviderLink': data['authProviderLink'] ?? '',
           'providerCategory': data['providerCategory'] ?? '',
-          'faviconUrl': faviconUrl
+          'faviconUrl': data['faviconUrl'] ?? ''
         });
       }).toList();
 
@@ -72,7 +71,7 @@ class ProviderCubit extends Cubit<ProviderState> {
         return;
       }
 
-      final faviconUrl = '${providerModel.authProviderLink}/favicon.ico';
+      final faviconUrl = await fetchFaviconUrl(providerModel.faviconUrl);
 
       // Send data to Firebase
       await FirebaseFirestore.instance
@@ -99,13 +98,16 @@ class ProviderCubit extends Cubit<ProviderState> {
 
 Future<String?> fetchFaviconUrl(String websiteUrl) async {
   try {
-    final faviconUrl = Uri.parse(websiteUrl);
-    final response = await http.get(faviconUrl);
+    final faviconUrl = 'https://$websiteUrl/favicon.ico';
+    final url = Uri.parse(faviconUrl);
+    final response = await http.get(url);
+
+    String errorUrl = 'https://www.facebook.com/favicon.ico';
 
     if (response.statusCode == 200) {
       return faviconUrl.toString();
     } else {
-      return null;
+      return errorUrl.toString();
     }
   } catch (e) {
     return null;

@@ -1,18 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reauth/models/provider_model.dart';
+import 'package:reauth/pages/providerdetail_page.dart';
 
 class AuthsProviderCard extends StatelessWidget {
-  final String providerImage;
-  final String providerName;
-  final String providerId;
+  final ProviderModel providerModel;
 
-  const AuthsProviderCard(
-      {Key? key,
-      required this.providerImage,
-      required this.providerName,
-      this.providerId = ''})
-      : super(key: key);
+  const AuthsProviderCard({
+    Key? key,
+    required this.providerModel,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +20,15 @@ class AuthsProviderCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
         color: const Color.fromARGB(255, 53, 64, 79),
         child: InkWell(
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ProviderDetailPage(
+                  providerModel: providerModel,
+                ),
+              ),
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             child: Row(
@@ -31,7 +37,7 @@ class AuthsProviderCard extends StatelessWidget {
                   padding: const EdgeInsets.only(
                       left: 8.0, right: 10, top: 8, bottom: 8),
                   child: CachedNetworkImage(
-                    imageUrl: providerImage,
+                    imageUrl: providerModel.faviconUrl,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -40,7 +46,7 @@ class AuthsProviderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      providerName,
+                      providerModel.authProviderLink,
                       style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 16,
@@ -51,7 +57,7 @@ class AuthsProviderCard extends StatelessWidget {
                       height: 5,
                     ),
                     Text(
-                      providerId,
+                      providerModel.username,
                       style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 125, 125, 125),
                           fontSize: 14,

@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// ignore: must_be_immutable
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final String labelText;
-  final bool obscureText;
+  bool obscureText;
+  bool isFormTypePassword;
 
+  final List<TextInputFormatter> textInputFormatter;
   final TextInputType keyboardType;
-  final Function(String)? onChanged;
+  Function(bool)? passwordVisibility;
 
-  const CustomTextField({
+  CustomTextField({
     super.key,
     required this.controller,
     required this.hintText,
     required this.labelText,
+    this.passwordVisibility,
+    this.isFormTypePassword = false,
     this.obscureText = false,
+    this.textInputFormatter = const [],
     this.keyboardType = TextInputType.text,
-    this.onChanged,
   });
 
   @override
@@ -42,39 +48,56 @@ class CustomTextField extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          Card(
-            elevation: 5,
-            color: Colors.transparent,
-            child: TextField(
-              controller: controller,
-              obscureText: obscureText,
-              keyboardType: keyboardType,
-              onChanged: onChanged,
-              cursorColor: Colors.white,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.all(16),
-                hintText: hintText,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+          SizedBox(
+            height: 60,
+            child: Card(
+              elevation: 5,
+              color: Colors.transparent,
+              child: TextFormField(
+                inputFormatters: textInputFormatter,
+                controller: controller,
+                obscureText: obscureText,
+                keyboardType: keyboardType,
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  suffixIcon: isFormTypePassword
+                      ? IconButton(
+                          icon: Icon(
+                            obscureText
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          onPressed: () {
+                            passwordVisibility?.call(!obscureText);
+                          })
+                      : null,
+                  hintText: hintText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: Color.fromARGB(255, 53, 64, 79),
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: const Color.fromARGB(255, 43, 51, 63),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      const BorderSide(color: Color.fromARGB(255, 53, 64, 79)),
-                ),
-                filled: true,
-                fillColor: const Color.fromARGB(255, 43, 51, 63),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              style: const TextStyle(
+                style: const TextStyle(
                   fontFamily: 'oxygenMono',
                   color: Color.fromARGB(255, 255, 255, 255),
                   fontSize: 12,
-                  letterSpacing: .75,
-                  fontWeight: FontWeight.w400),
+                  letterSpacing: 0.75,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
           ),
         ],

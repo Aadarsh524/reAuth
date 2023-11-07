@@ -23,24 +23,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  final List auths = [
-    {
-      "providerImage": "http://pngimg.com/uploads/google/google_PNG19635.png",
-      "providerName": "Facebook",
-      "providerId": "aadarshghimire524@gmail.com"
-    },
-    {
-      "providerImage": "http://pngimg.com/uploads/google/google_PNG19635.png",
-      "providerName": "Google",
-      "providerId": "aadarshghimire524@gmail.com"
-    },
-    {
-      "providerImage": "http://pngimg.com/uploads/google/google_PNG19635.png",
-      "providerName": "Github",
-      "providerId": "aadarshghimire524@gmail.com"
-    }
-  ];
-
   @override
   Widget build(BuildContext context) {
     final providerCubit = BlocProvider.of<ProviderCubit>(context);
@@ -164,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                             final provider = state.providers[index];
 
                             return AuthsProviderImageCard(
-                              providerImage: provider.faviconUrl,
+                              providerModel: provider,
                             );
                           },
                         ),
@@ -211,9 +193,7 @@ class _HomePageState extends State<HomePage> {
                               final provider = state.providers[index];
 
                               return AuthsProviderCard(
-                                providerImage: provider.faviconUrl,
-                                providerName: provider.authProviderLink,
-                                providerId: provider.username,
+                                providerModel: provider,
                               );
                             },
                           );
