@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/provider_cubit.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
-import 'package:reauth/components/authsprovideredit_card.dart';
+import 'package:reauth/components/popularprovider_card.dart';
 import 'package:reauth/pages/addprovider_page.dart';
 
 class EditProviderPage extends StatefulWidget {
@@ -19,26 +19,12 @@ class _EditProviderPageState extends State<EditProviderPage> {
   TextEditingController searchController = TextEditingController();
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
-  final List authUtils = [
-    {
-      "providerImage":
-          "https://pngimg.com/uploads/facebook_logos/small/facebook_logos_PNG19753.png",
-      "providerName": "Facebook",
-    },
-    {
-      "providerImage": "http://pngimg.com/uploads/google/google_PNG19635.png",
-      "providerName": "Google",
-    },
-    {
-      "providerImage":
-          "https://pngimg.com/uploads/github/small/github_PNG6.png",
-      "providerName": "Github",
-    }
-  ];
   @override
   Widget build(BuildContext context) {
     final providerCubit = BlocProvider.of<ProviderCubit>(context);
-    providerCubit.fetchProviders();
+    if (!isSearchHasValue) {
+      providerCubit.fetchPopularProviders();
+    }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -86,7 +72,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
                                 );
                               },
                               child: const Icon(
-                                Icons.add_box_rounded,
+                                Icons.add_circle,
                                 color: Color.fromARGB(255, 43, 51, 63),
                               ))),
                     ),
@@ -119,6 +105,8 @@ class _EditProviderPageState extends State<EditProviderPage> {
                             setState(() {
                               isSearchHasValue = true;
                             });
+                            providerCubit
+                                .searchPopularAuth(searchController.text);
                           }
                         },
                         backgroundColor: const MaterialStatePropertyAll(
@@ -146,7 +134,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
                   ),
                 ),
                 SizedBox(
-                    height: MediaQuery.of(context).size.height * .45,
+                    height: MediaQuery.of(context).size.height * .55,
                     width: MediaQuery.of(context).size.width,
                     child: BlocConsumer<ProviderCubit, ProviderState>(
                         listener: (context, state) {
@@ -159,19 +147,33 @@ class _EditProviderPageState extends State<EditProviderPage> {
                       }
                     }, builder: (context, state) {
                       if (state is ProviderLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (state is ProviderLoadSuccess) {
+                        return const Center(
+                            child: CircularProgressIndicator(
+                                color: Color.fromARGB(255, 106, 172, 191)));
+                      } else if (state is PopularProviderLoadSuccess &&
+                          !isSearchHasValue) {
                         return ListView.builder(
                           itemCount: state.providers.length,
                           itemBuilder: (context, index) {
                             final provider = state.providers[index];
 
-                            return AuthsProviderEditCard(
-                              providerImage: provider.faviconUrl,
-                              providerName: provider.authProviderLink,
-                              providerId: provider.username,
+                            return PopularProviderCard(
+                              providerModel: provider,
                             );
                           },
+                        );
+                      } else if (state is Searching) {
+                        return const Center(
+                            child: CircularProgressIndicator(
+                                color: Color.fromARGB(255, 106, 172, 191)));
+                      } else if (state is PopularProviderSearchSuccess) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            PopularProviderCard(
+                              providerModel: state.provider,
+                            ),
+                          ],
                         );
                       } else {
                         return Container(); // Placeholder for other states

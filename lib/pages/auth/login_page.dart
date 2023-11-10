@@ -105,10 +105,8 @@ class _LoginPageState extends State<LoginPage> {
                                     labelText: 'Password',
                                     obscureText: isPasswordVisible,
                                     passwordVisibility: (e) {
-                                      print(isPasswordVisible);
                                       setState(() {
                                         isPasswordVisible = !isPasswordVisible;
-                                        print(isPasswordVisible);
                                       });
                                     }),
                                 Row(

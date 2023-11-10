@@ -2,14 +2,15 @@ import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
-import 'package:reauth/models/provider_model.dart';
-import 'package:http/http.dart' as http;
+
+import 'package:reauth/models/popularprovider_model.dart';
+import 'package:reauth/models/userprovider_model.dart';
 
 class ProviderCubit extends Cubit<ProviderState> {
   User? user = FirebaseAuth.instance.currentUser;
   ProviderCubit() : super(ProviderInitial());
 
-  Future<void> fetchProviders() async {
+  Future<void> fetchUserProviders() async {
     try {
       emit(ProviderLoading());
       final snapshot = await FirebaseFirestore.instance
@@ -21,13 +22,14 @@ class ProviderCubit extends Cubit<ProviderState> {
       final providers = snapshot.docs.map((doc) {
         final data = doc.data();
 
-        return ProviderModel.fromMap({
+        return UserProviderModel.fromMap({
           'username': data['username'] ?? '',
           'password': data['password'] ?? '',
           'note': data['note'] ?? '',
           'authProviderLink': data['authProviderLink'] ?? '',
           'providerCategory': data['providerCategory'] ?? '',
-          'faviconUrl': data['faviconUrl'] ?? ''
+          'faviconUrl': data['faviconUrl'] ?? '',
+          'authName': data['authName'] ?? '',
         });
       }).toList();
 
@@ -37,7 +39,92 @@ class ProviderCubit extends Cubit<ProviderState> {
     }
   }
 
-  String? validateProvider(ProviderModel provider) {
+  Future<void> fetchPopularProviders() async {
+    try {
+      emit(ProviderLoading());
+      final snapshot =
+          await FirebaseFirestore.instance.collection('popularAuths').get();
+
+      final providers = snapshot.docs.map((doc) {
+        final data = doc.data();
+
+        return PopularProviderModel.fromMap({
+          'authName': data['authName'] ?? '',
+          'authLink': data['authLink'] ?? '',
+          'authCategory': data['authCategory'] ?? '',
+          'faviconUrl': data['faviconUrl'] ?? ''
+        });
+      }).toList();
+
+      emit(PopularProviderLoadSuccess(providers: providers));
+    } catch (e) {
+      emit(ProviderLoadFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> searchUserAuth(String searchTerm) async {
+    try {
+      emit(Searching());
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .collection("auths")
+          .get();
+      final providers = snapshot.docs.map((doc) {
+        final data = doc.data();
+
+        return UserProviderModel.fromMap({
+          'authName': data['authName'] ?? '',
+          'username': data['username'] ?? '',
+          'password': data['password'] ?? '',
+          'note': data['note'] ?? '',
+          'authProviderLink': data['authProviderLink'] ?? '',
+          'providerCategory': data['providerCategory'] ?? '',
+          'faviconUrl': data['faviconUrl'] ?? ''
+        });
+      }).toList();
+
+      for (var provider in providers) {
+        if (provider.authName
+            .toLowerCase()
+            .contains(searchTerm.toLowerCase())) {
+          emit(UserProviderSearchSuccess(provider: provider));
+        }
+      }
+    } catch (e) {
+      emit(ProviderLoadFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> searchPopularAuth(String searchTerm) async {
+    try {
+      emit(Searching());
+      final snapshot =
+          await FirebaseFirestore.instance.collection('popularAuths').get();
+      final providers = snapshot.docs.map((doc) {
+        final data = doc.data();
+
+        return PopularProviderModel.fromMap({
+          'authName': data['authName'] ?? '',
+          'authLink': data['authLink'] ?? '',
+          'authCategory': data['authCategory'] ?? '',
+          'faviconUrl': data['faviconUrl'] ?? ''
+        });
+      }).toList();
+
+      for (var provider in providers) {
+        if (provider.authName
+            .toLowerCase()
+            .contains(searchTerm.toLowerCase())) {
+          emit(PopularProviderSearchSuccess(provider: provider));
+        }
+      }
+    } catch (e) {
+      emit(ProviderLoadFailure(error: e.toString()));
+    }
+  }
+
+  String? validateProvider(UserProviderModel provider) {
     if (provider.authProviderLink.isEmpty) {
       return 'Auth Provider Link is required';
     }
@@ -63,7 +150,7 @@ class ProviderCubit extends Cubit<ProviderState> {
     return null;
   }
 
-  Future<void> submitProvider(ProviderModel providerModel) async {
+  Future<void> submitProvider(UserProviderModel providerModel) async {
     try {
       final validationError = validateProvider(providerModel);
       if (validationError != null) {
@@ -71,7 +158,7 @@ class ProviderCubit extends Cubit<ProviderState> {
         return;
       }
 
-      final faviconUrl = await fetchFaviconUrl(providerModel.faviconUrl);
+      final faviconUrl = await getFaviconUrl(providerModel.authName);
 
       // Send data to Firebase
       await FirebaseFirestore.instance
@@ -80,6 +167,7 @@ class ProviderCubit extends Cubit<ProviderState> {
           .collection('auths')
           .doc()
           .set({
+        'authName': providerModel.authName,
         'username': providerModel.username,
         'password': providerModel.password,
         'note': providerModel.note,
@@ -89,27 +177,36 @@ class ProviderCubit extends Cubit<ProviderState> {
       });
 
       emit(ProviderSubmissionSuccess());
-      fetchProviders();
+      fetchUserProviders();
     } catch (e) {
       emit(ProviderSubmissionFailure(error: e.toString()));
     }
   }
 }
 
-Future<String?> fetchFaviconUrl(String websiteUrl) async {
+Future<String> getFaviconUrl(String authName) async {
   try {
-    final faviconUrl = 'https://$websiteUrl/favicon.ico';
-    final url = Uri.parse(faviconUrl);
-    final response = await http.get(url);
+    final snapshot =
+        await FirebaseFirestore.instance.collection('popularAuths').get();
 
-    String errorUrl = 'https://www.facebook.com/favicon.ico';
+    final providers = snapshot.docs.map((doc) {
+      final data = doc.data();
 
-    if (response.statusCode == 200) {
-      return faviconUrl.toString();
-    } else {
-      return errorUrl.toString();
+      return PopularProviderModel.fromMap({
+        'authName': data['authName'] ?? '',
+        'authLink': data['authLink'] ?? '',
+        'authCategory': data['authCategory'] ?? '',
+        'faviconUrl': data['faviconUrl'] ?? ''
+      });
+    }).toList();
+
+    for (var provider in providers) {
+      if (provider.authName.toLowerCase().contains(authName.toLowerCase())) {
+        return provider.faviconUrl;
+      }
     }
+    return "https://www.facebook.com/favicon.ico";
   } catch (e) {
-    return null;
+    return "https://www.facebook.com/favicon.ico";
   }
 }

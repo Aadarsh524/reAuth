@@ -1,9 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:reauth/models/provider_model.dart';
+import 'package:reauth/models/userprovider_model.dart';
 import 'package:reauth/pages/providerdetail_page.dart';
 
 class AuthsProviderImageCard extends StatelessWidget {
-  final ProviderModel providerModel;
+  final UserProviderModel providerModel;
 
   const AuthsProviderImageCard({
     Key? key,
@@ -29,8 +30,8 @@ class AuthsProviderImageCard extends StatelessWidget {
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Image.network(
-              providerModel.faviconUrl,
+            child: CachedNetworkImage(
+              imageUrl: providerModel.faviconUrl,
               fit: BoxFit.contain,
             ),
           ),

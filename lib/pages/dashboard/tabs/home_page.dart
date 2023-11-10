@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/provider_cubit.dart';
+import 'package:reauth/bloc/cubit/recentprovider_cubit.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
+import 'package:reauth/bloc/states/recentprovider_state.dart';
 import 'package:reauth/components/authsprovider_card.dart';
 import 'package:reauth/components/authsproviderimage_card.dart';
+import 'package:reauth/pages/dashboard/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,14 +22,25 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    searchController.dispose();
     super.dispose();
+    searchController.text = '';
+    searchController.clear();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    BlocProvider.of<RecentProviderCubit>(context).fetchUserRecentProviders();
   }
 
   @override
   Widget build(BuildContext context) {
     final providerCubit = BlocProvider.of<ProviderCubit>(context);
-    providerCubit.fetchProviders();
+
+    if (!isSearchHasValue) {
+      providerCubit.fetchUserProviders();
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -55,10 +69,19 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(
                       width: 30,
                       height: 30.0,
-                      child: CircleAvatar(
-                        radius: 50.0,
-                        child: Image.asset(
-                            fit: BoxFit.contain, 'assets/splash.png'),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const ProfilePage(),
+                            ),
+                          );
+                        },
+                        child: CircleAvatar(
+                          radius: 50.0,
+                          child: Image.asset(
+                              fit: BoxFit.contain, 'assets/defaultAvatar.png'),
+                        ),
                       ),
                     )
                   ],
@@ -82,6 +105,7 @@ class _HomePageState extends State<HomePage> {
                             setState(() {
                               isSearchHasValue = true;
                             });
+                            providerCubit.searchUserAuth(searchController.text);
                           }
                         },
                         backgroundColor: const MaterialStatePropertyAll(
@@ -122,39 +146,40 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 5,
                 ),
-                BlocConsumer<ProviderCubit, ProviderState>(
-                  listener: (context, state) {
-                    if (state is ProviderLoadFailure) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                'Failed to load providers: ${state.error}')),
-                      );
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state is ProviderLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (state is ProviderLoadSuccess) {
-                      return SizedBox(
-                        height: 60,
-                        width: MediaQuery.of(context).size.width,
-                        child: ListView.builder(
+                SizedBox(
+                  height: 60,
+                  width: MediaQuery.of(context).size.width,
+                  child: BlocConsumer<RecentProviderCubit, RecentProviderState>(
+                    listener: (context, state) {
+                      if (state is RecentProviderLoadFailure) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Failed to load providers: ${state.error}')),
+                        );
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state is RecentProviderLoading) {
+                        return const Center(
+                            child: CircularProgressIndicator(
+                                color: Color.fromARGB(255, 106, 172, 191)));
+                      } else if (state is RecentProviderLoadSuccess) {
+                        return ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: state.providers.length,
                           itemBuilder: (BuildContext context, int index) {
                             final provider = state.providers[index];
-
                             return AuthsProviderImageCard(
                               providerModel: provider,
                             );
                           },
-                        ),
-                      );
-                    } else {
-                      return Container(); // Placeholder for other states
-                    }
-                  },
+                        );
+                      } else {
+                        return Container(); // Placeholder for other states
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(
                   height: 10,
@@ -185,8 +210,10 @@ class _HomePageState extends State<HomePage> {
                       builder: (context, state) {
                         if (state is ProviderLoading) {
                           return const Center(
-                              child: CircularProgressIndicator());
-                        } else if (state is ProviderLoadSuccess) {
+                              child: CircularProgressIndicator(
+                                  color: Color.fromARGB(255, 106, 172, 191)));
+                        } else if (state is ProviderLoadSuccess &&
+                            !isSearchHasValue) {
                           return ListView.builder(
                             itemCount: state.providers.length,
                             itemBuilder: (context, index) {
@@ -196,6 +223,19 @@ class _HomePageState extends State<HomePage> {
                                 providerModel: provider,
                               );
                             },
+                          );
+                        } else if (state is Searching) {
+                          return const Center(
+                              child: CircularProgressIndicator(
+                                  color: Color.fromARGB(255, 106, 172, 191)));
+                        } else if (state is UserProviderSearchSuccess) {
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              AuthsProviderCard(
+                                providerModel: state.provider,
+                              ),
+                            ],
                           );
                         } else {
                           return Container(); // Placeholder for other states

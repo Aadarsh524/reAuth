@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/models/provider_model.dart';
+import 'package:reauth/models/userprovider_model.dart';
 import 'package:reauth/pages/providerdetail_page.dart';
 
 class AuthsProviderCard extends StatelessWidget {
-  final ProviderModel providerModel;
+  final UserProviderModel providerModel;
 
   const AuthsProviderCard({
     Key? key,
@@ -15,6 +15,7 @@ class AuthsProviderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      height: 75,
       child: Card(
         elevation: 5,
         margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
@@ -30,31 +31,28 @@ class AuthsProviderCard extends StatelessWidget {
             );
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
             child: Row(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                      left: 8.0, right: 10, top: 8, bottom: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   child: CachedNetworkImage(
                     imageUrl: providerModel.faviconUrl,
                     fit: BoxFit.contain,
                   ),
                 ),
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      providerModel.authProviderLink,
+                      providerModel.authName,
                       style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 16,
                           letterSpacing: .75,
                           fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(
-                      height: 5,
                     ),
                     Text(
                       providerModel.username,

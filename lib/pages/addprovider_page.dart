@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,11 +8,14 @@ import 'package:reauth/bloc/states/provider_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
 import 'package:reauth/components/formatter.dart';
-import 'package:reauth/models/provider_model.dart';
+import 'package:reauth/models/popularprovider_model.dart';
+import 'package:reauth/models/userprovider_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
 
 class AddProviderPage extends StatefulWidget {
-  const AddProviderPage({Key? key}) : super(key: key);
+  final PopularProviderModel? popularProviderModel;
+  const AddProviderPage({Key? key, this.popularProviderModel})
+      : super(key: key);
 
   @override
   State<AddProviderPage> createState() => _AddProviderPageState();
@@ -21,29 +25,36 @@ class _AddProviderPageState extends State<AddProviderPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController noteController = TextEditingController();
-  final TextEditingController authProviderLinkController =
-      TextEditingController();
+  TextEditingController authProviderLinkController = TextEditingController();
   final TextEditingController providerCategoryController =
       TextEditingController();
-
+  final TextEditingController authProviderNameController =
+      TextEditingController();
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   var authCategories = [
-    'Social Media App',
-    'Educational App',
-    'Lifestyle App',
-    'Productivity App',
-    'Entertainment apps',
-    'Game App',
+    'Social Media',
+    'Ecommerce',
+    'Educational',
+    'Lifestyle',
+    'Productivity',
+    'Entertainment',
+    'Game',
   ];
-  String dropdownvalue = 'Social Media App';
+  String? dropdownvalue = 'Social Media';
   RegExp noUpperCase = RegExp(r'[A-Z]');
 
   @override
   void initState() {
     super.initState();
 
-    providerCategoryController.text = dropdownvalue;
+    if (widget.popularProviderModel != null) {
+      dropdownvalue = widget.popularProviderModel?.authCategory;
+      authProviderNameController.text = widget.popularProviderModel!.authName;
+      authProviderLinkController.text = widget.popularProviderModel!.authLink;
+    }
+
+    providerCategoryController.text = dropdownvalue!;
   }
 
   @override
@@ -61,7 +72,13 @@ class _AddProviderPageState extends State<AddProviderPage> {
             padding: const EdgeInsets.only(right: 10.0),
             child: TextButton(
               onPressed: () {
-                providerCubit.submitProvider(ProviderModel(
+                widget.popularProviderModel != null
+                    ? authProviderLinkController.text =
+                        widget.popularProviderModel!.authLink
+                    : authProviderLinkController.text =
+                        "www.${authProviderNameController.text.toLowerCase()}.com";
+                providerCubit.submitProvider(UserProviderModel(
+                    authName: authProviderNameController.text,
                     username: usernameController.text,
                     password: passwordController.text,
                     note: noteController.text,
@@ -98,16 +115,25 @@ class _AddProviderPageState extends State<AddProviderPage> {
                     ),
                     child: Column(
                       children: [
-                        const Icon(
-                          Icons.add_box,
-                          size: 24,
-                          color: Color.fromARGB(255, 111, 163, 219),
-                        ),
+                        widget.popularProviderModel != null
+                            ? CachedNetworkImage(
+                                imageUrl:
+                                    widget.popularProviderModel!.faviconUrl,
+                                height: 30,
+                                fit: BoxFit.contain,
+                              )
+                            : const Icon(
+                                Icons.add_circle,
+                                size: 24,
+                                color: Color.fromARGB(255, 111, 163, 219),
+                              ),
                         const SizedBox(
                           height: 10,
                         ),
                         Text(
-                          "Add Auth",
+                          widget.popularProviderModel != null
+                              ? 'Add ${widget.popularProviderModel!.authName}'
+                              : "Add Auth",
                           style: GoogleFonts.karla(
                               color: const Color.fromARGB(255, 255, 255, 255),
                               fontSize: 20,
@@ -148,13 +174,25 @@ class _AddProviderPageState extends State<AddProviderPage> {
                     return Form(
                       child: Column(
                         children: [
-                          CustomTextField(
-                            textInputFormatter: [NoUppercaseInputFormatter()],
-                            keyboardType: TextInputType.text,
-                            controller: authProviderLinkController,
-                            hintText: 'enter auth url',
-                            labelText: 'Auth Url',
-                          ),
+                          widget.popularProviderModel != null
+                              ? CustomTextField(
+                                  textInputFormatter: [
+                                    NoUppercaseInputFormatter()
+                                  ],
+                                  keyboardType: TextInputType.text,
+                                  controller: authProviderLinkController,
+                                  hintText: 'enter auth link',
+                                  labelText: 'Auth Link',
+                                )
+                              : CustomTextField(
+                                  textInputFormatter: [
+                                    NoUppercaseInputFormatter()
+                                  ],
+                                  keyboardType: TextInputType.text,
+                                  controller: authProviderNameController,
+                                  hintText: 'enter auth name',
+                                  labelText: 'Auth Name',
+                                ),
                           CustomTextField(
                             keyboardType: TextInputType.text,
                             controller: usernameController,
@@ -218,7 +256,7 @@ class _AddProviderPageState extends State<AddProviderPage> {
                                   setState(() {
                                     dropdownvalue = newValue!;
                                     providerCategoryController.text =
-                                        dropdownvalue;
+                                        dropdownvalue!;
                                   });
                                 },
                               ),
@@ -227,7 +265,7 @@ class _AddProviderPageState extends State<AddProviderPage> {
                           CustomTextField(
                             keyboardType: TextInputType.text,
                             controller: noteController,
-                            hintText: 'enter note',
+                            hintText: 'write some note',
                             labelText: 'Note',
                           ),
                         ],
