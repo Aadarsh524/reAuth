@@ -55,7 +55,7 @@ class _SplashPageState extends State<SplashPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(15),
+                  padding: const EdgeInsets.all(60),
                   child: Image.asset(
                     "assets/splash.png",
                     colorBlendMode: BlendMode.colorBurn,

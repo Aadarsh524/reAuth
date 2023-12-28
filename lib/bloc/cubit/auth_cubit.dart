@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reauth/bloc/states/auth_state.dart';
+import 'package:reauth/utils/validator.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   User? user = FirebaseAuth.instance.currentUser;
@@ -31,6 +33,28 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> setPin(String pin1, String pin2) async {
+    final validationError = validateSetPin(pin1, pin1);
+    if (validationError != null) {
+      emit(PinError(error: validationError));
+      return;
+    }
+    try {
+      emit(AuthLoading());
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('profile')
+          .doc(user!.uid)
+          .set({'pin': pin1});
+
+      emit(PinSetSuccess());
+    } on FirebaseAuthException catch (e) {
+      emit(PinError(error: e.toString()));
+    }
+  }
+
   Future<void> initiateRegister(
       String email, String password, String confirmPassword) async {
     final validationError = validateRegister(email, password, confirmPassword);
@@ -54,53 +78,4 @@ class AuthCubit extends Cubit<AuthState> {
       }
     }
   }
-}
-
-String? validateRegister(
-    String email, String password, String confirmPassword) {
-  if (email.isEmpty) {
-    return 'Email is required';
-  }
-  if (email.isNotEmpty) {
-    final RegExp emailRegex = RegExp(
-      r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)*(\.[a-z]{2,})$',
-      caseSensitive: false,
-    );
-    if (!emailRegex.hasMatch(email)) {
-      return 'Email format is not matched';
-    }
-  }
-  if (password.isEmpty) {
-    return 'Username is required';
-  }
-  if (confirmPassword.isEmpty) {
-    return 'Password is required';
-  }
-  if (password.isNotEmpty && confirmPassword.isNotEmpty) {
-    if (password != confirmPassword) {
-      return 'Password donot matches';
-    }
-  }
-
-  return null;
-}
-
-String? validateLogin(String email, String password) {
-  if (email.isEmpty) {
-    return 'Email is required';
-  }
-  if (email.isNotEmpty) {
-    final RegExp emailRegex = RegExp(
-      r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)*(\.[a-z]{2,})$',
-      caseSensitive: false,
-    );
-    if (!emailRegex.hasMatch(email)) {
-      return 'Email format is not matched';
-    }
-  }
-  if (password.isEmpty) {
-    return 'Username is required';
-  }
-
-  return null;
 }

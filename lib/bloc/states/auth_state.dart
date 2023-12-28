@@ -24,6 +24,19 @@ class AuthLoading extends AuthState {}
 
 class RegisterSuccess extends AuthState {}
 
+class PinMatched extends AuthState {}
+
+class PinSetSuccess extends AuthState {}
+
+class PinError extends AuthState {
+  final String error;
+
+  const PinError({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
 class RegisterSubmissionFailure extends AuthState {
   final String error;
 

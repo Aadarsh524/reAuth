@@ -47,6 +47,7 @@ dependencies:
   equatable: ^2.0.5
   cached_network_image: ^3.3.0
   http: ^1.1.0
+  pin_code_fields: ^8.0.1
 
 dev_dependencies:
   flutter_test:

@@ -4,9 +4,8 @@ import 'package:reauth/components/custom_textfield.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({Key? key}) : super(key: key);
-
   @override
-  _EditProfilePageState createState() => _EditProfilePageState();
+  State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
@@ -108,7 +107,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         child: Text(
           'Save',
           style: GoogleFonts.karla(
-            color: Color.fromARGB(249, 255, 255, 255),
+            color: const Color.fromARGB(249, 255, 255, 255),
             fontSize: 16,
             letterSpacing: .5,
             fontWeight: FontWeight.w500,

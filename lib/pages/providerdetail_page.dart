@@ -20,8 +20,6 @@ class ProviderDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final providerCubit = BlocProvider.of<ProviderCubit>(context);
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
