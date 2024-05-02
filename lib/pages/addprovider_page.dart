@@ -185,9 +185,6 @@ class _AddProviderPageState extends State<AddProviderPage> {
                                   labelText: 'Auth Link',
                                 )
                               : CustomTextField(
-                                  textInputFormatter: [
-                                    NoUppercaseInputFormatter()
-                                  ],
                                   keyboardType: TextInputType.text,
                                   controller: authProviderNameController,
                                   hintText: 'enter auth name',

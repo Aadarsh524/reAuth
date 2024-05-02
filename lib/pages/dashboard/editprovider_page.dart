@@ -30,7 +30,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
           child: SizedBox(
             height: MediaQuery.of(context).size.height * .95,
             width: MediaQuery.of(context).size.width,

@@ -7,11 +7,11 @@ import 'package:reauth/bloc/cubit/provider_cubit.dart';
 import 'package:reauth/bloc/cubit/recentprovider_cubit.dart';
 import 'package:reauth/pages/splash_page.dart';
 import 'package:reauth/themes/themes.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 

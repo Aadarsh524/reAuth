@@ -1,10 +1,13 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
 
 import 'package:reauth/models/popularprovider_model.dart';
 import 'package:reauth/models/userprovider_model.dart';
+
+import 'package:http/http.dart' as http;
 
 class ProviderCubit extends Cubit<ProviderState> {
   User? user = FirebaseAuth.instance.currentUser;
@@ -185,6 +188,7 @@ class ProviderCubit extends Cubit<ProviderState> {
 }
 
 Future<String> getFaviconUrl(String authName) async {
+  String auth = authName.toLowerCase();
   try {
     final snapshot =
         await FirebaseFirestore.instance.collection('popularAuths').get();
@@ -201,12 +205,12 @@ Future<String> getFaviconUrl(String authName) async {
     }).toList();
 
     for (var provider in providers) {
-      if (provider.authName.toLowerCase().contains(authName.toLowerCase())) {
+      if (provider.authName.toLowerCase().contains(auth)) {
         return provider.faviconUrl;
       }
     }
-    return "https://www.facebook.com/favicon.ico";
+    return "https://api.statvoo.com/favicon/$auth.com";
   } catch (e) {
-    return "https://www.facebook.com/favicon.ico";
+    return e.toString();
   }
 }

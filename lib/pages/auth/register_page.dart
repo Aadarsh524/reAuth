@@ -184,7 +184,6 @@ class _RegisterPageState extends State<RegisterPage> {
                               ],
                             ),
                             // .animate(delay: 1500.ms).fade(duration: 1000.ms),
-                            const SizedBox(height: 50),
                           ],
                         )
                         // .animate(delay: 1500.ms).fade(duration: 1000.ms),

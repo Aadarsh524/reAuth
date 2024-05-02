@@ -4,9 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/provider_cubit.dart';
 import 'package:reauth/bloc/cubit/recentprovider_cubit.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
-import 'package:reauth/bloc/states/recentprovider_state.dart';
+// import 'package:reauth/bloc/states/recentprovider_state.dart';
 import 'package:reauth/components/authsprovider_card.dart';
-import 'package:reauth/components/authsproviderimage_card.dart';
+// import 'package:reauth/components/authsproviderimage_card.dart';
 import 'package:reauth/pages/dashboard/profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -135,55 +135,55 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 10,
                 ),
-                Text(
-                  "Recently Used",
-                  style: GoogleFonts.karla(
-                      color: const Color.fromARGB(255, 125, 125, 125),
-                      fontSize: 18,
-                      letterSpacing: .75,
-                      fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                SizedBox(
-                  height: 60,
-                  width: MediaQuery.of(context).size.width,
-                  child: BlocConsumer<RecentProviderCubit, RecentProviderState>(
-                    listener: (context, state) {
-                      if (state is RecentProviderLoadFailure) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'Failed to load providers: ${state.error}')),
-                        );
-                      }
-                    },
-                    builder: (context, state) {
-                      if (state is RecentProviderLoading) {
-                        return const Center(
-                            child: CircularProgressIndicator(
-                                color: Color.fromARGB(255, 106, 172, 191)));
-                      } else if (state is RecentProviderLoadSuccess) {
-                        return ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: state.providers.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final provider = state.providers[index];
-                            return AuthsProviderImageCard(
-                              providerModel: provider,
-                            );
-                          },
-                        );
-                      } else {
-                        return Container(); // Placeholder for other states
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
+                // Text(
+                //   "Recently Used",
+                //   style: GoogleFonts.karla(
+                //       color: const Color.fromARGB(255, 125, 125, 125),
+                //       fontSize: 18,
+                //       letterSpacing: .75,
+                //       fontWeight: FontWeight.w600),
+                // ),
+                // const SizedBox(
+                //   height: 5,
+                // ),
+                // SizedBox(
+                //   height: 60,
+                //   width: MediaQuery.of(context).size.width,
+                //   child: BlocConsumer<RecentProviderCubit, RecentProviderState>(
+                //     listener: (context, state) {
+                //       if (state is RecentProviderLoadFailure) {
+                //         ScaffoldMessenger.of(context).showSnackBar(
+                //           SnackBar(
+                //               content: Text(
+                //                   'Failed to load providers: ${state.error}')),
+                //         );
+                //       }
+                //     },
+                //     builder: (context, state) {
+                //       if (state is RecentProviderLoading) {
+                //         return const Center(
+                //             child: CircularProgressIndicator(
+                //                 color: Color.fromARGB(255, 106, 172, 191)));
+                //       } else if (state is RecentProviderLoadSuccess) {
+                //         return ListView.builder(
+                //           scrollDirection: Axis.horizontal,
+                //           itemCount: state.providers.length,
+                //           itemBuilder: (BuildContext context, int index) {
+                //             final provider = state.providers[index];
+                //             return AuthsProviderImageCard(
+                //               providerModel: provider,
+                //             );
+                //           },
+                //         );
+                //       } else {
+                //         return Container(); // Placeholder for other states
+                //       }
+                //     },
+                //   ),
+                // ),
+                // const SizedBox(
+                //   height: 10,
+                // ),
                 Text(
                   "Your Auths",
                   style: GoogleFonts.karla(
