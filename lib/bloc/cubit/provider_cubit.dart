@@ -1,13 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
 
 import 'package:reauth/models/popularprovider_model.dart';
 import 'package:reauth/models/userprovider_model.dart';
-
-import 'package:http/http.dart' as http;
 
 class ProviderCubit extends Cubit<ProviderState> {
   User? user = FirebaseAuth.instance.currentUser;
@@ -91,7 +88,7 @@ class ProviderCubit extends Cubit<ProviderState> {
         if (provider.authName
             .toLowerCase()
             .contains(searchTerm.toLowerCase())) {
-          emit(UserProviderSearchSuccess(provider: provider));
+          emit(UserProviderSearchSuccess(providers: providers));
         }
       }
     } catch (e) {
@@ -115,13 +112,13 @@ class ProviderCubit extends Cubit<ProviderState> {
         });
       }).toList();
 
-      for (var provider in providers) {
-        if (provider.authName
+      final matchingProviders = providers.where((provider) {
+        return provider.authName
             .toLowerCase()
-            .contains(searchTerm.toLowerCase())) {
-          emit(PopularProviderSearchSuccess(provider: provider));
-        }
-      }
+            .contains(searchTerm.toLowerCase());
+      }).toList();
+
+      emit(PopularProviderSearchSuccess(providers: matchingProviders));
     } catch (e) {
       emit(ProviderLoadFailure(error: e.toString()));
     }

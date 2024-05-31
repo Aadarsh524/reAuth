@@ -14,58 +14,84 @@ class AuthsProviderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 75,
-      child: Card(
-        elevation: 5,
-        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-        color: const Color.fromARGB(255, 53, 64, 79),
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ProviderDetailPage(
-                  providerModel: providerModel,
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ProviderDetailPage(
+                providerModel: providerModel,
               ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            child: Row(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 53, 64, 79),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
                     imageUrl: providerModel.faviconUrl,
+                    width: 60,
+                    height: 60,
                     fit: BoxFit.contain,
+                    placeholder: (context, url) => Container(
+                      width: 60,
+                      height: 60,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      providerModel.authName,
-                      style: GoogleFonts.karla(
-                          color: const Color.fromARGB(255, 255, 255, 255),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        providerModel.authName,
+                        style: GoogleFonts.karla(
+                          color: Colors.white,
                           fontSize: 16,
                           letterSpacing: .75,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      providerModel.username,
-                      style: GoogleFonts.karla(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        providerModel.username,
+                        style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 125, 125, 125),
                           fontSize: 14,
                           letterSpacing: 0.5,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                )
-              ],
-            ),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

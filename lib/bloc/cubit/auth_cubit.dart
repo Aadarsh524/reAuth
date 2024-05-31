@@ -11,7 +11,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> initiateLogin(String email, String password) async {
     final validationError = validateLogin(email, password);
     if (validationError != null) {
-      emit(RegisterSubmissionFailure(error: validationError));
+      emit(LoginSubmissionFailure(error: validationError));
       return;
     }
     try {
@@ -30,6 +30,7 @@ class AuthCubit extends Cubit<AuthState> {
       } else if (e.code == 'too-many-requests') {
         emit(const LoginFailure(error: "Too many requests"));
       }
+      emit(const LoginFailure(error: "Error login"));
     }
   }
 
@@ -55,8 +56,8 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> initiateRegister(
-      String email, String password, String confirmPassword) async {
+  Future<void> initiateRegister(String fullname, String email, String password,
+      String confirmPassword) async {
     final validationError = validateRegister(email, password, confirmPassword);
     if (validationError != null) {
       emit(RegisterSubmissionFailure(error: validationError));
@@ -64,17 +65,31 @@ class AuthCubit extends Cubit<AuthState> {
     }
     try {
       emit(AuthLoading());
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
         email: email,
         password: password,
+      )
+          .then(
+        (value) async {
+          await FirebaseFirestore.instance
+              .collection('profiles')
+              .doc(value.user!.uid)
+              .set({
+            'fullname': fullname,
+            'email': email,
+          });
+        },
       );
       emit(RegisterSuccess());
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        emit(const LoginFailure(error: "Password is too weak."));
+        emit(const RegisterFailure(error: "Password is too weak."));
       }
       if (e.code == 'email-already-in-use') {
-        emit(const LoginFailure(error: "Account already in exists."));
+        emit(const RegisterFailure(error: "Account already in exists."));
+      } else {
+        emit(const RegisterFailure(error: "Error Registeration"));
       }
     }
   }

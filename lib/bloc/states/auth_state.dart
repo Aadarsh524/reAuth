@@ -9,6 +9,8 @@ abstract class AuthState extends Equatable {
 
 class AuthInitial extends AuthState {}
 
+class AuthLoading extends AuthState {}
+
 class LoginSuccess extends AuthState {}
 
 class LoginFailure extends AuthState {
@@ -20,18 +22,21 @@ class LoginFailure extends AuthState {
   List<Object?> get props => [error];
 }
 
-class AuthLoading extends AuthState {}
+class LoginSubmissionFailure extends AuthState {
+  final String error;
+
+  const LoginSubmissionFailure({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
 
 class RegisterSuccess extends AuthState {}
 
-class PinMatched extends AuthState {}
-
-class PinSetSuccess extends AuthState {}
-
-class PinError extends AuthState {
+class RegisterFailure extends AuthState {
   final String error;
 
-  const PinError({required this.error});
+  const RegisterFailure({required this.error});
 
   @override
   List<Object?> get props => [error];
@@ -46,10 +51,14 @@ class RegisterSubmissionFailure extends AuthState {
   List<Object?> get props => [error];
 }
 
-class RegisterFailure extends AuthState {
+class PinMatched extends AuthState {}
+
+class PinSetSuccess extends AuthState {}
+
+class PinError extends AuthState {
   final String error;
 
-  const RegisterFailure({required this.error});
+  const PinError({required this.error});
 
   @override
   List<Object?> get props => [error];

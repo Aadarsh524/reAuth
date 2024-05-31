@@ -25,19 +25,21 @@ class ProviderSubmissionFailure extends ProviderState {
 class ProviderLoading extends ProviderState {}
 
 class PopularProviderSearchSuccess extends ProviderState {
-  final PopularProviderModel provider;
-  const PopularProviderSearchSuccess({required this.provider});
+  final List<PopularProviderModel> providers;
+
+  const PopularProviderSearchSuccess({required this.providers});
 
   @override
-  List<Object?> get props => [provider];
+  List<Object?> get props => [providers];
 }
 
 class UserProviderSearchSuccess extends ProviderState {
-  final UserProviderModel provider;
-  const UserProviderSearchSuccess({required this.provider});
+  final List<UserProviderModel> providers;
+
+  const UserProviderSearchSuccess({required this.providers});
 
   @override
-  List<Object?> get props => [provider];
+  List<Object?> get props => [providers];
 }
 
 class Searching extends ProviderState {}
@@ -68,3 +70,7 @@ class ProviderLoadFailure extends ProviderState {
   @override
   List<Object?> get props => [error];
 }
+
+class UserProviderSearchEmpty extends ProviderState {}
+
+class PopularProviderSearchEmpty extends ProviderState {}

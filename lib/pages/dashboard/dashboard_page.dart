@@ -39,73 +39,62 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        elevation: 10,
-        backgroundColor: const Color.fromARGB(255, 43, 51, 63),
+        type: BottomNavigationBarType.fixed,
         currentIndex: selectedIndex,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: const Color.fromARGB(255, 125, 125, 125),
         onTap: onTapChangeIndex,
+        backgroundColor: const Color.fromARGB(255, 43, 51, 63),
+        elevation: 0,
         items: const [
           BottomNavigationBarItem(
-            activeIcon: Icon(
-              Icons.home,
-              color: Colors.white,
-            ),
             icon: Icon(
               Icons.home_outlined,
-              color: Color.fromARGB(255, 125, 125, 125),
             ),
-            label: '',
+            activeIcon: Icon(
+              Icons.home,
+            ),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
-            activeIcon: Icon(
-              Icons.add_box,
-              color: Colors.white,
-            ),
             icon: Icon(
               Icons.add_box_outlined,
-              color: Color.fromARGB(255, 125, 125, 125),
             ),
-            label: '',
+            activeIcon: Icon(
+              Icons.add_box,
+            ),
+            label: 'Add',
           ),
           BottomNavigationBarItem(
-            activeIcon: Icon(
-              Icons.health_and_safety,
-              color: Colors.white,
-            ),
             icon: Icon(
-              Icons.health_and_safety_outlined,
-              color: Color.fromARGB(255, 125, 125, 125),
+              Icons.security_outlined,
             ),
-            label: '',
+            activeIcon: Icon(
+              Icons.security,
+            ),
+            label: 'Security',
           ),
           BottomNavigationBarItem(
-            activeIcon: Icon(
-              Icons.notifications,
-              color: Colors.white,
-            ),
             icon: Icon(
               Icons.notifications_outlined,
-              color: Color.fromARGB(255, 125, 125, 125),
             ),
-            label: '',
+            activeIcon: Icon(
+              Icons.notifications,
+            ),
+            label: 'Notifications',
           ),
           BottomNavigationBarItem(
-            activeIcon: Icon(
-              Icons.settings,
-              color: Colors.white,
-            ),
             icon: Icon(
               Icons.settings_outlined,
-              color: Color.fromARGB(255, 125, 125, 125),
             ),
-            label: '',
+            activeIcon: Icon(
+              Icons.settings,
+            ),
+            label: 'Settings',
           ),
         ],
       ),

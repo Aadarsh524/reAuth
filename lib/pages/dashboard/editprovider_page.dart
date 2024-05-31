@@ -171,7 +171,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             PopularProviderCard(
-                              providerModel: state.provider,
+                              providerModel: state.providers.first,
                             ),
                           ],
                         );

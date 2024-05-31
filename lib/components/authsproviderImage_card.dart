@@ -14,10 +14,14 @@ class AuthsProviderImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      width: double.infinity,
       child: Card(
         elevation: 5,
-        margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
+        margin: const EdgeInsets.all(5),
         color: const Color.fromARGB(255, 43, 51, 63),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: InkWell(
           onTap: () {
             Navigator.of(context).push(
@@ -28,11 +32,20 @@ class AuthsProviderImageCard extends StatelessWidget {
               ),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
             child: CachedNetworkImage(
               imageUrl: providerModel.faviconUrl,
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                color: Colors.grey[300],
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
             ),
           ),
         ),

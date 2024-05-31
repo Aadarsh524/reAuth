@@ -1,5 +1,5 @@
 class ProfileModel {
-  final String name;
+  final String fullname;
   final String email;
   final String savedPasswords;
   final String pin;
@@ -8,14 +8,14 @@ class ProfileModel {
   ProfileModel({
     required this.pin,
     required this.isEmailVerified,
-    required this.name,
+    required this.fullname,
     required this.email,
     required this.savedPasswords,
   });
 
   factory ProfileModel.fromMap(Map<String, dynamic> map) {
     return ProfileModel(
-      name: map['name'],
+      fullname: map['fullname'],
       email: map['email'],
       savedPasswords: map['savedPasswords'],
       isEmailVerified: map['isEmailVerified'],

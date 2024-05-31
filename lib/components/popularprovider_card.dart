@@ -14,69 +14,70 @@ class PopularProviderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 75,
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: Card(
         elevation: 5,
-        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
         color: const Color.fromARGB(255, 53, 64, 79),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                    child: CachedNetworkImage(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AddProviderPage(
+                  popularProviderModel: providerModel,
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    CachedNetworkImage(
                       imageUrl: providerModel.faviconUrl,
+                      height: 40,
+                      width: 40,
                       fit: BoxFit.contain,
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text(
-                        providerModel.authName,
-                        style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 255, 255, 255),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          providerModel.authName,
+                          style: GoogleFonts.karla(
+                            color: Colors.white,
                             fontSize: 16,
-                            letterSpacing: .75,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        providerModel.authLink,
-                        style: GoogleFonts.karla(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          providerModel.authLink,
+                          style: GoogleFonts.karla(
                             color: const Color.fromARGB(255, 125, 125, 125),
                             fontSize: 14,
-                            letterSpacing: 0.5,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-              InkWell(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AddProviderPage(popularProviderModel: providerModel),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 10.0),
-                  child: Icon(
-                    Icons.add_circle,
-                    color: Color.fromARGB(255, 111, 163, 219),
-                  ),
+                  ],
                 ),
-              )
-            ],
+                const Icon(
+                  Icons.add_circle,
+                  color: Color.fromARGB(255, 111, 163, 219),
+                  size: 30,
+                ),
+              ],
+            ),
           ),
         ),
       ),

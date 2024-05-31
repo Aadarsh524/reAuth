@@ -13,9 +13,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       emit(ProfileLoading());
 
       final profile = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .collection('profile')
+          .collection('profiles')
           .doc(user!.uid)
           .get();
 
@@ -23,7 +21,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       if (profileData != null) {
         final profileModel = ProfileModel.fromMap({
-          'name': profileData['name'] ?? '',
+          'fullname': profileData['fullname'] ?? '',
           'email': profileData['email'] ?? '',
           'pin': profileData['pin'] ?? '',
           'savedPasswords': profileData['savedPasswords'] ?? '',
@@ -34,6 +32,23 @@ class ProfileCubit extends Cubit<ProfileState> {
       }
     } on FirebaseAuthException catch (e) {
       emit(ProfileLoadingError(error: e.toString()));
+    }
+  }
+
+  Future<void> editProfile(String fullname, String email) async {
+    try {
+      emit(ProfileLoading());
+      await FirebaseFirestore.instance
+          .collection('profiles')
+          .doc(user!.uid)
+          .set({
+        'fullname': fullname,
+        'email': email,
+      });
+
+      emit(ProfileUpdated());
+    } on FirebaseAuthException catch (e) {
+      emit(ProfileUpdateError(error: e.toString()));
     }
   }
 }

@@ -62,58 +62,66 @@ class _AddProviderPageState extends State<AddProviderPage> {
     final providerCubit = BlocProvider.of<ProviderCubit>(context);
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 53, 64, 79),
-        centerTitle: true,
-        elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10.0),
-            child: TextButton(
-              onPressed: () {
-                widget.popularProviderModel != null
-                    ? authProviderLinkController.text =
-                        widget.popularProviderModel!.authLink
-                    : authProviderLinkController.text =
-                        "www.${authProviderNameController.text.toLowerCase()}.com";
-                providerCubit.submitProvider(UserProviderModel(
-                    authName: authProviderNameController.text,
-                    username: usernameController.text,
-                    password: passwordController.text,
-                    note: noteController.text,
-                    providerCategory: providerCategoryController.text,
-                    authProviderLink: authProviderLinkController.text,
-                    faviconUrl: authProviderLinkController.text));
-              },
-              child: Text(
-                "Save",
-                style: GoogleFonts.karla(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          backgroundColor: const Color.fromARGB(255, 53, 64, 79),
+          centerTitle: true,
+          elevation: 0,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: TextButton(
+                onPressed: () {
+                  widget.popularProviderModel != null
+                      ? authProviderLinkController.text =
+                          widget.popularProviderModel!.authLink
+                      : authProviderLinkController.text =
+                          "www.${authProviderNameController.text.toLowerCase()}.com";
+                  providerCubit.submitProvider(UserProviderModel(
+                      authName: authProviderNameController.text,
+                      username: usernameController.text,
+                      password: passwordController.text,
+                      note: noteController.text,
+                      providerCategory: providerCategoryController.text,
+                      authProviderLink: authProviderLinkController.text,
+                      faviconUrl: authProviderLinkController.text));
+                },
+                child: Text(
+                  "Save",
+                  style: GoogleFonts.karla(
                     color: const Color.fromARGB(255, 111, 163, 219),
                     fontSize: 20,
                     letterSpacing: .75,
-                    fontWeight: FontWeight.w600),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
+            )
+          ],
+        ),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color.fromARGB(255, 53, 64, 79),
+                Color.fromARGB(255, 43, 51, 63),
+              ],
             ),
-          )
-        ],
-      ),
-      body: SafeArea(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * .95,
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                color: const Color.fromARGB(255, 53, 64, 79),
-                child: Center(
-                  child: Padding(
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
                     padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
                       vertical: 20.0,
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         widget.popularProviderModel != null
                             ? CachedNetworkImage(
@@ -135,146 +143,140 @@ class _AddProviderPageState extends State<AddProviderPage> {
                               ? 'Add ${widget.popularProviderModel!.authName}'
                               : "Add Auth",
                           style: GoogleFonts.karla(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 20,
-                              letterSpacing: .75,
-                              fontWeight: FontWeight.w600),
+                            color: const Color.fromARGB(255, 255, 255, 255),
+                            fontSize: 20,
+                            letterSpacing: .75,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(
-                height: 25,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 15.0, vertical: 10.0),
-                child: BlocConsumer<ProviderCubit, ProviderState>(
-                  listener: (context, state) {
-                    if (state is ProviderSubmissionSuccess) {
-                      CustomSnackbar customSnackbar =
-                          CustomSnackbar("Submission Completed");
+                  const SizedBox(
+                    height: 25,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15.0, vertical: 10.0),
+                    child: BlocConsumer<ProviderCubit, ProviderState>(
+                      listener: (context, state) {
+                        if (state is ProviderSubmissionSuccess) {
+                          CustomSnackbar customSnackbar =
+                              CustomSnackbar("Submission Completed");
 
-                      customSnackbar.showCustomSnackbar(context);
+                          customSnackbar.showCustomSnackbar(context);
 
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const DashboardPage(),
-                        ),
-                      );
-                    } else if (state is ProviderSubmissionFailure) {
-                      CustomSnackbar customSnackbar =
-                          CustomSnackbar("Submission Error: ${state.error}");
-                      customSnackbar.showCustomSnackbar(context);
-                    }
-                  },
-                  builder: (context, state) {
-                    return Form(
-                      child: Column(
-                        children: [
-                          widget.popularProviderModel != null
-                              ? CustomTextField(
-                                  textInputFormatter: [
-                                    NoUppercaseInputFormatter()
-                                  ],
-                                  keyboardType: TextInputType.text,
-                                  controller: authProviderLinkController,
-                                  hintText: 'enter auth link',
-                                  labelText: 'Auth Link',
-                                )
-                              : CustomTextField(
-                                  keyboardType: TextInputType.text,
-                                  controller: authProviderNameController,
-                                  hintText: 'enter auth name',
-                                  labelText: 'Auth Name',
-                                ),
-                          CustomTextField(
-                            keyboardType: TextInputType.text,
-                            controller: usernameController,
-                            hintText: 'enter auth username',
-                            labelText: 'Username ',
-                          ),
-                          CustomTextField(
-                            keyboardType: TextInputType.visiblePassword,
-                            controller: passwordController,
-                            hintText: 'enter auth passwrod',
-                            labelText: 'Password',
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5.0, vertical: 10),
-                            child: Container(
-                              width: double.infinity,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    color:
-                                        const Color.fromARGB(255, 53, 64, 79),
-                                    width: 2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: DropdownButton<String>(
-                                // Initial Value
-                                value: dropdownvalue,
-                                dropdownColor:
-                                    const Color.fromARGB(255, 53, 64, 79),
-
-                                icon: const Icon(Icons.keyboard_arrow_down),
-
-                                isExpanded: true,
-
-                                // Array list of items
-                                items: authCategories.map((String items) {
-                                  return DropdownMenuItem(
-                                    value: items,
-                                    child: Text(items,
-                                        // Customize the style of each item
-                                        style: GoogleFonts.karla(
-                                            color: const Color.fromARGB(
-                                                255, 255, 255, 255),
-                                            fontSize: 14,
-                                            letterSpacing: .75,
-                                            fontWeight: FontWeight.w600)),
-                                  );
-                                }).toList(),
-
-                                style: GoogleFonts.karla(
-                                    color: const Color.fromARGB(
-                                        255, 255, 255, 255),
-                                    fontSize: 14,
-                                    letterSpacing: .75,
-                                    fontWeight: FontWeight.w600),
-                                underline: Container(),
-
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    dropdownvalue = newValue!;
-                                    providerCategoryController.text =
-                                        dropdownvalue!;
-                                  });
-                                },
-                              ),
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => const DashboardPage(),
                             ),
+                          );
+                        } else if (state is ProviderSubmissionFailure) {
+                          CustomSnackbar customSnackbar = CustomSnackbar(
+                              "Submission Error: ${state.error}");
+                          customSnackbar.showCustomSnackbar(context);
+                        }
+                      },
+                      builder: (context, state) {
+                        return Form(
+                          child: Column(
+                            children: [
+                              widget.popularProviderModel != null
+                                  ? CustomTextField(
+                                      textInputFormatter: [
+                                        NoUppercaseInputFormatter()
+                                      ],
+                                      keyboardType: TextInputType.text,
+                                      controller: authProviderLinkController,
+                                      hintText: 'Enter Auth Link',
+                                      labelText: 'Auth Link',
+                                    )
+                                  : CustomTextField(
+                                      keyboardType: TextInputType.text,
+                                      controller: authProviderNameController,
+                                      hintText: 'Enter Auth Name',
+                                      labelText: 'Auth Name',
+                                    ),
+                              CustomTextField(
+                                keyboardType: TextInputType.text,
+                                controller: usernameController,
+                                hintText: 'Enter Auth Username',
+                                labelText: 'Username',
+                              ),
+                              CustomTextField(
+                                keyboardType: TextInputType.visiblePassword,
+                                controller: passwordController,
+                                hintText: 'Enter Auth Password',
+                                labelText: 'Password',
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5.0, vertical: 10),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: const Color.fromARGB(
+                                            255, 53, 64, 79),
+                                        width: 2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: DropdownButton<String>(
+                                    // Initial Value
+                                    value: dropdownvalue,
+                                    dropdownColor:
+                                        const Color.fromARGB(255, 53, 64, 79),
+                                    icon: const Icon(Icons.keyboard_arrow_down),
+                                    isExpanded: true,
+                                    // Array list of items
+                                    items: authCategories.map((String items) {
+                                      return DropdownMenuItem(
+                                        value: items,
+                                        child: Text(items,
+                                            // Customize the style of each item
+                                            style: GoogleFonts.karla(
+                                                color: const Color.fromARGB(
+                                                    255, 255, 255, 255),
+                                                fontSize: 14,
+                                                letterSpacing: .75,
+                                                fontWeight: FontWeight.w600)),
+                                      );
+                                    }).toList(),
+                                    style: GoogleFonts.karla(
+                                        color: const Color.fromARGB(
+                                            255, 255, 255, 255),
+                                        fontSize: 14,
+                                        letterSpacing: .75,
+                                        fontWeight: FontWeight.w600),
+                                    underline: Container(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        dropdownvalue = newValue!;
+                                        providerCategoryController.text =
+                                            dropdownvalue!;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              CustomTextField(
+                                keyboardType: TextInputType.text,
+                                controller: noteController,
+                                hintText: 'Write some notes',
+                                labelText: 'Notes',
+                              ),
+                            ],
                           ),
-                          CustomTextField(
-                            keyboardType: TextInputType.text,
-                            controller: noteController,
-                            hintText: 'write some note',
-                            labelText: 'Note',
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              )
-            ],
+                        );
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }

@@ -15,7 +15,7 @@ class CustomSnackbar {
         content: Text(
           message,
           style: GoogleFonts.montserrat(
-            height: .5,
+            height: 1.0, // Adjusted height value
             letterSpacing: 0.5,
             fontSize: 12,
             fontWeight: FontWeight.w600,

@@ -11,6 +11,17 @@ class ProfileInitial extends ProfileState {}
 
 class ProfileLoading extends ProfileState {}
 
+class ProfileUpdated extends ProfileState {}
+
+class ProfileUpdateError extends ProfileState {
+  final String error;
+
+  const ProfileUpdateError({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
 class ProfileLoaded extends ProfileState {
   final ProfileModel profile;
 
@@ -28,8 +39,6 @@ class ProfileLoadingError extends ProfileState {
   @override
   List<Object?> get props => [error];
 }
-
-class ProfileSet extends ProfileState {}
 
 class ProfileSetError extends ProfileState {
   final String error;

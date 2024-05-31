@@ -7,75 +7,84 @@ class AuthsProviderEditCard extends StatelessWidget {
   final String providerName;
   final String providerId;
 
-  const AuthsProviderEditCard(
-      {Key? key,
-      required this.providerImage,
-      required this.providerName,
-      this.providerId = ''})
-      : super(key: key);
+  const AuthsProviderEditCard({
+    Key? key,
+    required this.providerImage,
+    required this.providerName,
+    this.providerId = '',
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      child: Card(
-        elevation: 5,
-        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-        color: const Color.fromARGB(255, 53, 64, 79),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 8.0, right: 10, top: 8, bottom: 8),
-                    child: CachedNetworkImage(
-                      height: 45,
-                      imageUrl: providerImage,
-                      fit: BoxFit.contain,
+    return Card(
+      elevation: 5,
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+      color: const Color.fromARGB(255, 53, 64, 79),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: providerImage,
+                  width: 45,
+                  height: 45,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => Container(
+                    width: 45,
+                    height: 45,
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        providerName,
-                        style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 16,
-                            letterSpacing: .75,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Text(
-                        providerId,
-                        style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 125, 125, 125),
-                            fontSize: 14,
-                            letterSpacing: 0.5,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-              InkWell(
-                onTap: () {},
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-                  child: Icon(
-                    Icons.edit,
-                    color: Color.fromARGB(255, 111, 163, 219),
-                  ),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
-              )
-            ],
-          ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      providerName,
+                      style: GoogleFonts.karla(
+                        color: Colors.white,
+                        fontSize: 16,
+                        letterSpacing: .75,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      providerId,
+                      style: GoogleFonts.karla(
+                        color: const Color.fromARGB(255, 125, 125, 125),
+                        fontSize: 14,
+                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            InkWell(
+              onTap: () {
+                // Add your edit functionality here
+              },
+              child: const Icon(
+                Icons.edit,
+                color: Color.fromARGB(255, 111, 163, 219),
+              ),
+            ),
+          ],
         ),
       ),
     );

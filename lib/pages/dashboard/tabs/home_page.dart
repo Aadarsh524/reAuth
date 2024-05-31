@@ -4,9 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/provider_cubit.dart';
 import 'package:reauth/bloc/cubit/recentprovider_cubit.dart';
 import 'package:reauth/bloc/states/provider_state.dart';
-// import 'package:reauth/bloc/states/recentprovider_state.dart';
 import 'package:reauth/components/authsprovider_card.dart';
-// import 'package:reauth/components/authsproviderimage_card.dart';
+import 'package:reauth/components/popularprovider_card.dart';
 import 'package:reauth/pages/dashboard/profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,24 +21,22 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    super.dispose();
     searchController.text = '';
     searchController.clear();
+    super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
     BlocProvider.of<RecentProviderCubit>(context).fetchUserRecentProviders();
+    BlocProvider.of<ProviderCubit>(context).fetchPopularProviders();
+    BlocProvider.of<ProviderCubit>(context).fetchUserProviders();
   }
 
   @override
   Widget build(BuildContext context) {
     final providerCubit = BlocProvider.of<ProviderCubit>(context);
-
-    if (!isSearchHasValue) {
-      providerCubit.fetchUserProviders();
-    }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -100,6 +97,7 @@ class _HomePageState extends State<HomePage> {
                           if (e.isEmpty) {
                             setState(() {
                               isSearchHasValue = false;
+                              providerCubit.fetchUserProviders();
                             });
                           } else {
                             setState(() {
@@ -135,66 +133,77 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 10,
                 ),
-                // Text(
-                //   "Recently Used",
-                //   style: GoogleFonts.karla(
-                //       color: const Color.fromARGB(255, 125, 125, 125),
-                //       fontSize: 18,
-                //       letterSpacing: .75,
-                //       fontWeight: FontWeight.w600),
-                // ),
-                // const SizedBox(
-                //   height: 5,
-                // ),
-                // SizedBox(
-                //   height: 60,
-                //   width: MediaQuery.of(context).size.width,
-                //   child: BlocConsumer<RecentProviderCubit, RecentProviderState>(
-                //     listener: (context, state) {
-                //       if (state is RecentProviderLoadFailure) {
-                //         ScaffoldMessenger.of(context).showSnackBar(
-                //           SnackBar(
-                //               content: Text(
-                //                   'Failed to load providers: ${state.error}')),
-                //         );
-                //       }
-                //     },
-                //     builder: (context, state) {
-                //       if (state is RecentProviderLoading) {
-                //         return const Center(
-                //             child: CircularProgressIndicator(
-                //                 color: Color.fromARGB(255, 106, 172, 191)));
-                //       } else if (state is RecentProviderLoadSuccess) {
-                //         return ListView.builder(
-                //           scrollDirection: Axis.horizontal,
-                //           itemCount: state.providers.length,
-                //           itemBuilder: (BuildContext context, int index) {
-                //             final provider = state.providers[index];
-                //             return AuthsProviderImageCard(
-                //               providerModel: provider,
-                //             );
-                //           },
-                //         );
-                //       } else {
-                //         return Container(); // Placeholder for other states
-                //       }
-                //     },
-                //   ),
-                // ),
-                // const SizedBox(
-                //   height: 10,
-                // ),
-                Text(
-                  "Your Auths",
-                  style: GoogleFonts.karla(
-                      color: const Color.fromARGB(255, 125, 125, 125),
-                      fontSize: 18,
-                      letterSpacing: .75,
-                      fontWeight: FontWeight.w600),
+                BlocConsumer<ProviderCubit, ProviderState>(
+                  listener: (context, state) {
+                    if (state is ProviderLoadFailure) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Failed to load providers: ${state.error}',
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is ProviderLoadSuccess && !isSearchHasValue) {
+                      if (state.providers.isEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Popular Providers",
+                              style: GoogleFonts.karla(
+                                  color:
+                                      const Color.fromARGB(255, 125, 125, 125),
+                                  fontSize: 18,
+                                  letterSpacing: .75,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Your Auths",
+                              style: GoogleFonts.karla(
+                                  color:
+                                      const Color.fromARGB(255, 125, 125, 125),
+                                  fontSize: 18,
+                                  letterSpacing: .75,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        );
+                      }
+                    } else if (state is PopularProviderLoadSuccess &&
+                        !isSearchHasValue) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Popular Providers",
+                            style: GoogleFonts.karla(
+                                color: const Color.fromARGB(255, 125, 125, 125),
+                                fontSize: 18,
+                                letterSpacing: .75,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      );
+                    } else {
+                      return const SizedBox
+                          .shrink(); // Placeholder for other states
+                    }
+                  },
                 ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * .45,
-                  width: MediaQuery.of(context).size.width,
+                const SizedBox(height: 10),
+                Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(5.0),
                     child: BlocConsumer<ProviderCubit, ProviderState>(
@@ -214,11 +223,13 @@ class _HomePageState extends State<HomePage> {
                                   color: Color.fromARGB(255, 106, 172, 191)));
                         } else if (state is ProviderLoadSuccess &&
                             !isSearchHasValue) {
+                          if (state.providers.isEmpty) {
+                            return _buildPopularProviders(context);
+                          }
                           return ListView.builder(
                             itemCount: state.providers.length,
                             itemBuilder: (context, index) {
                               final provider = state.providers[index];
-
                               return AuthsProviderCard(
                                 providerModel: provider,
                               );
@@ -229,13 +240,35 @@ class _HomePageState extends State<HomePage> {
                               child: CircularProgressIndicator(
                                   color: Color.fromARGB(255, 106, 172, 191)));
                         } else if (state is UserProviderSearchSuccess) {
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              AuthsProviderCard(
-                                providerModel: state.provider,
-                              ),
-                            ],
+                          return ListView.builder(
+                            itemCount: state.providers.length,
+                            itemBuilder: (context, index) {
+                              final provider = state.providers[index];
+                              return AuthsProviderCard(
+                                providerModel: provider,
+                              );
+                            },
+                          );
+                        } else if (state is PopularProviderLoadSuccess &&
+                            !isSearchHasValue) {
+                          return ListView.builder(
+                            itemCount: state.providers.length,
+                            itemBuilder: (context, index) {
+                              final provider = state.providers[index];
+                              return PopularProviderCard(
+                                providerModel: provider,
+                              );
+                            },
+                          );
+                        } else if (state is PopularProviderSearchSuccess) {
+                          return ListView.builder(
+                            itemCount: state.providers.length,
+                            itemBuilder: (context, index) {
+                              final provider = state.providers[index];
+                              return PopularProviderCard(
+                                providerModel: provider,
+                              );
+                            },
                           );
                         } else {
                           return Container(); // Placeholder for other states
@@ -249,6 +282,47 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPopularProviders(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        Expanded(
+          child: BlocConsumer<ProviderCubit, ProviderState>(
+            listener: (context, state) {
+              if (state is ProviderLoadFailure) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(
+                          'Failed to load popular providers: ${state.error}')),
+                );
+              }
+            },
+            builder: (context, state) {
+              if (state is ProviderLoading) {
+                return const Center(
+                    child: CircularProgressIndicator(
+                        color: Color.fromARGB(255, 106, 172, 191)));
+              } else if (state is PopularProviderLoadSuccess) {
+                return ListView.builder(
+                  itemCount: state.providers.length,
+                  itemBuilder: (context, index) {
+                    final provider = state.providers[index];
+                    return PopularProviderCard(
+                      providerModel: provider,
+                    );
+                  },
+                );
+              } else {
+                return Container(); // Placeholder for other states
+              }
+            },
+          ),
+        ),
+      ],
     );
   }
 }

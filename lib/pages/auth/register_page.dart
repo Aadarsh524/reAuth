@@ -15,6 +15,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
@@ -31,182 +32,158 @@ class _RegisterPageState extends State<RegisterPage> {
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Center(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(
-                      top: 75,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "ReAuth",
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 25,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            // .animate().slideX(duration: 1000.ms, begin: -1.5),
-                            const SizedBox(
-                              height: 30,
-                            ),
-                          ],
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Welcome Back",
-                                  style: GoogleFonts.karla(
-                                      color: const Color.fromARGB(
-                                          255, 255, 255, 255),
-                                      fontSize: 18,
-                                      letterSpacing: .75,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                                const SizedBox(
-                                  height: 50,
-                                ),
-                                CustomTextField(
-                                  keyboardType: TextInputType.text,
-                                  controller: emailController,
-                                  hintText: 'enter email ',
-                                  labelText: 'Email',
-                                ),
-                                CustomTextField(
-                                    isFormTypePassword: true,
-                                    keyboardType: TextInputType.text,
-                                    controller: passwordController,
-                                    hintText: 'enter password',
-                                    labelText: 'Password',
-                                    obscureText: isPasswordVisible,
-                                    passwordVisibility: (e) {
-                                      setState(() {
-                                        isPasswordVisible = !isPasswordVisible;
-                                      });
-                                    }),
-                                CustomTextField(
-                                    isFormTypePassword: true,
-                                    keyboardType: TextInputType.text,
-                                    controller: confirmPasswordController,
-                                    hintText: 'confirm password',
-                                    labelText: 'Confirm Password',
-                                    obscureText: isConfirmPasswordVisible,
-                                    passwordVisibility: (e) {
-                                      setState(() {
-                                        isConfirmPasswordVisible =
-                                            !isConfirmPasswordVisible;
-                                      });
-                                    }),
-                                const SizedBox(height: 50),
-                                BlocConsumer<AuthCubit, AuthState>(
-                                    listener: (context, state) {
-                                  if (state is RegisterSuccess) {
-                                    customSnackbar =
-                                        CustomSnackbar("Register Success");
-                                    customSnackbar.showCustomSnackbar(context);
-
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const LoginPage()),
-                                    );
-                                  }
-                                  if (state is RegisterFailure) {
-                                    customSnackbar =
-                                        CustomSnackbar(state.error);
-                                    customSnackbar.showCustomSnackbar(context);
-                                  }
-                                  if (state is RegisterSubmissionFailure) {
-                                    customSnackbar =
-                                        CustomSnackbar(state.error);
-                                    customSnackbar.showCustomSnackbar(context);
-                                  }
-                                }, builder: (context, state) {
-                                  if (state is AuthLoading) {
-                                    return const SizedBox(
-                                        height: 50,
-                                        width: 50,
-                                        child: CircularProgressIndicator(
-                                            color: Color.fromARGB(
-                                                255, 106, 172, 191)));
-                                  }
-                                  return SizedBox(
-                                    width: double.infinity,
-                                    height: 50,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color.fromARGB(
-                                              255, 106, 172, 191),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(0),
-                                          )),
-                                      onPressed: () async {
-                                        authCubit.initiateRegister(
-                                            emailController.text,
-                                            passwordController.text,
-                                            confirmPasswordController.text);
-                                      },
-                                      child: const Text(
-                                        'Register',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                })
-                              ],
-                            ),
-                            // .animate(delay: 1500.ms).fade(duration: 1000.ms),
-                          ],
-                        )
-                        // .animate(delay: 1500.ms).fade(duration: 1000.ms),
-                      ],
-                    ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Text(
+                  "ReAuth",
+                  style: GoogleFonts.karla(
+                    color: const Color.fromARGB(255, 125, 125, 125),
+                    fontSize: 25,
+                    letterSpacing: .75,
+                    fontWeight: FontWeight.w600,
                   ),
-                  Row(
+                ),
+                const SizedBox(height: 40),
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Hello there!",
+                        style: GoogleFonts.karla(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 18,
+                          letterSpacing: .75,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      CustomTextField(
+                        keyboardType: TextInputType.text,
+                        controller: fullNameController,
+                        hintText: 'enter full name',
+                        labelText: 'Full Name',
+                      ),
+                      CustomTextField(
+                        keyboardType: TextInputType.emailAddress,
+                        controller: emailController,
+                        hintText: 'enter email',
+                        labelText: 'Email',
+                      ),
+                      CustomTextField(
+                        isFormTypePassword: true,
+                        keyboardType: TextInputType.visiblePassword,
+                        controller: passwordController,
+                        hintText: 'enter password',
+                        labelText: 'Password',
+                        obscureText: isPasswordVisible,
+                        passwordVisibility: (e) {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                      CustomTextField(
+                        isFormTypePassword: true,
+                        keyboardType: TextInputType.visiblePassword,
+                        controller: confirmPasswordController,
+                        hintText: 'confirm password',
+                        labelText: 'Confirm Password',
+                        obscureText: isConfirmPasswordVisible,
+                        passwordVisibility: (e) {
+                          setState(() {
+                            isConfirmPasswordVisible =
+                                !isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 50),
+                      BlocConsumer<AuthCubit, AuthState>(
+                        listener: (context, state) {
+                          if (state is RegisterSuccess) {
+                            customSnackbar =
+                                CustomSnackbar("Registeration Success");
+                            customSnackbar.showCustomSnackbar(context);
+
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                            );
+                          }
+                          if (state is RegisterSubmissionFailure) {
+                            customSnackbar = CustomSnackbar(state.error);
+                            customSnackbar.showCustomSnackbar(context);
+                          }
+                          if (state is RegisterFailure) {
+                            customSnackbar = CustomSnackbar(state.error);
+                            customSnackbar.showCustomSnackbar(context);
+                          }
+                        },
+                        builder: (context, state) {
+                          if (state is AuthLoading) {
+                            return const CircularProgressIndicator(
+                              color: Color.fromARGB(255, 106, 172, 191),
+                            );
+                          }
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 106, 172, 191),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () {
+                                authCubit.initiateRegister(
+                                  fullNameController.text,
+                                  emailController.text,
+                                  passwordController.text,
+                                  confirmPasswordController.text,
+                                );
+                              },
+                              child: const Text(
+                                'Register',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         "Have Account?",
                         style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 125, 125, 125),
-                            fontSize: 14,
-                            letterSpacing: .5,
-                            fontWeight: FontWeight.w400),
+                          color: const Color.fromARGB(255, 125, 125, 125),
+                          fontSize: 14,
+                          letterSpacing: .5,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
-                      const SizedBox(
-                        width: 5,
-                      ),
+                      const SizedBox(width: 5),
                       GestureDetector(
                         onTap: () {
-                          Navigator.of(context).pushReplacement(
+                          Navigator.pushReplacement(
+                            context,
                             MaterialPageRoute(
                               builder: (context) => const LoginPage(),
                             ),
@@ -215,16 +192,17 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text(
                           "Login",
                           style: GoogleFonts.karla(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 14,
-                              letterSpacing: .75,
-                              fontWeight: FontWeight.w800),
+                            color: const Color.fromARGB(255, 255, 255, 255),
+                            fontSize: 14,
+                            letterSpacing: .75,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

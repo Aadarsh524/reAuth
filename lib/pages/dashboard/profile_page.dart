@@ -16,7 +16,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool isEmailVerified = true;
+  bool isEmailVerified = false;
+
   @override
   Widget build(BuildContext context) {
     BlocProvider.of<ProfileCubit>(context).fetchProfile();
@@ -29,10 +30,11 @@ class _ProfilePageState extends State<ProfilePage> {
         title: Text(
           "Profile",
           style: GoogleFonts.karla(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              fontSize: 25,
-              letterSpacing: .75,
-              fontWeight: FontWeight.w600),
+            color: const Color.fromARGB(255, 255, 255, 255),
+            fontSize: 25,
+            letterSpacing: .75,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         elevation: 0,
         actions: [
@@ -44,7 +46,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Icons.edit,
                 size: 24,
                 color: Color.fromARGB(255, 111, 163, 219),
-              ), // You can replace 'add' with any other icon
+              ),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -72,30 +74,27 @@ class _ProfilePageState extends State<ProfilePage> {
         style: TextButton.styleFrom(
           backgroundColor: const Color.fromARGB(255, 111, 163, 219),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30), // Adjust the radius here
+            borderRadius: BorderRadius.circular(30),
           ),
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         ),
         child: Text(
           'Sign out',
           style: GoogleFonts.karla(
-            color: const Color.fromARGB(250, 150, 0, 0),
+            color: Colors.white,
             fontSize: 16,
             letterSpacing: .5,
             fontWeight: FontWeight.w500,
           ),
         ),
       ),
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height * .90,
-        width: MediaQuery.of(context).size.width,
-        child: BlocBuilder<ProfileCubit, ProfileState>(
-          builder: (context, state) {
-            if (state is ProfileLoaded) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 25),
+      body: BlocBuilder<ProfileCubit, ProfileState>(
+        builder: (context, state) {
+          if (state is ProfileLoaded) {
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const CircleAvatar(
@@ -104,250 +103,120 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      state.profile.name,
+                      state.profile.fullname,
                       style: GoogleFonts.karla(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 20,
-                          letterSpacing: .75,
-                          fontWeight: FontWeight.w600),
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       state.profile.email,
                       style: GoogleFonts.karla(
-                          color: const Color.fromARGB(255, 125, 125, 125),
-                          fontSize: 18,
-                          letterSpacing: .5,
-                          fontWeight: FontWeight.w500),
+                        color: Colors.grey[400],
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
                     isEmailVerified
-                        ? Container(
-                            width: 85,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5.0, vertical: 4),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color.fromARGB(255, 106, 172, 191),
-                                width: 1,
-                              ),
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color.fromARGB(
-                                        255, 106, 172, 191),
-                                    border: Border.all(
-                                      color: const Color.fromARGB(
-                                          255, 106, 172, 191),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  width: 16,
-                                  height: 16,
-                                  child: const Icon(
-                                    Icons.check,
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  "Verified",
-                                  style: GoogleFonts.karla(
-                                    color: const Color.fromARGB(
-                                        255, 106, 172, 191),
-                                    fontSize: 14,
-                                    letterSpacing: .5,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        ? _buildVerificationStatus(
+                            "Verified",
+                            Colors.green,
+                            Icons.check_circle,
                           )
-                        : Container(
-                            width: 115,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5.0, vertical: 4),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color.fromARGB(255, 106, 172, 191),
-                                width: 1,
-                              ),
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color.fromARGB(250, 150, 0, 0),
-                                    border: Border.all(
-                                      color:
-                                          const Color.fromARGB(250, 150, 0, 0),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  width: 16,
-                                  height: 16,
-                                  child: const Icon(
-                                    Icons.cancel_rounded,
-                                    size: 14,
-                                    color: Color.fromARGB(249, 255, 255, 255),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 3,
-                                ),
-                                Text(
-                                  "Not Verified",
-                                  style: GoogleFonts.karla(
-                                    color: const Color.fromARGB(
-                                        255, 106, 172, 191),
-                                    fontSize: 14,
-                                    letterSpacing: .5,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        : _buildVerificationStatus(
+                            "Not Verified",
+                            Colors.red,
+                            Icons.cancel,
                           ),
                     const SizedBox(height: 30),
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Color.fromARGB(255, 106, 172, 191),
-                            width: 1, // Adjust the width of the bottom border
-                          ),
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 10),
-                      child: Column(
-                        children: [
-                          Text(
-                            "4",
-                            style: GoogleFonts.karla(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 20,
-                              letterSpacing: .75,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            "Saved Passwords",
-                            style: GoogleFonts.karla(
-                              color: const Color.fromARGB(255, 125, 125, 125),
-                              fontSize: 16,
-                              letterSpacing: .5,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
+                    _buildProfileCard(
+                      "4",
+                      "Saved Passwords",
+                      Icons.lock,
                     ),
-                    const SizedBox(
-                      height: 30,
-                    ),
+                    const SizedBox(height: 30),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Container(
-                          decoration: const BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: Color.fromARGB(255, 106, 172, 191),
-                                width:
-                                    1, // Adjust the width of the bottom border
-                              ),
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 10),
-                          child: Column(
-                            children: [
-                              Text(
-                                "1",
-                                style: GoogleFonts.karla(
-                                    color: const Color.fromARGB(
-                                        255, 111, 163, 219),
-                                    fontSize: 20,
-                                    letterSpacing: .75,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                "Strong",
-                                style: GoogleFonts.karla(
-                                    color: const Color.fromARGB(
-                                        255, 125, 125, 125),
-                                    fontSize: 16,
-                                    letterSpacing: .5,
-                                    fontWeight: FontWeight.w400),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Color.fromARGB(255, 106, 172, 191),
-                                  width:
-                                      1, // Adjust the width of the bottom border
-                                ),
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 10),
-                            child: Column(
-                              children: [
-                                Text(
-                                  "3",
-                                  style: GoogleFonts.karla(
-                                      color:
-                                          const Color.fromARGB(250, 150, 0, 0),
-                                      fontSize: 20,
-                                      letterSpacing: .75,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  "Weak",
-                                  style: GoogleFonts.karla(
-                                      color: const Color.fromARGB(
-                                          255, 125, 125, 125),
-                                      fontSize: 16,
-                                      letterSpacing: .5,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                              ],
-                            ))
+                        _buildProfileCard("1", "Strong", Icons.security),
+                        _buildProfileCard("3", "Weak", Icons.warning),
                       ],
-                    )
+                    ),
                   ],
-                ),
-              );
-            }
-            return const Center(
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator(
-                  color: Color.fromARGB(255, 106, 172, 191),
                 ),
               ),
             );
-          },
+          }
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color.fromARGB(255, 106, 172, 191),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildVerificationStatus(String status, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: color, width: 1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 5),
+          Text(
+            status,
+            style: GoogleFonts.karla(
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileCard(String count, String label, IconData icon) {
+    return Card(
+      color: const Color.fromARGB(255, 40, 50, 65),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+        child: Column(
+          children: [
+            Icon(icon,
+                color: const Color.fromARGB(255, 106, 172, 191), size: 30),
+            const SizedBox(height: 10),
+            Text(
+              count,
+              style: GoogleFonts.karla(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              style: GoogleFonts.karla(
+                color: Colors.grey[400],
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -21,7 +21,6 @@ class ProviderDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 53, 64, 79),
         centerTitle: true,
@@ -29,271 +28,136 @@ class ProviderDetailPage extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
-            child: TextButton(
-                onPressed: () {},
-                child: const Icon(Icons.delete,
-                    size: 28, color: Color.fromARGB(255, 111, 163, 219))),
+            child: IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.delete,
+                size: 28,
+                color: Color.fromARGB(255, 111, 163, 219),
+              ),
+            ),
           )
         ],
       ),
       body: SafeArea(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * .95,
-          width: MediaQuery.of(context).size.width,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                color: const Color.fromARGB(255, 53, 64, 79),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 20.0, horizontal: 20),
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 8.0, right: 10, top: 8, bottom: 8),
-                          child: CachedNetworkImage(
-                            imageUrl: providerModel.faviconUrl,
-                            height: 60,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              providerModel.authProviderLink,
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 18,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Text(
-                              providerModel.username,
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 16,
-                                  letterSpacing: .5,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        )
-                      ],
+              Center(
+                child: Column(
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: providerModel.faviconUrl,
+                      height: 60,
+                      fit: BoxFit.contain,
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    Text(
+                      providerModel.authProviderLink,
+                      style: GoogleFonts.karla(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      providerModel.username,
+                      style: GoogleFonts.karla(
+                        color: const Color.fromARGB(255, 125, 125, 125),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(
-                height: 25,
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-                child: Text(
-                  "Details & Settings",
-                  style: GoogleFonts.karla(
-                      color: const Color.fromARGB(255, 255, 255, 255),
-                      fontSize: 18,
-                      letterSpacing: .75,
-                      fontWeight: FontWeight.w600),
+              const SizedBox(height: 25),
+              Text(
+                "Details & Settings",
+                style: GoogleFonts.karla(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 0.0),
-                child: Divider(),
-              ),
-              Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 15.0, vertical: 5.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              const Divider(color: Colors.white),
+              const SizedBox(height: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailRow("Link:", providerModel.authProviderLink),
+                  _buildDetailRow("Password:", providerModel.password),
+                  _buildDetailRow("Category:", providerModel.providerCategory),
+                  _buildDetailRow("Note:", providerModel.note),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 0.0, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Link:",
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            Text(
-                              providerModel.authProviderLink,
-                              style: GoogleFonts.karla(
-                                  decoration: TextDecoration.underline,
-                                  color:
-                                      const Color.fromARGB(255, 111, 163, 219),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
+                      _buildButton(
+                        text: 'Copy Auth',
+                        onPressed: () => copyToClipboard(context),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 0.0, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Password:",
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            Text(
-                              providerModel.password,
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
+                      _buildButton(
+                        text: 'Edit Auth',
+                        onPressed: () {},
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 0.0, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Category:",
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            Text(
-                              providerModel.providerCategory,
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 0.0, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Note:",
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            Text(
-                              providerModel.note,
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 16,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: SizedBox(
-                                height: 50,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.all(8.0),
-                                      side: const BorderSide(
-                                          color: Color.fromARGB(
-                                              255, 106, 172, 191)),
-                                      backgroundColor: const Color.fromARGB(
-                                          255, 36, 45, 58)),
-                                  onPressed: () {
-                                    copyToClipboard(context);
-                                  },
-                                  child: Text(
-                                    'Copy Auth',
-                                    style: GoogleFonts.karla(
-                                        color: const Color.fromARGB(
-                                            255, 255, 255, 255),
-                                        fontSize: 16,
-                                        letterSpacing: .75,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                )),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10.0),
-                            child: SizedBox(
-                                height: 50,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.all(8.0),
-                                      side: const BorderSide(
-                                          color: Color.fromARGB(
-                                              255, 106, 172, 191)),
-                                      backgroundColor: const Color.fromARGB(
-                                          255, 36, 45, 58)),
-                                  onPressed: () {},
-                                  child: Text(
-                                    "Edit Auth",
-                                    style: GoogleFonts.karla(
-                                        color: const Color.fromARGB(
-                                            255, 255, 255, 255),
-                                        fontSize: 16,
-                                        letterSpacing: .75,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                )),
-                          ),
-                        ],
-                      )
                     ],
-                  )),
+                  ),
+                ],
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.karla(
+              color: const Color.fromARGB(255, 125, 125, 125),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.karla(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildButton({required String text, required VoidCallback onPressed}) {
+    return SizedBox(
+      height: 50,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.all(8.0),
+          side: const BorderSide(color: Color.fromARGB(255, 106, 172, 191)),
+          backgroundColor: const Color.fromARGB(255, 36, 45, 58),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.karla(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
