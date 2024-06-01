@@ -23,7 +23,7 @@ class _AddPinPageState extends State<AddPinPage> {
   Widget build(BuildContext context) {
     final authCubit = BlocProvider.of<AuthCubit>(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Colors.black, // Change background color
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -31,68 +31,29 @@ class _AddPinPageState extends State<AddPinPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                "Enter Pin",
+                "Set Pin", // Update title
                 style: GoogleFonts.karla(
                   color: Colors.white,
-                  fontSize: 22,
+                  fontSize: 28, // Increase font size
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 20),
-              Container(
-                decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 53, 64, 79),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Color.fromARGB(255, 106, 172, 191),
-                      width: 2,
-                    ),
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "aadarshghimire524@gmail.com",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        letterSpacing: .5,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_drop_down_outlined,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
+              _buildEmailRow(), // New widget for email row
               const SizedBox(height: 40),
-              _buildPinTextField("Enter Account Pin", pinController),
+              _buildPinTextField(
+                  "Enter Pin", pinController), // Updated hint text
               const SizedBox(height: 20),
-              _buildPinTextField("Re-enter Account Pin", pin2Controller),
+              _buildPinTextField(
+                  "Confirm Pin", pin2Controller), // Updated hint text
               const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Text(
-                  "This pin will be used to login your profile and view saved passwords",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.karla(
-                    color: const Color.fromARGB(255, 125, 125, 125),
-                    fontSize: 14,
-                    letterSpacing: .75,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              _buildDescription(), // New widget for description
               const Spacer(),
               BlocConsumer<AuthCubit, AuthState>(
                 listener: (context, state) {
                   if (state is PinSetSuccess) {
-                    customSnackbar = CustomSnackbar("Pin Saved Success");
+                    customSnackbar = CustomSnackbar(
+                        "Pin Saved Successfully"); // Updated snackbar message
                     customSnackbar.showCustomSnackbar(context);
                     Navigator.pushReplacement(
                       context,
@@ -110,7 +71,7 @@ class _AddPinPageState extends State<AddPinPage> {
                   if (state is AuthLoading) {
                     return const Center(
                       child: CircularProgressIndicator(
-                        color: Color.fromARGB(255, 106, 172, 191),
+                        color: Colors.white, // Change color to match theme
                       ),
                     );
                   }
@@ -122,8 +83,7 @@ class _AddPinPageState extends State<AddPinPage> {
                             pinController.text, pin2Controller.text);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(255, 111, 163, 219),
+                        backgroundColor: Colors.blue, // Change button color
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -134,7 +94,6 @@ class _AddPinPageState extends State<AddPinPage> {
                         style: GoogleFonts.karla(
                           color: Colors.white,
                           fontSize: 16,
-                          letterSpacing: .5,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -145,6 +104,56 @@ class _AddPinPageState extends State<AddPinPage> {
               const SizedBox(height: 20),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmailRow() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[800], // Update color
+        border: const Border(
+          bottom: BorderSide(
+            color: Colors.blue, // Update color
+            width: 2,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "aadarshghimire524@gmail.com",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              letterSpacing: .5,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          Icon(
+            Icons.arrow_drop_down_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Text(
+        "Your pin will be used to secure your account and view saved passwords.",
+        textAlign: TextAlign.center,
+        style: GoogleFonts.karla(
+          color: Colors.grey[400], // Update color
+          fontSize: 14,
+          letterSpacing: .75,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -171,9 +180,9 @@ class _AddPinPageState extends State<AddPinPage> {
           fieldHeight: 40,
           fieldWidth: 35,
           activeFillColor: Colors.transparent,
-          activeColor: const Color.fromARGB(255, 125, 125, 125),
-          inactiveColor: const Color.fromARGB(255, 125, 125, 125),
-          selectedColor: const Color.fromARGB(255, 125, 125, 125),
+          activeColor: Colors.grey[400], // Update color
+          inactiveColor: Colors.grey[400], // Update color
+          selectedColor: Colors.grey[400], // Update color
           inactiveFillColor: Colors.transparent,
           selectedFillColor: Colors.transparent,
         ),

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/provider_cubit.dart';
-import 'package:reauth/bloc/cubit/recentprovider_cubit.dart';
-import 'package:reauth/bloc/states/provider_state.dart';
+import 'package:reauth/bloc/cubit/popular_provider_cubit.dart';
+import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
+import 'package:reauth/bloc/states/popular_provider_state.dart';
+import 'package:reauth/bloc/states/user_provider_state.dart';
 import 'package:reauth/components/authsprovider_card.dart';
+import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
+import 'package:reauth/models/popularprovider_model.dart';
+import 'package:reauth/models/userprovider_model.dart';
 import 'package:reauth/pages/dashboard/profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,25 +22,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isSearchHasValue = false;
   TextEditingController searchController = TextEditingController();
+  CustomSnackbar customSnackbar = CustomSnackbar('');
 
   @override
   void dispose() {
-    searchController.text = '';
-    searchController.clear();
+    searchController.dispose();
     super.dispose();
   }
 
   @override
-  void initState() {
-    super.initState();
-    BlocProvider.of<RecentProviderCubit>(context).fetchUserRecentProviders();
-    BlocProvider.of<ProviderCubit>(context).fetchPopularProviders();
-    BlocProvider.of<ProviderCubit>(context).fetchUserProviders();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final providerCubit = BlocProvider.of<ProviderCubit>(context);
+    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    userProviderCubit.fetchUserProviders();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -89,194 +86,128 @@ class _HomePageState extends State<HomePage> {
                   child: SizedBox(
                     height: 50,
                     child: SearchBar(
-                        padding: const MaterialStatePropertyAll(
-                          EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
+                      padding: const MaterialStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
+                      ),
+                      controller: searchController,
+                      onChanged: (e) {
+                        if (e.isEmpty) {
+                          setState(() {
+                            isSearchHasValue = false;
+                            userProviderCubit.fetchUserProviders();
+                          });
+                        } else {
+                          setState(() {
+                            isSearchHasValue = true;
+                          });
+                          userProviderCubit
+                              .searchUserAuth(searchController.text);
+                        }
+                      },
+                      backgroundColor: const MaterialStatePropertyAll(
+                        Color.fromARGB(255, 43, 51, 63),
+                      ),
+                      hintText: "Search",
+                      hintStyle: MaterialStatePropertyAll(
+                        GoogleFonts.karla(
+                          color: const Color.fromARGB(255, 125, 125, 125),
+                          fontSize: 16,
+                          letterSpacing: .5,
+                          fontWeight: FontWeight.w600,
                         ),
-                        controller: searchController,
-                        onChanged: (e) {
-                          if (e.isEmpty) {
-                            setState(() {
-                              isSearchHasValue = false;
-                              providerCubit.fetchUserProviders();
-                            });
-                          } else {
-                            setState(() {
-                              isSearchHasValue = true;
-                            });
-                            providerCubit.searchUserAuth(searchController.text);
-                          }
-                        },
-                        backgroundColor: const MaterialStatePropertyAll(
-                            Color.fromARGB(255, 43, 51, 63)),
-                        hintText: "Search",
-                        hintStyle: MaterialStatePropertyAll(GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 125, 125, 125),
-                            fontSize: 16,
-                            letterSpacing: .5,
-                            fontWeight: FontWeight.w600)),
-                        textStyle: MaterialStatePropertyAll(GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 16,
-                            letterSpacing: .5,
-                            fontWeight: FontWeight.w600)),
-                        trailing: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 5.0),
-                            child: Icon(Icons.search,
-                                color: isSearchHasValue
-                                    ? const Color.fromARGB(255, 255, 255, 255)
-                                    : const Color.fromARGB(255, 125, 125, 125)),
-                          )
-                        ]),
+                      ),
+                      textStyle: MaterialStatePropertyAll(
+                        GoogleFonts.karla(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 16,
+                          letterSpacing: .5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      trailing: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 5.0),
+                          child: Icon(
+                            Icons.search,
+                            color: isSearchHasValue
+                                ? const Color.fromARGB(255, 255, 255, 255)
+                                : const Color.fromARGB(255, 125, 125, 125),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                BlocConsumer<ProviderCubit, ProviderState>(
-                  listener: (context, state) {
-                    if (state is ProviderLoadFailure) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Failed to load providers: ${state.error}',
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state is ProviderLoadSuccess && !isSearchHasValue) {
-                      if (state.providers.isEmpty) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Popular Providers",
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 18,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Your Auths",
-                              style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 125, 125, 125),
-                                  fontSize: 18,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        );
-                      }
-                    } else if (state is PopularProviderLoadSuccess &&
-                        !isSearchHasValue) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Popular Providers",
-                            style: GoogleFonts.karla(
-                                color: const Color.fromARGB(255, 125, 125, 125),
-                                fontSize: 18,
-                                letterSpacing: .75,
-                                fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                      );
-                    } else {
-                      return const SizedBox
-                          .shrink(); // Placeholder for other states
-                    }
-                  },
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: BlocConsumer<ProviderCubit, ProviderState>(
-                      listener: (context, state) {
-                        if (state is ProviderLoadFailure) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    'Failed to load providers: ${state.error}')),
-                          );
-                        }
-                      },
-                      builder: (context, state) {
-                        if (state is ProviderLoading) {
-                          return const Center(
-                              child: CircularProgressIndicator(
-                                  color: Color.fromARGB(255, 106, 172, 191)));
-                        } else if (state is ProviderLoadSuccess &&
-                            !isSearchHasValue) {
-                          if (state.providers.isEmpty) {
-                            return _buildPopularProviders(context);
-                          }
-                          return ListView.builder(
-                            itemCount: state.providers.length,
-                            itemBuilder: (context, index) {
-                              final provider = state.providers[index];
-                              return AuthsProviderCard(
-                                providerModel: provider,
-                              );
-                            },
-                          );
-                        } else if (state is Searching) {
-                          return const Center(
-                              child: CircularProgressIndicator(
-                                  color: Color.fromARGB(255, 106, 172, 191)));
-                        } else if (state is UserProviderSearchSuccess) {
-                          return ListView.builder(
-                            itemCount: state.providers.length,
-                            itemBuilder: (context, index) {
-                              final provider = state.providers[index];
-                              return AuthsProviderCard(
-                                providerModel: provider,
-                              );
-                            },
-                          );
-                        } else if (state is PopularProviderLoadSuccess &&
-                            !isSearchHasValue) {
-                          return ListView.builder(
-                            itemCount: state.providers.length,
-                            itemBuilder: (context, index) {
-                              final provider = state.providers[index];
-                              return PopularProviderCard(
-                                providerModel: provider,
-                              );
-                            },
-                          );
-                        } else if (state is PopularProviderSearchSuccess) {
-                          return ListView.builder(
-                            itemCount: state.providers.length,
-                            itemBuilder: (context, index) {
-                              final provider = state.providers[index];
-                              return PopularProviderCard(
-                                providerModel: provider,
-                              );
-                            },
-                          );
+                  child: BlocConsumer<UserProviderCubit, UserProviderState>(
+                    listener: (context, state) {
+                      if (state is UserProviderLoadFailure) {
+                        customSnackbar = CustomSnackbar(
+                            "Failed to load user providers: ${state.error}");
+                        customSnackbar.showCustomSnackbar(context);
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state is UserProviderLoading) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Color.fromARGB(255, 106, 172, 191),
+                          ),
+                        );
+                      } else if (state is UserProviderLoadSuccess &&
+                          !isSearchHasValue) {
+                        if (state.providers.isNotEmpty) {
+                          return _buildUserProviders(context, state.providers);
                         } else {
-                          return Container(); // Placeholder for other states
+                          // If user providers are empty, render popular providers
+                          return BlocConsumer<PopularProviderCubit,
+                              PopularProviderState>(
+                            listener: (context, state) {
+                              if (state is PopularProviderLoadFailure) {
+                                customSnackbar = CustomSnackbar(
+                                    "Failed to load popular providers: ${state.error}");
+                                customSnackbar.showCustomSnackbar(context);
+                              }
+                            },
+                            builder: (context, state) {
+                              if (state is PopularProviderLoadSuccess) {
+                                return _buildPopularProviders(context);
+                              } else if (state
+                                  is PopularProviderSearchSuccess) {
+                                return _buildPopularSearchResults(
+                                    context, state.provider);
+                              } else if (state
+                                  is PopularProviderSearchFailure) {
+                                return _buildSearchFailure(
+                                    context,
+                                    state
+                                        .error); // Handle popular provider search failure
+                              } else {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color.fromARGB(255, 106, 172, 191),
+                                  ),
+                                );
+                              }
+                            },
+                          );
                         }
-                      },
-                    ),
+                      } else if (state is UserProviderSearchSuccess) {
+                        return _buildUserSearchResults(context, state.provider);
+                      } else if (state is UserProviderSearchFailure) {
+                        return _buildSearchFailure(context,
+                            state.error); // Handle user provider search failure
+                      } else {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Color.fromARGB(255, 106, 172, 191),
+                          ),
+                        );
+                      }
+                    },
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -285,27 +216,70 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildUserProviders(
+      BuildContext context, List<UserProviderModel> providers) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Your Auths",
+          style: GoogleFonts.karla(
+            color: const Color.fromARGB(255, 125, 125, 125),
+            fontSize: 18,
+            letterSpacing: .75,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: ListView.builder(
+            itemCount: providers.length,
+            itemBuilder: (context, index) {
+              final provider = providers[index];
+              return AuthsProviderCard(
+                providerModel: provider,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPopularProviders(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          "Popular Auths",
+          style: GoogleFonts.karla(
+            color: const Color.fromARGB(255, 125, 125, 125),
+            fontSize: 18,
+            letterSpacing: .75,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 10),
         Expanded(
-          child: BlocConsumer<ProviderCubit, ProviderState>(
+          child: BlocConsumer<PopularProviderCubit, PopularProviderState>(
             listener: (context, state) {
-              if (state is ProviderLoadFailure) {
+              if (state is PopularProviderLoadFailure) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text(
-                          'Failed to load popular providers: ${state.error}')),
+                    content: Text(
+                      'Failed to load popular providers: ${state.error}',
+                    ),
+                  ),
                 );
               }
             },
             builder: (context, state) {
-              if (state is ProviderLoading) {
+              if (state is PopularProviderLoading) {
                 return const Center(
-                    child: CircularProgressIndicator(
-                        color: Color.fromARGB(255, 106, 172, 191)));
+                  child: CircularProgressIndicator(
+                    color: Color.fromARGB(255, 106, 172, 191),
+                  ),
+                );
               } else if (state is PopularProviderLoadSuccess) {
                 return ListView.builder(
                   itemCount: state.providers.length,
@@ -325,4 +299,53 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
+
+  Widget _buildUserSearchResults(
+      BuildContext context, UserProviderModel provider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Search Results",
+          style: GoogleFonts.karla(
+            color: const Color.fromARGB(255, 125, 125, 125),
+            fontSize: 18,
+            letterSpacing: .75,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        AuthsProviderCard(
+          providerModel: provider,
+        )
+      ],
+    );
+  }
+
+  Widget _buildPopularSearchResults(
+      BuildContext context, PopularProviderModel provider) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+        "Search Results",
+        style: GoogleFonts.karla(
+          color: const Color.fromARGB(255, 125, 125, 125),
+          fontSize: 18,
+          letterSpacing: .75,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 10),
+      PopularProviderCard(
+        providerModel: provider,
+      )
+    ]);
+  }
+}
+
+Widget _buildSearchFailure(BuildContext context, String error) {
+  return Center(
+    child: Text(
+      'Search failed: $error',
+      style: const TextStyle(color: Colors.red),
+    ),
+  );
 }

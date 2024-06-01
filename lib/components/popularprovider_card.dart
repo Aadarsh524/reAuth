@@ -15,7 +15,7 @@ class PopularProviderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 7),
       child: Card(
         elevation: 5,
         shape: RoundedRectangleBorder(
@@ -42,9 +42,21 @@ class PopularProviderCard extends StatelessWidget {
                   children: [
                     CachedNetworkImage(
                       imageUrl: providerModel.faviconUrl,
-                      height: 40,
-                      width: 40,
+                      height: 45,
+                      width: 45,
                       fit: BoxFit.contain,
+                      placeholder: (context, url) => Container(
+                        width: 45,
+                        height: 45,
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
                     ),
                     const SizedBox(width: 10),
                     Column(

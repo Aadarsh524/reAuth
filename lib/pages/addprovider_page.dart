@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/provider_cubit.dart';
-import 'package:reauth/bloc/states/provider_state.dart';
+import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
+import 'package:reauth/bloc/states/user_provider_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
 import 'package:reauth/components/formatter.dart';
@@ -30,6 +30,9 @@ class _AddProviderPageState extends State<AddProviderPage> {
       TextEditingController();
   final TextEditingController authProviderNameController =
       TextEditingController();
+  final TextEditingController transactionPasswordController =
+      TextEditingController();
+
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   var authCategories = [
@@ -43,6 +46,8 @@ class _AddProviderPageState extends State<AddProviderPage> {
   ];
   String? dropdownvalue = 'Social Media';
   RegExp noUpperCase = RegExp(r'[A-Z]');
+  bool popularProvider = false;
+  bool hasTransactionPass = false;
 
   @override
   void initState() {
@@ -52,6 +57,7 @@ class _AddProviderPageState extends State<AddProviderPage> {
       dropdownvalue = widget.popularProviderModel?.authCategory;
       authProviderNameController.text = widget.popularProviderModel!.authName;
       authProviderLinkController.text = widget.popularProviderModel!.authLink;
+      popularProvider = true;
     }
 
     providerCategoryController.text = dropdownvalue!;
@@ -59,7 +65,7 @@ class _AddProviderPageState extends State<AddProviderPage> {
 
   @override
   Widget build(BuildContext context) {
-    final providerCubit = BlocProvider.of<ProviderCubit>(context);
+    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
 
     return Scaffold(
         resizeToAvoidBottomInset: false,
@@ -69,34 +75,50 @@ class _AddProviderPageState extends State<AddProviderPage> {
           elevation: 0,
           actions: [
             Padding(
-              padding: const EdgeInsets.only(right: 10.0),
-              child: TextButton(
-                onPressed: () {
-                  widget.popularProviderModel != null
-                      ? authProviderLinkController.text =
-                          widget.popularProviderModel!.authLink
-                      : authProviderLinkController.text =
-                          "www.${authProviderNameController.text.toLowerCase()}.com";
-                  providerCubit.submitProvider(UserProviderModel(
-                      authName: authProviderNameController.text,
-                      username: usernameController.text,
-                      password: passwordController.text,
-                      note: noteController.text,
-                      providerCategory: providerCategoryController.text,
-                      authProviderLink: authProviderLinkController.text,
-                      faviconUrl: authProviderLinkController.text));
-                },
-                child: Text(
-                  "Save",
-                  style: GoogleFonts.karla(
-                    color: const Color.fromARGB(255, 111, 163, 219),
-                    fontSize: 20,
-                    letterSpacing: .75,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            )
+                padding: const EdgeInsets.only(right: 10.0),
+                child: TextButton(
+                    onPressed: () {
+                      widget.popularProviderModel != null
+                          ? authProviderLinkController.text =
+                              widget.popularProviderModel!.authLink
+                          : authProviderLinkController.text =
+                              "www.${authProviderNameController.text.toLowerCase()}.com";
+                      userProviderCubit.submitProvider(
+                          UserProviderModel(
+                            authName:
+                                authProviderNameController.text.toLowerCase(),
+                            username: usernameController.text,
+                            password: passwordController.text,
+                            note: noteController.text,
+                            providerCategory: providerCategoryController.text,
+                            authProviderLink: authProviderLinkController.text,
+                            faviconUrl: authProviderLinkController.text,
+                            hasTransactionPassword: hasTransactionPass,
+                            transactionPassword: hasTransactionPass
+                                ? transactionPasswordController.text
+                                : '',
+                          ),
+                          popularProvider);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(
+                          color: Color.fromARGB(255, 111, 163, 219),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "Save",
+                      style: GoogleFonts.karla(
+                        color: const Color.fromARGB(255, 111, 163, 219),
+                        fontSize: 16,
+                        letterSpacing: .75,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )))
           ],
         ),
         body: Container(
@@ -120,36 +142,38 @@ class _AddProviderPageState extends State<AddProviderPage> {
                       horizontal: 20.0,
                       vertical: 20.0,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        widget.popularProviderModel != null
-                            ? CachedNetworkImage(
-                                imageUrl:
-                                    widget.popularProviderModel!.faviconUrl,
-                                height: 30,
-                                fit: BoxFit.contain,
-                              )
-                            : const Icon(
-                                Icons.add_circle,
-                                size: 24,
-                                color: Color.fromARGB(255, 111, 163, 219),
-                              ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Text(
+                    child: Center(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
                           widget.popularProviderModel != null
-                              ? 'Add ${widget.popularProviderModel!.authName}'
-                              : "Add Auth",
-                          style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 20,
-                            letterSpacing: .75,
-                            fontWeight: FontWeight.w600,
+                              ? CachedNetworkImage(
+                                  imageUrl:
+                                      widget.popularProviderModel!.faviconUrl,
+                                  height: 30,
+                                  fit: BoxFit.contain,
+                                )
+                              : const Icon(
+                                  Icons.add_circle,
+                                  size: 24,
+                                  color: Color.fromARGB(255, 111, 163, 219),
+                                ),
+                          const SizedBox(
+                            height: 10,
                           ),
-                        ),
-                      ],
+                          Text(
+                            widget.popularProviderModel != null
+                                ? 'Add ${widget.popularProviderModel!.authName}'
+                                : "Add Auth",
+                            style: GoogleFonts.karla(
+                              color: const Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 20,
+                              letterSpacing: .75,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(
@@ -158,9 +182,9 @@ class _AddProviderPageState extends State<AddProviderPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 15.0, vertical: 10.0),
-                    child: BlocConsumer<ProviderCubit, ProviderState>(
+                    child: BlocConsumer<UserProviderCubit, UserProviderState>(
                       listener: (context, state) {
-                        if (state is ProviderSubmissionSuccess) {
+                        if (state is UserProviderSubmissionSuccess) {
                           CustomSnackbar customSnackbar =
                               CustomSnackbar("Submission Completed");
 
@@ -171,13 +195,20 @@ class _AddProviderPageState extends State<AddProviderPage> {
                               builder: (context) => const DashboardPage(),
                             ),
                           );
-                        } else if (state is ProviderSubmissionFailure) {
+                        } else if (state is UserProviderSubmissionFailure) {
                           CustomSnackbar customSnackbar = CustomSnackbar(
                               "Submission Error: ${state.error}");
                           customSnackbar.showCustomSnackbar(context);
                         }
                       },
                       builder: (context, state) {
+                        if (state is UserProviderLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Color.fromARGB(255, 106, 172, 191),
+                            ),
+                          );
+                        }
                         return Form(
                           child: Column(
                             children: [
@@ -208,6 +239,42 @@ class _AddProviderPageState extends State<AddProviderPage> {
                                 controller: passwordController,
                                 hintText: 'Enter Auth Password',
                                 labelText: 'Password',
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        value: hasTransactionPass,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            hasTransactionPass = value!;
+                                          });
+                                        },
+                                      ),
+                                      Text(
+                                        'Transaction Password Exists',
+                                        style: GoogleFonts.karla(
+                                          color: const Color.fromARGB(
+                                              255, 255, 255, 255),
+                                          fontSize: 16,
+                                          letterSpacing: .75,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (hasTransactionPass) ...[
+                                    CustomTextField(
+                                      keyboardType:
+                                          TextInputType.visiblePassword,
+                                      controller: transactionPasswordController,
+                                      hintText: 'Enter Transaction Password',
+                                      labelText: 'Transaction Password',
+                                    ),
+                                  ],
+                                ],
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(

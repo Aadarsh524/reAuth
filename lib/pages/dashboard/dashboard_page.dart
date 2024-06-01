@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reauth/pages/dashboard/editprovider_page.dart';
+import 'package:reauth/pages/dashboard/tabs/editprovider_page.dart';
 import 'package:reauth/pages/dashboard/tabs/home_page.dart';
 import 'package:reauth/pages/dashboard/tabs/notification_page.dart';
 import 'package:reauth/pages/dashboard/tabs/security_page.dart';

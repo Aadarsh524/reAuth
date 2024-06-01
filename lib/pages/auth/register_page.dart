@@ -21,32 +21,33 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  bool isPasswordVisible = true;
-  bool isConfirmPasswordVisible = true;
+  bool isPasswordVisible = false; // Initially set to false
+  bool isConfirmPasswordVisible = false; // Initially set to false
   CustomSnackbar customSnackbar = CustomSnackbar('');
 
   @override
   Widget build(BuildContext context) {
     final authCubit = BlocProvider.of<AuthCubit>(context);
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor:
+          Theme.of(context).scaffoldBackgroundColor, // Set background color
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
-                Text(
-                  "ReAuth",
-                  style: GoogleFonts.karla(
-                    color: const Color.fromARGB(255, 125, 125, 125),
-                    fontSize: 25,
-                    letterSpacing: .75,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 20),
+                Center(
+                  child: Text(
+                    "ReAuth",
+                    style: GoogleFonts.karla(
+                      color: const Color.fromARGB(
+                          255, 125, 125, 125), // Set text color
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -54,34 +55,34 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     children: [
                       Text(
-                        "Hello there!",
+                        "Create an Account",
                         style: GoogleFonts.karla(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 18,
-                          letterSpacing: .75,
-                          fontWeight: FontWeight.w600,
+                          color: const Color.fromARGB(
+                              255, 255, 255, 255), // Set text color
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 30),
                       CustomTextField(
                         keyboardType: TextInputType.text,
                         controller: fullNameController,
-                        hintText: 'enter full name',
+                        hintText: 'Enter your full name',
                         labelText: 'Full Name',
                       ),
                       CustomTextField(
                         keyboardType: TextInputType.emailAddress,
                         controller: emailController,
-                        hintText: 'enter email',
+                        hintText: 'Enter your email',
                         labelText: 'Email',
                       ),
                       CustomTextField(
                         isFormTypePassword: true,
                         keyboardType: TextInputType.visiblePassword,
                         controller: passwordController,
-                        hintText: 'enter password',
+                        hintText: 'Enter your password',
                         labelText: 'Password',
-                        obscureText: isPasswordVisible,
+                        obscureText: !isPasswordVisible, // Inverted value
                         passwordVisibility: (e) {
                           setState(() {
                             isPasswordVisible = !isPasswordVisible;
@@ -92,22 +93,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         isFormTypePassword: true,
                         keyboardType: TextInputType.visiblePassword,
                         controller: confirmPasswordController,
-                        hintText: 'confirm password',
+                        hintText: 'Confirm your password',
                         labelText: 'Confirm Password',
-                        obscureText: isConfirmPasswordVisible,
+                        obscureText:
+                            !isConfirmPasswordVisible, // Inverted value
                         passwordVisibility: (e) {
                           setState(() {
-                            isConfirmPasswordVisible =
-                                !isConfirmPasswordVisible;
+                            isPasswordVisible = !isPasswordVisible;
                           });
                         },
                       ),
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 40),
                       BlocConsumer<AuthCubit, AuthState>(
                         listener: (context, state) {
                           if (state is RegisterSuccess) {
                             customSnackbar =
-                                CustomSnackbar("Registeration Success");
+                                CustomSnackbar("Registration Success");
                             customSnackbar.showCustomSnackbar(context);
 
                             Navigator.pushReplacement(
@@ -128,8 +129,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                         builder: (context, state) {
                           if (state is AuthLoading) {
-                            return const CircularProgressIndicator(
-                              color: Color.fromARGB(255, 106, 172, 191),
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color.fromARGB(
+                                    255, 106, 172, 191), // Set color
+                              ),
                             );
                           }
                           return SizedBox(
@@ -137,8 +141,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             height: 50,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 106, 172, 191),
+                                backgroundColor: const Color.fromARGB(
+                                    255, 106, 172, 191), // Set button color
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -171,15 +175,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Have Account?",
+                        "Already have an account? ",
                         style: GoogleFonts.karla(
-                          color: const Color.fromARGB(255, 125, 125, 125),
+                          color: Colors.black, // Set text color
                           fontSize: 14,
-                          letterSpacing: .5,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
-                      const SizedBox(width: 5),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushReplacement(
@@ -192,10 +194,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text(
                           "Login",
                           style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 255, 255, 255),
+                            color: const Color.fromARGB(
+                                255, 255, 255, 255), // Set text color
                             fontSize: 14,
-                            letterSpacing: .75,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

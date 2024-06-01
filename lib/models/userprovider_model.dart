@@ -6,7 +6,8 @@ class UserProviderModel {
   String providerCategory;
   String faviconUrl;
   String authName;
-
+  String? transactionPassword;
+  bool hasTransactionPassword;
   UserProviderModel({
     required this.username,
     required this.authName,
@@ -15,6 +16,8 @@ class UserProviderModel {
     required this.authProviderLink,
     required this.providerCategory,
     required this.faviconUrl,
+    this.transactionPassword,
+    required this.hasTransactionPassword,
   });
 
   factory UserProviderModel.fromMap(Map<String, dynamic> map) {
@@ -26,6 +29,8 @@ class UserProviderModel {
       authProviderLink: map['authProviderLink'],
       providerCategory: map['providerCategory'],
       faviconUrl: map['faviconUrl'],
+      transactionPassword: map['transactionPassword'],
+      hasTransactionPassword: map['hasTransactionPassword'] ?? false,
     );
   }
 }

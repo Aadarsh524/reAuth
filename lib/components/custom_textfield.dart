@@ -2,20 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ignore: must_be_immutable
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final String labelText;
-  bool obscureText;
-  bool isFormTypePassword;
-
+  final bool obscureText;
+  final bool isFormTypePassword;
   final List<TextInputFormatter> textInputFormatter;
   final TextInputType keyboardType;
-  Function(bool)? passwordVisibility;
+  final Function(bool)? passwordVisibility;
 
-  CustomTextField({
-    super.key,
+  const CustomTextField({
+    Key? key,
     required this.controller,
     required this.hintText,
     required this.labelText,
@@ -24,7 +22,7 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.textInputFormatter = const [],
     this.keyboardType = TextInputType.text,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +34,7 @@ class CustomTextField extends StatelessWidget {
           Text(
             labelText,
             style: GoogleFonts.karla(
-              color: Colors.white,
+              color: const Color.fromARGB(255, 255, 255, 255),
               fontSize: 14,
               letterSpacing: 0.75,
               fontWeight: FontWeight.w600,
@@ -67,7 +65,7 @@ class CustomTextField extends StatelessWidget {
                     ? IconButton(
                         icon: Icon(
                           obscureText ? Icons.visibility_off : Icons.visibility,
-                          color: Colors.white,
+                          color: const Color.fromARGB(255, 255, 255, 255),
                         ),
                         onPressed: () {
                           passwordVisibility?.call(!obscureText);
@@ -79,7 +77,7 @@ class CustomTextField extends StatelessWidget {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: const Color.fromARGB(255, 53, 64, 79),
+                fillColor: const Color.fromARGB(255, 43, 51, 63),
               ),
               style: const TextStyle(
                 color: Colors.white,

@@ -1,14 +1,21 @@
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
+import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
+import 'package:reauth/bloc/states/user_provider_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/models/userprovider_model.dart';
+import 'package:reauth/pages/dashboard/dashboard_page.dart';
 
+// ignore: must_be_immutable
 class ProviderDetailPage extends StatelessWidget {
   final UserProviderModel providerModel;
-  const ProviderDetailPage({Key? key, required this.providerModel})
-      : super(key: key);
+
+  ProviderDetailPage({Key? key, required this.providerModel}) : super(key: key);
 
   void copyToClipboard(BuildContext context) {
     CustomSnackbar customSnackbar = CustomSnackbar('');
@@ -18,8 +25,15 @@ class ProviderDetailPage extends StatelessWidget {
         .then((value) => customSnackbar.showCustomSnackbar(context));
   }
 
+  CustomSnackbar customSnackbar = CustomSnackbar('');
+
   @override
   Widget build(BuildContext context) {
+    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    log(providerModel.hasTransactionPassword.toString());
+    log(providerModel.authName.toString());
+    log(providerModel.transactionPassword.toString());
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 53, 64, 79),
@@ -29,7 +43,9 @@ class ProviderDetailPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                userProviderCubit.deleteProvider(providerModel.authName);
+              },
               icon: const Icon(
                 Icons.delete,
                 size: 28,
@@ -39,102 +55,150 @@ class ProviderDetailPage extends StatelessWidget {
           )
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Column(
-                  children: [
-                    CachedNetworkImage(
-                      imageUrl: providerModel.faviconUrl,
-                      height: 60,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      providerModel.authProviderLink,
-                      style: GoogleFonts.karla(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      providerModel.username,
-                      style: GoogleFonts.karla(
-                        color: const Color.fromARGB(255, 125, 125, 125),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+      body: BlocConsumer<UserProviderCubit, UserProviderState>(
+        listener: (context, state) {
+          if (state is UserProviderDeletedFailure) {
+            customSnackbar = CustomSnackbar(state.error);
+            customSnackbar.showCustomSnackbar(context);
+          }
+          if (state is UserProviderDeletedSuccess) {
+            customSnackbar = CustomSnackbar("Delete Success");
+            customSnackbar.showCustomSnackbar(context);
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DashboardPage(),
               ),
-              const SizedBox(height: 25),
-              Text(
-                "Details & Settings",
-                style: GoogleFonts.karla(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is UserProviderLoading) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color.fromARGB(255, 106, 172, 191), // Change color
               ),
-              const Divider(color: Colors.white),
-              const SizedBox(height: 10),
-              Column(
+            );
+          }
+
+          // Return your body content here
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDetailRow("Link:", providerModel.authProviderLink),
-                  _buildDetailRow("Password:", providerModel.password),
-                  _buildDetailRow("Category:", providerModel.providerCategory),
-                  _buildDetailRow("Note:", providerModel.note),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  Center(
+                    child: Column(
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: providerModel.faviconUrl,
+                          height: 60,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          providerModel.authProviderLink,
+                          style: GoogleFonts.karla(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5, // Added letter spacing
+                          ),
+                          textAlign: TextAlign.center, // Centered text
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          providerModel.username,
+                          style: GoogleFonts.karla(
+                            color: Colors.grey[600], // Increased contrast
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center, // Centered text
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 25),
+                  Text(
+                    "Details & Settings",
+                    style: GoogleFonts.karla(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Divider(color: Colors.white),
+                  const SizedBox(height: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildButton(
-                        text: 'Copy Auth',
-                        onPressed: () => copyToClipboard(context),
-                      ),
-                      _buildButton(
-                        text: 'Edit Auth',
-                        onPressed: () {},
+                      _buildDetailRow("Link:", providerModel.authProviderLink),
+                      _buildDetailRow("Password:", providerModel.password),
+                      _buildDetailRow(
+                          "Category:", providerModel.providerCategory),
+                      _buildDetailRow("Note:", providerModel.note),
+                      providerModel.hasTransactionPassword == true
+                          ? _buildDetailRow("Transaction Pass:",
+                              providerModel.transactionPassword)
+                          : Container(),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildButton(
+                            text: 'Copy Auth',
+                            onPressed: () => copyToClipboard(context),
+                            backgroundColor: const Color.fromARGB(
+                                255, 106, 172, 191), // Changed button color
+                          ),
+                          _buildButton(
+                            text: 'Edit Auth',
+                            onPressed: () {},
+                            backgroundColor: const Color.fromARGB(
+                                255, 106, 172, 191), // Changed button color
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String? value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.karla(
-              color: const Color.fromARGB(255, 125, 125, 125),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+          Expanded(
+            flex: 3,
+            child: Text(
+              label,
+              style: GoogleFonts.karla(
+                color: Colors.grey[600], // Increased contrast
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.karla(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+          Expanded(
+            flex: 5,
+            child: Text(
+              value!,
+              style: GoogleFonts.karla(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -142,15 +206,19 @@ class ProviderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildButton({required String text, required VoidCallback onPressed}) {
+  Widget _buildButton(
+      {required String text,
+      required VoidCallback onPressed,
+      required Color backgroundColor}) {
     return SizedBox(
+      width: 120, // Set button width
       height: 50,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.all(8.0),
           side: const BorderSide(color: Color.fromARGB(255, 106, 172, 191)),
-          backgroundColor: const Color.fromARGB(255, 36, 45, 58),
+          backgroundColor: backgroundColor, // Set button color
         ),
         child: Text(
           text,

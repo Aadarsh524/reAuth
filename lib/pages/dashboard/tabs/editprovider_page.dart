@@ -2,8 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/provider_cubit.dart';
-import 'package:reauth/bloc/states/provider_state.dart';
+import 'package:reauth/bloc/cubit/popular_provider_cubit.dart';
+
+import 'package:reauth/bloc/states/popular_provider_state.dart';
+import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
 import 'package:reauth/pages/addprovider_page.dart';
 
@@ -18,12 +20,13 @@ class _EditProviderPageState extends State<EditProviderPage> {
   bool isSearchHasValue = false;
   TextEditingController searchController = TextEditingController();
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  CustomSnackbar customSnackbar = CustomSnackbar('');
 
   @override
   Widget build(BuildContext context) {
-    final providerCubit = BlocProvider.of<ProviderCubit>(context);
+    final popularProviderCubit = BlocProvider.of<PopularProviderCubit>(context);
     if (!isSearchHasValue) {
-      providerCubit.fetchPopularProviders();
+      popularProviderCubit.fetchPopularProviders();
     }
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -105,8 +108,8 @@ class _EditProviderPageState extends State<EditProviderPage> {
                             setState(() {
                               isSearchHasValue = true;
                             });
-                            providerCubit
-                                .searchPopularAuth(searchController.text);
+                            // popularProviderCubit
+                            //     .searchPopularAuth(searchController.text);
                           }
                         },
                         backgroundColor: const MaterialStatePropertyAll(
@@ -136,17 +139,15 @@ class _EditProviderPageState extends State<EditProviderPage> {
                 SizedBox(
                     height: MediaQuery.of(context).size.height * .55,
                     width: MediaQuery.of(context).size.width,
-                    child: BlocConsumer<ProviderCubit, ProviderState>(
-                        listener: (context, state) {
-                      if (state is ProviderLoadFailure) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'Failed to load providers: ${state.error}')),
-                        );
+                    child: BlocConsumer<PopularProviderCubit,
+                        PopularProviderState>(listener: (context, state) {
+                      if (state is PopularProviderLoadFailure) {
+                        customSnackbar = CustomSnackbar(
+                            "Failed to load popular providers: ${state.error}");
+                        customSnackbar.showCustomSnackbar(context);
                       }
                     }, builder: (context, state) {
-                      if (state is ProviderLoading) {
+                      if (state is PopularProviderLoading) {
                         return const Center(
                             child: CircularProgressIndicator(
                                 color: Color.fromARGB(255, 106, 172, 191)));
@@ -162,7 +163,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
                             );
                           },
                         );
-                      } else if (state is Searching) {
+                      } else if (state is PopularProviderSearching) {
                         return const Center(
                             child: CircularProgressIndicator(
                                 color: Color.fromARGB(255, 106, 172, 191)));
@@ -171,7 +172,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             PopularProviderCard(
-                              providerModel: state.providers.first,
+                              providerModel: state.provider,
                             ),
                           ],
                         );
