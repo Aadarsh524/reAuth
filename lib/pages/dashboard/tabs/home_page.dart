@@ -25,6 +25,28 @@ class _HomePageState extends State<HomePage> {
   CustomSnackbar customSnackbar = CustomSnackbar('');
 
   @override
+  void initState() {
+    super.initState();
+    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    userProviderCubit.fetchUserProviders();
+
+    searchController.addListener(() {
+      final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+      if (searchController.text.isEmpty) {
+        setState(() {
+          isSearchHasValue = false;
+          userProviderCubit.fetchUserProviders();
+        });
+      } else {
+        setState(() {
+          isSearchHasValue = true;
+          userProviderCubit.searchUserAuth(searchController.text);
+        });
+      }
+    });
+  }
+
+  @override
   void dispose() {
     searchController.dispose();
     super.dispose();
@@ -32,9 +54,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
-    userProviderCubit.fetchUserProviders();
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -90,20 +109,6 @@ class _HomePageState extends State<HomePage> {
                         EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
                       ),
                       controller: searchController,
-                      onChanged: (e) {
-                        if (e.isEmpty) {
-                          setState(() {
-                            isSearchHasValue = false;
-                            userProviderCubit.fetchUserProviders();
-                          });
-                        } else {
-                          setState(() {
-                            isSearchHasValue = true;
-                          });
-                          userProviderCubit
-                              .searchUserAuth(searchController.text);
-                        }
-                      },
                       backgroundColor: const MaterialStatePropertyAll(
                         Color.fromARGB(255, 43, 51, 63),
                       ),
@@ -149,7 +154,8 @@ class _HomePageState extends State<HomePage> {
                       }
                     },
                     builder: (context, state) {
-                      if (state is UserProviderLoading) {
+                      if (state is UserProviderLoading ||
+                          state is UserProviderSearching) {
                         return const Center(
                           child: CircularProgressIndicator(
                             color: Color.fromARGB(255, 106, 172, 191),
@@ -180,9 +186,7 @@ class _HomePageState extends State<HomePage> {
                               } else if (state
                                   is PopularProviderSearchFailure) {
                                 return _buildSearchFailure(
-                                    context,
-                                    state
-                                        .error); // Handle popular provider search failure
+                                    context, state.error);
                               } else {
                                 return const Center(
                                   child: CircularProgressIndicator(
@@ -196,8 +200,7 @@ class _HomePageState extends State<HomePage> {
                       } else if (state is UserProviderSearchSuccess) {
                         return _buildUserSearchResults(context, state.provider);
                       } else if (state is UserProviderSearchFailure) {
-                        return _buildSearchFailure(context,
-                            state.error); // Handle user provider search failure
+                        return _buildSearchFailure(context, state.error);
                       } else {
                         return const Center(
                           child: CircularProgressIndicator(
@@ -207,7 +210,7 @@ class _HomePageState extends State<HomePage> {
                       }
                     },
                   ),
-                ),
+                )
               ],
             ),
           ),
@@ -247,6 +250,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPopularProviders(BuildContext context) {
+    CustomSnackbar customSnackbar = CustomSnackbar('');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -264,13 +268,9 @@ class _HomePageState extends State<HomePage> {
           child: BlocConsumer<PopularProviderCubit, PopularProviderState>(
             listener: (context, state) {
               if (state is PopularProviderLoadFailure) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Failed to load popular providers: ${state.error}',
-                    ),
-                  ),
-                );
+                customSnackbar = CustomSnackbar(
+                    "Failed to load popular providers: ${state.error}");
+                customSnackbar.showCustomSnackbar(context);
               }
             },
             builder: (context, state) {
@@ -339,13 +339,13 @@ class _HomePageState extends State<HomePage> {
       )
     ]);
   }
-}
 
-Widget _buildSearchFailure(BuildContext context, String error) {
-  return Center(
-    child: Text(
-      'Search failed: $error',
-      style: const TextStyle(color: Colors.red),
-    ),
-  );
+  Widget _buildSearchFailure(BuildContext context, String error) {
+    return Center(
+      child: Text(
+        error,
+        style: const TextStyle(color: Colors.red),
+      ),
+    );
+  }
 }

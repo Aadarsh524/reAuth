@@ -37,10 +37,22 @@ class PopularProviderCubit extends Cubit<PopularProviderState> {
   }
 
   void searchPopularAuth(String searchTerm) {
-    final matchingProvider = _popularProviders.firstWhere((provider) {
-      return provider.authName.toLowerCase().contains(searchTerm.toLowerCase());
-    });
+    final lowerCaseSearchTerm = searchTerm.toLowerCase();
+    final matchingProviders = _popularProviders
+        .where((provider) =>
+            provider.authName.toLowerCase().contains(lowerCaseSearchTerm))
+        .toList();
 
-    emit(PopularProviderSearchSuccess(provider: matchingProvider));
+    if (matchingProviders.isEmpty) {
+      // No exact or partial matches found
+      emit(const PopularProviderSearchFailure(error: "Exact match not found"));
+    } else {
+      // Prioritize exact matches (if any)
+      final exactMatch = matchingProviders.firstWhere(
+          (provider) => provider.authName.toLowerCase() == lowerCaseSearchTerm);
+
+      // Emit UserProviderSearchSuccess only for exact match
+      emit(PopularProviderSearchSuccess(provider: exactMatch));
+    }
   }
 }

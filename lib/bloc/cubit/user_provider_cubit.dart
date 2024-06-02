@@ -46,11 +46,23 @@ class UserProviderCubit extends Cubit<UserProviderState> {
   }
 
   void searchUserAuth(String searchTerm) {
-    final matchingProvider = _userProviders.firstWhere((provider) {
-      return provider.authName.toLowerCase().contains(searchTerm.toLowerCase());
-    });
+    final lowerCaseSearchTerm = searchTerm.toLowerCase();
+    final matchingProviders = _userProviders
+        .where((provider) =>
+            provider.authName.toLowerCase().contains(lowerCaseSearchTerm))
+        .toList();
 
-    emit(UserProviderSearchSuccess(provider: matchingProvider));
+    if (matchingProviders.isEmpty) {
+      // No exact or partial matches found
+      emit(const UserProviderSearchFailure(error: "Exact match not found"));
+    } else {
+      // Prioritize exact matches (if any)
+      final exactMatch = matchingProviders.firstWhere(
+          (provider) => provider.authName.toLowerCase() == lowerCaseSearchTerm);
+
+      // Emit UserProviderSearchSuccess only for exact match
+      emit(UserProviderSearchSuccess(provider: exactMatch));
+    }
   }
 
   String? validateProvider(UserProviderModel provider) {
