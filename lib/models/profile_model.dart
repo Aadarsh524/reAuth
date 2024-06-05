@@ -1,8 +1,8 @@
 class ProfileModel {
   final String fullname;
   final String email;
-  final String savedPasswords;
   final String pin;
+  final String profileImage;
   final bool isEmailVerified;
 
   ProfileModel({
@@ -10,16 +10,16 @@ class ProfileModel {
     required this.isEmailVerified,
     required this.fullname,
     required this.email,
-    required this.savedPasswords,
+    required this.profileImage,
   });
 
   factory ProfileModel.fromMap(Map<String, dynamic> map) {
     return ProfileModel(
       fullname: map['fullname'],
       email: map['email'],
-      savedPasswords: map['savedPasswords'],
       isEmailVerified: map['isEmailVerified'],
       pin: map['pin'],
+      profileImage: map['profileImage'] ?? '',
     );
   }
 }

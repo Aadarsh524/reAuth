@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/models/profile_model.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   User? user = FirebaseAuth.instance.currentUser;
@@ -24,7 +27,7 @@ class ProfileCubit extends Cubit<ProfileState> {
           'fullname': profileData['fullname'] ?? '',
           'email': profileData['email'] ?? '',
           'pin': profileData['pin'] ?? '',
-          'savedPasswords': profileData['savedPasswords'] ?? '',
+          'profileImage': profileData['profileImage'] ?? '',
           'isEmailVerified': profileData['isEmailVerified'] ?? false,
         });
 
@@ -35,7 +38,8 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  Future<void> editProfile(String fullname, String email) async {
+  Future<void> editProfile(
+      String fullname, String email, String profileImage) async {
     try {
       emit(ProfileLoading());
       await FirebaseFirestore.instance
@@ -44,11 +48,34 @@ class ProfileCubit extends Cubit<ProfileState> {
           .set({
         'fullname': fullname,
         'email': email,
+        'profileImage': profileImage,
       });
 
       emit(ProfileUpdated());
     } on FirebaseAuthException catch (e) {
       emit(ProfileUpdateError(error: e.toString()));
     }
+  }
+
+  Future<void> uploadImageToFirebase(File image) async {
+    try {
+      emit(ProfileLoading());
+      FirebaseStorage storage = FirebaseStorage.instance;
+      Reference ref = storage.ref().child('profile_images/${user!.uid}');
+      UploadTask uploadTask = ref.putFile(image);
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadURL = await snapshot.ref.getDownloadURL();
+      await saveImageURLToFirestore(downloadURL);
+      emit(ProfileUpdated());
+    } catch (e) {
+      emit(ProfileUpdateError(error: e.toString()));
+    }
+  }
+
+  Future<void> saveImageURLToFirestore(String imageUrl) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    await firestore.collection('profiles').doc(user!.uid).set({
+      'profileImage': imageUrl,
+    }, SetOptions(merge: true));
   }
 }

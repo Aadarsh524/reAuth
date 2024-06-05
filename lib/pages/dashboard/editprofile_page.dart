@@ -1,6 +1,12 @@
+import 'dart:developer';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
@@ -17,8 +23,32 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  String profileImage = '';
 
   CustomSnackbar customSnackbar = CustomSnackbar('');
+
+  Future<void> pickImage(BuildContext context) async {
+    try {
+      final storageStatus = await Permission.storage.request();
+
+      if (!storageStatus.isGranted) {
+        log("hellfdjfddf");
+        throw Exception('Storage permission is required to upload the image.');
+      }
+
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'jpeg'],
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        File imageFile = File(result.files.single.path!);
+        BlocProvider.of<ProfileCubit>(context).uploadImageToFirebase(imageFile);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   @override
   void initState() {
@@ -55,6 +85,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
             }
             if (emailController.text.isEmpty) {
               emailController.text = state.profile.email;
+            }
+            if (profileImage.isEmpty &&
+                state.profile.profileImage.toString().isNotEmpty) {
+              profileImage = state.profile.profileImage.toString();
             }
           } else if (state is ProfileUpdated) {
             customSnackbar = CustomSnackbar("Update Success");
@@ -101,11 +135,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               children: [
                                 Stack(
                                   children: [
-                                    const CircleAvatar(
-                                      radius: 50,
-                                      backgroundImage: AssetImage(
-                                          'assets/defaultAvatar.png'),
-                                    ),
+                                    profileImage != ''
+                                        ? Container(
+                                            width: 100,
+                                            height: 100,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              image: DecorationImage(
+                                                image:
+                                                    CachedNetworkImageProvider(
+                                                        profileImage),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          )
+                                        : const CircleAvatar(
+                                            radius: 50,
+                                            backgroundImage: AssetImage(
+                                                'assets/defaultAvatar.png'),
+                                          ),
                                     Positioned(
                                       left: 60,
                                       bottom: 0,
@@ -130,9 +178,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                               icon: const Icon(
                                                 Icons.edit,
                                                 color: Colors.white,
-                                                size: 20,
+                                                size: 16,
                                               ),
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                pickImage(context);
+                                              },
                                             ),
                                           ),
                                         ],
@@ -168,9 +218,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                           FocusScope.of(context)
                                               .unfocus(); // Hide keyboard
                                           profileCubit.editProfile(
-                                            usernameController.text,
-                                            emailController.text,
-                                          );
+                                              usernameController.text,
+                                              emailController.text,
+                                              profileImage);
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: const Color.fromARGB(

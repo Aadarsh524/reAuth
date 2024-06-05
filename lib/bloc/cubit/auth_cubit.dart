@@ -78,6 +78,9 @@ class AuthCubit extends Cubit<AuthState> {
               .set({
             'fullname': fullname,
             'email': email,
+            'pin': '',
+            'isEmailVerified': false,
+            'avatar': ''
           });
         },
       );

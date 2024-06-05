@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/popular_provider_cubit.dart';
+import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
 import 'package:reauth/bloc/states/popular_provider_state.dart';
+import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/bloc/states/user_provider_state.dart';
 import 'package:reauth/components/authsprovider_card.dart';
 import 'package:reauth/components/custom_snackbar.dart';
@@ -23,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   bool isSearchHasValue = false;
   TextEditingController searchController = TextEditingController();
   CustomSnackbar customSnackbar = CustomSnackbar('');
+  String profileImage = '';
 
   @override
   void initState() {
@@ -79,23 +83,49 @@ class _HomePageState extends State<HomePage> {
                           letterSpacing: .75,
                           fontWeight: FontWeight.w600),
                     ),
-                    SizedBox(
-                      width: 30,
-                      height: 30.0,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const ProfilePage(),
-                            ),
-                          );
-                        },
-                        child: CircleAvatar(
-                          radius: 50.0,
-                          child: Image.asset(
-                              fit: BoxFit.contain, 'assets/defaultAvatar.png'),
-                        ),
-                      ),
+                    BlocBuilder<ProfileCubit, ProfileState>(
+                      builder: (context, state) {
+                        if (state is ProfileLoaded) {
+                          if (state.profile.profileImage != '') {
+                            profileImage =
+                                state.profile.profileImage.toString();
+
+                            return SizedBox(
+                              width: 30,
+                              height: 30.0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const ProfilePage(),
+                                    ),
+                                  );
+                                },
+                                child: profileImage != ''
+                                    ? Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          image: DecorationImage(
+                                            image: CachedNetworkImageProvider(
+                                                profileImage),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      )
+                                    : const CircleAvatar(
+                                        radius: 50,
+                                        backgroundImage: AssetImage(
+                                            'assets/defaultAvatar.png'),
+                                      ),
+                              ),
+                            );
+                          }
+                        }
+
+                        return Container();
+                      },
                     )
                   ],
                 ),
