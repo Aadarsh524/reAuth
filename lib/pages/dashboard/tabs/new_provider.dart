@@ -7,14 +7,14 @@ import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
 import 'package:reauth/pages/addprovider_page.dart';
 
-class EditProviderPage extends StatefulWidget {
-  const EditProviderPage({Key? key}) : super(key: key);
+class NewProviderPage extends StatefulWidget {
+  const NewProviderPage({Key? key}) : super(key: key);
 
   @override
-  State<EditProviderPage> createState() => _EditProviderPageState();
+  State<NewProviderPage> createState() => _NewProviderPageState();
 }
 
-class _EditProviderPageState extends State<EditProviderPage> {
+class _NewProviderPageState extends State<NewProviderPage> {
   bool isSearchHasValue = false;
   TextEditingController searchController = TextEditingController();
   CustomSnackbar customSnackbar = CustomSnackbar('');

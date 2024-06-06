@@ -134,6 +134,40 @@ class UserProviderCubit extends Cubit<UserProviderState> {
     }
   }
 
+  Future<void> editProvider(UserProviderModel providerModel) async {
+    try {
+      emit(UserProviderLoading());
+      final validationError = validateProvider(providerModel);
+      if (validationError != null) {
+        emit(UserProviderSubmissionFailure(error: validationError));
+        return;
+      }
+
+      // Send data to Firebase
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .collection('auths')
+          .doc(providerModel.authName)
+          .set({
+        'authName': providerModel.authName,
+        'username': providerModel.username,
+        'password': providerModel.password,
+        'note': providerModel.note,
+        'authProviderLink': providerModel.authProviderLink,
+        'providerCategory': providerModel.providerCategory,
+        'faviconUrl': providerModel.faviconUrl,
+        'hasTransactionPassword': providerModel.hasTransactionPassword,
+        'transactionPassword': providerModel.transactionPassword,
+      });
+
+      emit(UserProviderSubmissionSuccess());
+      fetchUserProviders();
+    } catch (e) {
+      emit(UserProviderSubmissionFailure(error: e.toString()));
+    }
+  }
+
   Future<void> deleteProvider(String userAuthId) async {
     try {
       emit(UserProviderLoading());

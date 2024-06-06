@@ -10,6 +10,7 @@ import 'package:reauth/bloc/states/user_provider_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/models/userprovider_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import 'package:reauth/pages/dashboard/editprovider_page.dart';
 
 // ignore: must_be_immutable
 class ProviderDetailPage extends StatelessWidget {
@@ -149,14 +150,20 @@ class ProviderDetailPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _buildButton(
-                            text: 'Copy Auth',
+                            text: 'Copy',
                             onPressed: () => copyToClipboard(context),
                             backgroundColor: const Color.fromARGB(
                                 255, 106, 172, 191), // Changed button color
                           ),
                           _buildButton(
-                            text: 'Edit Auth',
-                            onPressed: () {},
+                            text: 'Edit ',
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (context) => EditProviderPage(
+                                        userProviderModel: providerModel)),
+                              );
+                            },
                             backgroundColor: const Color.fromARGB(
                                 255, 106, 172, 191), // Changed button color
                           ),

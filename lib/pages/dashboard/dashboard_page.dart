@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reauth/pages/dashboard/tabs/editprovider_page.dart';
+import 'package:reauth/pages/dashboard/tabs/new_provider.dart';
 import 'package:reauth/pages/dashboard/tabs/home_page.dart';
 import 'package:reauth/pages/dashboard/tabs/notification_page.dart';
 import 'package:reauth/pages/dashboard/tabs/security_page.dart';
@@ -16,7 +16,7 @@ class _DashboardPageState extends State<DashboardPage> {
   int selectedIndex = 0;
   final List<Widget> bottomTabs = const [
     HomePage(),
-    EditProviderPage(),
+    NewProviderPage(),
     SecurityPage(),
     NotificationPage(),
     SettingsPage()

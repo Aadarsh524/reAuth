@@ -2,116 +2,131 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
-
-  @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final LocalAuthentication _localAuth = LocalAuthentication();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text("Security"),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.security),
-                title: const Text("Set up Two-Factor Authentication"),
-                onTap: _setup2FA,
-              ),
-              ListTile(
-                leading: const Icon(Icons.lock),
-                title: const Text("Change Password"),
-                onTap: _changePassword,
-              ),
-              ListTile(
-                leading: const Icon(Icons.fingerprint),
-                title: const Text("Set up Biometric Authentication"),
-                onTap: _setupBiometricAuth,
-              ),
-              ListTile(
-                leading: const Icon(Icons.history),
-                title: const Text("Account Activity"),
-                onTap: _showAccountActivity,
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text("Logout from All Devices"),
-                onTap: _logoutFromAllDevices,
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_forever),
-                title: const Text("Delete Account"),
-                onTap: _deleteAccount,
-              ),
-            ],
-          ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            _buildSettingItem(
+              icon: Icons.security,
+              title: "Set up Two-Factor Authentication",
+              onTap: () => _setup2FA(context),
+            ),
+            _buildSettingItem(
+              icon: Icons.lock,
+              title: "Change Password",
+              onTap: () => _changePassword(context),
+            ),
+            _buildSettingItem(
+              icon: Icons.fingerprint,
+              title: "Set up Biometric Authentication",
+              onTap: () => _setupBiometricAuth(context),
+            ),
+            _buildSettingItem(
+              icon: Icons.history,
+              title: "Account Activity",
+              onTap: () => _showAccountActivity(context),
+            ),
+            _buildSettingItem(
+              icon: Icons.logout,
+              title: "Logout from All Devices",
+              onTap: () => _logoutFromAllDevices(context),
+            ),
+            _buildSettingItem(
+              icon: Icons.delete_forever,
+              title: "Delete Account",
+              onTap: () => _deleteAccount(context),
+            ),
+            // Add more setting items here
+          ],
         ),
       ),
     );
   }
 
-  void _setup2FA() {
-    // Navigate to 2FA setup page or show dialog
+  Widget _buildSettingItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      color: const Color.fromARGB(255, 50, 60, 75),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        onTap: onTap,
+      ),
+    );
   }
 
-  void _changePassword() {
-    // Navigate to change password page or show dialog
+  void _setup2FA(BuildContext context) {
+    // Implement 2FA setup functionality
+    // Example: Navigate to 2FA setup page or show dialog
   }
 
-  void _setupBiometricAuth() async {
+  void _changePassword(BuildContext context) {
+    // Implement change password functionality
+    // Example: Navigate to change password page or show dialog
+  }
+
+  void _setupBiometricAuth(BuildContext context) async {
+    final LocalAuthentication _localAuth = LocalAuthentication();
     bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
     if (canCheckBiometrics) {
       bool authenticated = await _localAuth.authenticate(
         localizedReason:
             'Please authenticate to enable biometric authentication',
-        options: const AuthenticationOptions(biometricOnly: true),
       );
 
       if (authenticated) {
         // Save the biometric authentication preference
-        // Fluttertoast.showToast(msg: 'Biometric Authentication enabled');
+        // Example: Fluttertoast.showToast(msg: 'Biometric Authentication enabled');
       } else {
-        // Fluttertoast.showToast(msg: 'Failed to authenticate');
+        // Example: Fluttertoast.showToast(msg: 'Failed to authenticate');
       }
     } else {
-      // Fluttertoast.showToast(msg: 'Biometric Authentication not available');
+      // Example: Fluttertoast.showToast(msg: 'Biometric Authentication not available');
     }
   }
 
-  void _showAccountActivity() {
-    // Navigate to account activity page or show dialog
+  void _showAccountActivity(BuildContext context) {
+    // Implement account activity functionality
+    // Example: Navigate to account activity page or show dialog
   }
 
-  void _logoutFromAllDevices() async {
+  void _logoutFromAllDevices(BuildContext context) async {
+    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
     try {
       await _firebaseAuth.signOut();
       // Navigate to login page
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
-      // Fluttertoast.showToast(msg: 'Failed to log out: ${e.toString()}');
+      // Example: Fluttertoast.showToast(msg: 'Failed to log out: ${e.toString()}');
     }
   }
 
-  void _deleteAccount() async {
+  void _deleteAccount(BuildContext context) async {
+    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
     try {
       await _firebaseAuth.currentUser?.delete();
       // Navigate to sign-up page
       Navigator.pushReplacementNamed(context, '/signup');
-      // Fluttertoast.showToast(msg: 'Account deleted');
+      // Example: Fluttertoast.showToast(msg: 'Account deleted');
     } catch (e) {
-      // Fluttertoast.showToast(msg: 'Failed to delete account: ${e.toString()}');
+      // Example: Fluttertoast.showToast(msg: 'Failed to delete account: ${e.toString()}');
     }
   }
 }
