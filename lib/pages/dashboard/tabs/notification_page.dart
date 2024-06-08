@@ -17,8 +17,7 @@ class _NotificationPageState extends State<NotificationPage> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Notifications'),
-        backgroundColor:
-            const Color.fromARGB(255, 53, 64, 79), // Set app bar color
+        backgroundColor: const Color.fromARGB(255, 40, 50, 65),
         elevation: 0, // Remove app bar shadow
       ),
       body: SafeArea(

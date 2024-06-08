@@ -96,4 +96,27 @@ class AuthCubit extends Cubit<AuthState> {
       }
     }
   }
+
+  Future<void> changePassword(
+      String email, String currentPassword, String newPassword) async {
+    try {
+      emit(AuthLoading());
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: email,
+        password: currentPassword,
+      );
+
+      await user?.reauthenticateWithCredential(credential);
+
+      await user!.updatePassword(newPassword);
+
+      emit(RegisterSuccess());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        emit(const RegisterFailure(error: "Password is too weak."));
+      } else {
+        emit(const RegisterFailure(error: "Error Changing Passwords"));
+      }
+    }
+  }
 }

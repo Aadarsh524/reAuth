@@ -4,6 +4,7 @@ class PasswordSuggestions extends StatefulWidget {
   const PasswordSuggestions({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _PasswordSuggestionsState createState() => _PasswordSuggestionsState();
 }
 
@@ -11,7 +12,7 @@ class _PasswordSuggestionsState extends State<PasswordSuggestions> {
   bool _isExpanded = false;
 
   List<Map<String, dynamic>> suggestions = [
-    {"text": "Use at least 12 characters.", "icon": Icons.security},
+    {"text": "Use at least 8 characters.", "icon": Icons.security},
     {
       "text": "Include both upper and lower case characters.",
       "icon": Icons.text_fields

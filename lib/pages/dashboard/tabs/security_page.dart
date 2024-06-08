@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
 import 'package:reauth/bloc/states/user_provider_state.dart';
 import 'package:reauth/components/custom_textfield.dart';
+
 import 'package:reauth/components/password_suggestion.dart';
 import 'package:reauth/models/userprovider_model.dart';
 import 'package:reauth/utils/strength_checker.dart';
@@ -182,7 +182,12 @@ class _SecurityPageState extends State<SecurityPage>
                   ),
                 );
               }
-              return Container();
+              return Text("No Provider Added",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.karla(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ));
             },
           ),
         ),
@@ -279,120 +284,183 @@ void _showChangePasswordDialog(
   final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
   final TextEditingController passwordController = TextEditingController();
 
+  final List<Map<String, dynamic>> suggestions = [
+    {"text": "Use at least 8 characters.", "icon": Icons.security},
+    {
+      "text": "Include both upper and lower case characters.",
+      "icon": Icons.text_fields
+    },
+    {"text": "Include at least one number.", "icon": Icons.looks_one},
+    {"text": "Include at least one special character.", "icon": Icons.star},
+  ];
+
+  final List<bool> validations =
+      List.generate(suggestions.length, (_) => false);
+
+  bool isPasswordValid(String password) {
+    validations[0] = password.length >= 8;
+    validations[1] = password.contains(RegExp(r'[A-Z]')) &&
+        password.contains(RegExp(r'[a-z]'));
+    validations[2] = password.contains(RegExp(r'\d'));
+    validations[3] = password.contains(RegExp(r'[!@#\$&*~]'));
+    return validations.every((element) => element);
+  }
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: Color.fromARGB(255, 72, 80, 93),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          "Change Password",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: userProviderModel.faviconUrl,
-                  width: 45,
-                  height: 45,
-                  fit: BoxFit.contain,
-                  placeholder: (context, url) => Container(
-                    width: 45,
-                    height: 45,
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.blue,
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              "Change Password",
+              style: TextStyle(
+                fontSize: 16, // Smaller font size
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        imageUrl: userProviderModel.faviconUrl,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => Container(
+                          width: 40,
+                          height: 40,
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
                     ),
                   ),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  const SizedBox(height: 5),
+                  CustomTextField(
+                    keyboardType: TextInputType.text,
+                    controller: passwordController,
+                    hintText: 'Enter New Password',
+                    labelText: 'New Password',
+                    onChanged: (password) {
+                      setState(() {
+                        isPasswordValid(password);
+                      });
+                    },
+                  ),
+                  if (passwordController.text.isNotEmpty)
+                    ...suggestions.map((suggestion) {
+                      int index = suggestions.indexOf(suggestion);
+                      return Row(
+                        children: [
+                          Icon(
+                            validations[index]
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            color:
+                                validations[index] ? Colors.green : Colors.red,
+                            size: 16, // Smaller icon size
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              suggestion['text'],
+                              style: TextStyle(
+                                color: validations[index]
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontSize: 10, // Smaller font size
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  userProviderCubit.editProvider(
+                    UserProviderModel(
+                      authName: userProviderModel.authName,
+                      username: userProviderModel.username,
+                      password: passwordController.text,
+                      note: userProviderModel.note,
+                      providerCategory: userProviderModel.providerCategory,
+                      authProviderLink: userProviderModel.authProviderLink,
+                      faviconUrl: userProviderModel.faviconUrl,
+                      hasTransactionPassword:
+                          userProviderModel.hasTransactionPassword,
+                      transactionPassword:
+                          userProviderModel.transactionPassword,
+                    ),
+                  );
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(
+                      color: Color.fromARGB(255, 111, 163, 219),
+                    ),
+                  ),
+                ),
+                child: const Text(
+                  "Save",
+                  style: TextStyle(
+                    fontSize: 14, // Smaller font size
+                    color: Color.fromARGB(255, 111, 163, 219),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            CustomTextField(
-              keyboardType: TextInputType.text,
-              controller: passwordController,
-              hintText: 'Enter New Password',
-              labelText: 'New Password',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              userProviderCubit.editProvider(
-                UserProviderModel(
-                  authName: userProviderModel.authName,
-                  username: userProviderModel.username,
-                  password: passwordController.text, // Update with new password
-                  note: userProviderModel.note,
-                  providerCategory: userProviderModel.providerCategory,
-                  authProviderLink: userProviderModel.authProviderLink,
-                  faviconUrl: userProviderModel.faviconUrl,
-                  hasTransactionPassword:
-                      userProviderModel.hasTransactionPassword,
-                  transactionPassword: userProviderModel.transactionPassword,
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(
+                      color: Colors.red,
+                    ),
+                  ),
                 ),
-              );
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(
-                  color: Color.fromARGB(255, 111, 163, 219),
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(
+                    fontSize: 14, // Smaller font size
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            child: const Text(
-              "Save",
-              style: TextStyle(
-                fontSize: 16,
-                color: Color.fromARGB(255, 111, 163, 219),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(
-                  color: Colors.red,
-                ),
-              ),
-            ),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(
-                fontSize: 16,
-                color: Color.fromARGB(255, 255, 255, 255),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       );
     },
   );

@@ -14,11 +14,11 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   int selectedIndex = 0;
-  final List<Widget> bottomTabs = const [
-    HomePage(),
-    NewProviderPage(),
-    SecurityPage(),
-    NotificationPage(),
+  final List<Widget> bottomTabs = [
+    const HomePage(),
+    const NewProviderPage(),
+    const SecurityPage(),
+    const NotificationPage(),
     SettingsPage()
   ];
 

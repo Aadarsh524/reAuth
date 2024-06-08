@@ -32,7 +32,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    final userProfileCubit = BlocProvider.of<ProfileCubit>(context);
     userProviderCubit.fetchUserProviders();
+    userProfileCubit.fetchProfile();
 
     searchController.addListener(() {
       final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);

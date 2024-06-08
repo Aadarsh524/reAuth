@@ -1,14 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/bloc/states/user_provider_state.dart';
-import 'package:reauth/pages/auth/login_page.dart';
 import 'package:reauth/pages/dashboard/editprofile_page.dart';
 import 'package:reauth/utils/strength_checker.dart';
 
@@ -64,36 +61,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           )
         ],
-      ),
-      floatingActionButton: TextButton(
-        onPressed: () async {
-          final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-          GoogleSignIn googleSignIn = GoogleSignIn();
-          await googleSignIn.signOut();
-          await firebaseAuth
-              .signOut()
-              .then((value) => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const LoginPage(),
-                    ),
-                  ));
-        },
-        style: TextButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 111, 163, 219),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-        ),
-        child: Text(
-          'Sign out',
-          style: GoogleFonts.karla(
-            color: Colors.white,
-            fontSize: 16,
-            letterSpacing: .5,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
       ),
       body: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, profileState) {
