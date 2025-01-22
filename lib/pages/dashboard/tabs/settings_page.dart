@@ -31,9 +31,9 @@ class _SettingsPageState extends State<SettingsPage> {
         child: ListView(
           children: [
             _buildPersonalInfoCard(context),
-            SecuritySettingsCard(),
-            GeneralSettingsCard(),
-            AboutSettingsCard(),
+            const SecuritySettingsCard(),
+            const GeneralSettingsCard(),
+            const AboutSettingsCard(),
           ],
         ),
       ),

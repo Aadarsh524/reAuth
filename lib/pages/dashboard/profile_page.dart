@@ -1,11 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
+import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
+
 import 'package:reauth/bloc/states/profile_state.dart';
-import 'package:reauth/bloc/states/user_provider_state.dart';
+import 'package:reauth/bloc/states/user_auth_state.dart';
+
+import 'package:reauth/pages/auth/email_verification_page.dart';
 import 'package:reauth/pages/dashboard/editprofile_page.dart';
 import 'package:reauth/utils/strength_checker.dart';
 
@@ -24,7 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     BlocProvider.of<ProfileCubit>(context).fetchProfile();
-    BlocProvider.of<UserProviderCubit>(context).fetchUserProviders();
+    BlocProvider.of<UserAuthCubit>(context).fetchUserAuths();
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 36, 45, 58),
       resizeToAvoidBottomInset: false,
@@ -71,11 +75,11 @@ class _ProfilePageState extends State<ProfilePage> {
               profileImage = profileState.profile.profileImage.toString();
             }
 
-            return BlocBuilder<UserProviderCubit, UserProviderState>(
+            return BlocBuilder<UserAuthCubit, UserAuthState>(
               builder: (context, userProviderState) {
-                if (userProviderState is UserProviderLoadSuccess) {
-                  int totalPasswords = userProviderState.providers.length;
-                  allPasswords = userProviderState.providers
+                if (userProviderState is UserAuthLoadSuccess) {
+                  int totalPasswords = userProviderState.auths.length;
+                  allPasswords = userProviderState.auths
                       .map((provider) => provider.password)
                       .toList();
 
@@ -134,11 +138,48 @@ class _ProfilePageState extends State<ProfilePage> {
                                   Colors.green,
                                   Icons.check_circle,
                                 )
-                              : _buildVerificationStatus(
-                                  "Not Verified",
-                                  Colors.red,
-                                  Icons.cancel,
-                                ),
+                              : Column(children: [
+                                  _buildVerificationStatus(
+                                    "Not Verified",
+                                    Colors.red,
+                                    Icons.cancel,
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Click here to verify ",
+                                        style: GoogleFonts.karla(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const EmailVerificationPage(),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          "Here",
+                                          style: GoogleFonts.karla(
+                                            color: Colors.green,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ]),
                           const SizedBox(height: 30),
                           _buildProfileCard(
                             totalPasswords.toString(),

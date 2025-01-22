@@ -2,17 +2,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/popular_provider_cubit.dart';
+import 'package:reauth/bloc/cubit/popular_auth_cubit.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
+import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/popular_provider_state.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
-import 'package:reauth/bloc/states/user_provider_state.dart';
+import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/authsprovider_card.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
-import 'package:reauth/models/popularprovider_model.dart';
-import 'package:reauth/models/userprovider_model.dart';
+import 'package:reauth/models/popular_auth_model.dart';
+import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/dashboard/profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -31,17 +31,17 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
     final userProfileCubit = BlocProvider.of<ProfileCubit>(context);
-    userProviderCubit.fetchUserProviders();
+    userProviderCubit.fetchUserAuths();
     userProfileCubit.fetchProfile();
 
     searchController.addListener(() {
-      final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+      final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
       if (searchController.text.isEmpty) {
         setState(() {
           isSearchHasValue = false;
-          userProviderCubit.fetchUserProviders();
+          userProviderCubit.fetchUserAuths();
         });
       } else {
         setState(() {
@@ -96,37 +96,39 @@ class _HomePageState extends State<HomePage> {
                               width: 30,
                               height: 30.0,
                               child: GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => const ProfilePage(),
-                                    ),
-                                  );
-                                },
-                                child: profileImage != ''
-                                    ? Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          image: DecorationImage(
-                                            image: CachedNetworkImageProvider(
-                                                profileImage),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      )
-                                    : const CircleAvatar(
-                                        radius: 50,
-                                        backgroundImage: AssetImage(
-                                            'assets/defaultAvatar.png'),
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ProfilePage(),
                                       ),
-                              ),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                        image: CachedNetworkImageProvider(
+                                            profileImage),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  )),
                             );
                           }
                         }
 
-                        return Container();
+                        return const SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage:
+                                AssetImage('assets/defaultAvatar.png'),
+                          ),
+                        );
                       },
                     )
                   ],
@@ -137,15 +139,15 @@ class _HomePageState extends State<HomePage> {
                   child: SizedBox(
                     height: 50,
                     child: SearchBar(
-                      padding: const MaterialStatePropertyAll(
+                      padding: const WidgetStatePropertyAll(
                         EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
                       ),
                       controller: searchController,
-                      backgroundColor: const MaterialStatePropertyAll(
+                      backgroundColor: const WidgetStatePropertyAll(
                         Color.fromARGB(255, 43, 51, 63),
                       ),
                       hintText: "Search",
-                      hintStyle: MaterialStatePropertyAll(
+                      hintStyle: WidgetStatePropertyAll(
                         GoogleFonts.karla(
                           color: const Color.fromARGB(255, 125, 125, 125),
                           fontSize: 16,
@@ -153,7 +155,7 @@ class _HomePageState extends State<HomePage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      textStyle: MaterialStatePropertyAll(
+                      textStyle: WidgetStatePropertyAll(
                         GoogleFonts.karla(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 16,
@@ -177,46 +179,44 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: BlocConsumer<UserProviderCubit, UserProviderState>(
+                  child: BlocConsumer<UserAuthCubit, UserAuthState>(
                     listener: (context, state) {
-                      if (state is UserProviderLoadFailure) {
+                      if (state is UserAuthLoadFailure) {
                         customSnackbar = CustomSnackbar(
                             "Failed to load user providers: ${state.error}");
                         customSnackbar.showCustomSnackbar(context);
                       }
                     },
                     builder: (context, state) {
-                      if (state is UserProviderLoading ||
-                          state is UserProviderSearching) {
+                      if (state is UserAuthLoading ||
+                          state is UserAuthSearching) {
                         return const Center(
                           child: CircularProgressIndicator(
                             color: Color.fromARGB(255, 106, 172, 191),
                           ),
                         );
-                      } else if (state is UserProviderLoadSuccess &&
+                      } else if (state is UserAuthLoadSuccess &&
                           !isSearchHasValue) {
-                        if (state.providers.isNotEmpty) {
-                          return _buildUserProviders(context, state.providers);
+                        if (state.auths.isNotEmpty) {
+                          return _buildUserProviders(context, state.auths);
                         } else {
                           // If user providers are empty, render popular providers
-                          return BlocConsumer<PopularProviderCubit,
-                              PopularProviderState>(
+                          return BlocConsumer<PopularAuthCubit,
+                              PopularAuthState>(
                             listener: (context, state) {
-                              if (state is PopularProviderLoadFailure) {
+                              if (state is PopularAuthLoadFailure) {
                                 customSnackbar = CustomSnackbar(
                                     "Failed to load popular providers: ${state.error}");
                                 customSnackbar.showCustomSnackbar(context);
                               }
                             },
                             builder: (context, state) {
-                              if (state is PopularProviderLoadSuccess) {
+                              if (state is PopularAuthLoadSuccess) {
                                 return _buildPopularProviders(context);
-                              } else if (state
-                                  is PopularProviderSearchSuccess) {
+                              } else if (state is PopularAuthSearchSuccess) {
                                 return _buildPopularSearchResults(
-                                    context, state.provider);
-                              } else if (state
-                                  is PopularProviderSearchFailure) {
+                                    context, state.auth);
+                              } else if (state is PopularAuthSearchFailure) {
                                 return _buildSearchFailure(
                                     context, state.error);
                               } else {
@@ -229,9 +229,9 @@ class _HomePageState extends State<HomePage> {
                             },
                           );
                         }
-                      } else if (state is UserProviderSearchSuccess) {
-                        return _buildUserSearchResults(context, state.provider);
-                      } else if (state is UserProviderSearchFailure) {
+                      } else if (state is UserAuthSearchSuccess) {
+                        return _buildUserSearchResults(context, state.auth);
+                      } else if (state is UserAuthSearchFailure) {
                         return _buildSearchFailure(context, state.error);
                       } else {
                         return const Center(
@@ -252,7 +252,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildUserProviders(
-      BuildContext context, List<UserProviderModel> providers) {
+      BuildContext context, List<UserAuthModel> providers) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -297,28 +297,28 @@ class _HomePageState extends State<HomePage> {
         ),
         const SizedBox(height: 10),
         Expanded(
-          child: BlocConsumer<PopularProviderCubit, PopularProviderState>(
+          child: BlocConsumer<PopularAuthCubit, PopularAuthState>(
             listener: (context, state) {
-              if (state is PopularProviderLoadFailure) {
+              if (state is PopularAuthLoadFailure) {
                 customSnackbar = CustomSnackbar(
                     "Failed to load popular providers: ${state.error}");
                 customSnackbar.showCustomSnackbar(context);
               }
             },
             builder: (context, state) {
-              if (state is PopularProviderLoading) {
+              if (state is PopularAuthLoading) {
                 return const Center(
                   child: CircularProgressIndicator(
                     color: Color.fromARGB(255, 106, 172, 191),
                   ),
                 );
-              } else if (state is PopularProviderLoadSuccess) {
+              } else if (state is PopularAuthLoadSuccess) {
                 return ListView.builder(
-                  itemCount: state.providers.length,
+                  itemCount: state.auths.length,
                   itemBuilder: (context, index) {
-                    final provider = state.providers[index];
-                    return PopularProviderCard(
-                      providerModel: provider,
+                    final provider = state.auths[index];
+                    return PopularAuthCard(
+                      authModel: provider,
                     );
                   },
                 );
@@ -332,8 +332,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildUserSearchResults(
-      BuildContext context, UserProviderModel provider) {
+  Widget _buildUserSearchResults(BuildContext context, UserAuthModel provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -354,7 +353,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPopularSearchResults(
-      BuildContext context, PopularProviderModel provider) {
+      BuildContext context, PopularAuthModel provider) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "Search Results",
@@ -366,8 +365,8 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       const SizedBox(height: 10),
-      PopularProviderCard(
-        providerModel: provider,
+      PopularAuthCard(
+        authModel: provider,
       )
     ]);
   }

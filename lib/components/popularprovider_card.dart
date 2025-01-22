@@ -1,15 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/models/popularprovider_model.dart';
+import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/pages/addprovider_page.dart';
 
-class PopularProviderCard extends StatelessWidget {
-  final PopularProviderModel providerModel;
+class PopularAuthCard extends StatelessWidget {
+  final PopularAuthModel authModel;
 
-  const PopularProviderCard({
+  const PopularAuthCard({
     Key? key,
-    required this.providerModel,
+    required this.authModel,
   }) : super(key: key);
 
   @override
@@ -27,8 +27,8 @@ class PopularProviderCard extends StatelessWidget {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => AddProviderPage(
-                  popularProviderModel: providerModel,
+                builder: (context) => AddAuthPage(
+                  popularAuthModel: authModel,
                 ),
               ),
             );
@@ -41,7 +41,7 @@ class PopularProviderCard extends StatelessWidget {
                 Row(
                   children: [
                     CachedNetworkImage(
-                      imageUrl: providerModel.faviconUrl,
+                      imageUrl: authModel.authFavicon,
                       height: 45,
                       width: 45,
                       fit: BoxFit.contain,
@@ -63,7 +63,7 @@ class PopularProviderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          providerModel.authName,
+                          authModel.authName,
                           style: GoogleFonts.karla(
                             color: Colors.white,
                             fontSize: 16,
@@ -72,7 +72,7 @@ class PopularProviderCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          providerModel.authLink,
+                          authModel.authLink,
                           style: GoogleFonts.karla(
                             color: const Color.fromARGB(255, 125, 125, 125),
                             fontSize: 14,

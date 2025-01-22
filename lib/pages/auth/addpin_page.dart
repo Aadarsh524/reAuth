@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:reauth/bloc/cubit/auth_cubit.dart';
+import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/states/auth_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
@@ -21,7 +21,7 @@ class _AddPinPageState extends State<AddPinPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authCubit = BlocProvider.of<AuthCubit>(context);
+    final authCubit = BlocProvider.of<AuthenticationCubit>(context);
     return Scaffold(
       backgroundColor: Colors.black, // Change background color
       body: SafeArea(
@@ -49,7 +49,7 @@ class _AddPinPageState extends State<AddPinPage> {
               const SizedBox(height: 20),
               _buildDescription(), // New widget for description
               const Spacer(),
-              BlocConsumer<AuthCubit, AuthState>(
+              BlocConsumer<AuthenticationCubit, AuthenticationState>(
                 listener: (context, state) {
                   if (state is PinSetSuccess) {
                     customSnackbar = CustomSnackbar(
@@ -68,7 +68,7 @@ class _AddPinPageState extends State<AddPinPage> {
                   }
                 },
                 builder: (context, state) {
-                  if (state is AuthLoading) {
+                  if (state is AuthenticationLoading) {
                     return const Center(
                       child: CircularProgressIndicator(
                         color: Colors.white, // Change color to match theme

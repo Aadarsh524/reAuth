@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AboutSettingsCard extends StatefulWidget {
-  AboutSettingsCard({Key? key}) : super(key: key);
+  const AboutSettingsCard({Key? key}) : super(key: key);
 
   @override
   State<AboutSettingsCard> createState() => _AboutSettingsCardState();
@@ -44,7 +44,7 @@ class _AboutSettingsCardState extends State<AboutSettingsCard> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
               child: Column(
                 children: [
-                  Divider(),
+                  const Divider(),
                   _buildSettingItem(
                     icon: Icons.info,
                     title: 'About',

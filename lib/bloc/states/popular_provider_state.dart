@@ -1,64 +1,64 @@
 import 'package:equatable/equatable.dart';
-import 'package:reauth/models/popularprovider_model.dart';
+import 'package:reauth/models/popular_auth_model.dart';
 
-abstract class PopularProviderState extends Equatable {
-  const PopularProviderState();
+abstract class PopularAuthState extends Equatable {
+  const PopularAuthState();
 
   @override
   List<Object?> get props => [];
 }
 
-class PopularProviderInitial extends PopularProviderState {}
+class PopularAuthInitial extends PopularAuthState {}
 
-class PopularProviderLoading extends PopularProviderState {}
+class PopularAuthLoading extends PopularAuthState {}
 
-class PopularProviderLoadSuccess extends PopularProviderState {
-  final List<PopularProviderModel> providers;
+class PopularAuthLoadSuccess extends PopularAuthState {
+  final List<PopularAuthModel> auths;
 
-  const PopularProviderLoadSuccess({required this.providers});
+  const PopularAuthLoadSuccess({required this.auths});
 
   @override
-  List<Object?> get props => [providers];
+  List<Object?> get props => [auths];
 }
 
-class PopularProviderLoadFailure extends PopularProviderState {
+class PopularAuthLoadFailure extends PopularAuthState {
   final String error;
 
-  const PopularProviderLoadFailure({required this.error});
+  const PopularAuthLoadFailure({required this.error});
 
   @override
   List<Object?> get props => [error];
 }
 
-class PopularProviderSubmissionSuccess extends PopularProviderState {}
+class PopularAuthSubmissionSuccess extends PopularAuthState {}
 
-class PopularProviderSubmissionFailure extends PopularProviderState {
+class PopularAuthSubmissionFailure extends PopularAuthState {
   final String error;
 
-  const PopularProviderSubmissionFailure({required this.error});
+  const PopularAuthSubmissionFailure({required this.error});
 
   @override
   List<Object?> get props => [error];
 }
 
-class PopularProviderSearching extends PopularProviderState {}
+class PopularAuthSearching extends PopularAuthState {}
 
-class PopularProviderSearchSuccess extends PopularProviderState {
-  final PopularProviderModel provider;
+class PopularAuthSearchSuccess extends PopularAuthState {
+  final PopularAuthModel auth;
 
-  const PopularProviderSearchSuccess({required this.provider});
+  const PopularAuthSearchSuccess({required this.auth});
 
   @override
-  List<Object?> get props => [provider];
+  List<Object?> get props => [auth];
 }
 
-class PopularProviderSearchFailure extends PopularProviderState {
+class PopularAuthSearchFailure extends PopularAuthState {
   final String error;
 
-  const PopularProviderSearchFailure({required this.error});
+  const PopularAuthSearchFailure({required this.error});
 
   @override
   List<Object?> get props => [error];
 }
 
-class PopularProviderSearchEmpty extends PopularProviderState {}
+class PopularAuthSearchEmpty extends PopularAuthState {}

@@ -13,10 +13,10 @@ String? validateRegister(
     }
   }
   if (password.isEmpty) {
-    return 'Username is required';
+    return 'Password is required';
   }
   if (confirmPassword.isEmpty) {
-    return 'Password is required';
+    return 'Confirm Password is required';
   }
   if (password.isNotEmpty && confirmPassword.isNotEmpty) {
     if (password != confirmPassword) {
@@ -41,7 +41,7 @@ String? validateLogin(String email, String password) {
     }
   }
   if (password.isEmpty) {
-    return 'Username is required';
+    return 'Password is required';
   }
 
   return null;

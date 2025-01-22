@@ -5,16 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
-import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
-import 'package:reauth/bloc/states/user_provider_state.dart';
+import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
+import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/models/userprovider_model.dart';
+import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
-import 'package:reauth/pages/dashboard/editprovider_page.dart';
+import 'package:reauth/pages/dashboard/edit_auth_page.dart';
 
 // ignore: must_be_immutable
 class ProviderDetailPage extends StatelessWidget {
-  final UserProviderModel providerModel;
+  final UserAuthModel providerModel;
 
   ProviderDetailPage({Key? key, required this.providerModel}) : super(key: key);
 
@@ -30,7 +30,7 @@ class ProviderDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
     log(providerModel.hasTransactionPassword.toString());
     log(providerModel.authName.toString());
     log(providerModel.transactionPassword.toString());
@@ -56,13 +56,13 @@ class ProviderDetailPage extends StatelessWidget {
           )
         ],
       ),
-      body: BlocConsumer<UserProviderCubit, UserProviderState>(
+      body: BlocConsumer<UserAuthCubit, UserAuthState>(
         listener: (context, state) {
-          if (state is UserProviderDeletedFailure) {
+          if (state is UserAuthDeletedFailure) {
             customSnackbar = CustomSnackbar(state.error);
             customSnackbar.showCustomSnackbar(context);
           }
-          if (state is UserProviderDeletedSuccess) {
+          if (state is UserAuthDeletedSuccess) {
             customSnackbar = CustomSnackbar("Delete Success");
             customSnackbar.showCustomSnackbar(context);
 
@@ -75,7 +75,7 @@ class ProviderDetailPage extends StatelessWidget {
           }
         },
         builder: (context, state) {
-          if (state is UserProviderLoading) {
+          if (state is UserAuthLoading) {
             return const Center(
               child: CircularProgressIndicator(
                 color: Color.fromARGB(255, 106, 172, 191), // Change color
@@ -94,13 +94,13 @@ class ProviderDetailPage extends StatelessWidget {
                     child: Column(
                       children: [
                         CachedNetworkImage(
-                          imageUrl: providerModel.faviconUrl,
+                          imageUrl: providerModel.userAuthFavicon,
                           height: 60,
                           fit: BoxFit.contain,
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          providerModel.authProviderLink,
+                          providerModel.authLink,
                           style: GoogleFonts.karla(
                             color: Colors.white,
                             fontSize: 18,
@@ -136,10 +136,10 @@ class ProviderDetailPage extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDetailRow("Link:", providerModel.authProviderLink),
+                      _buildDetailRow("Link:", providerModel.authLink),
                       _buildDetailRow("Password:", providerModel.password),
                       _buildDetailRow(
-                          "Category:", providerModel.providerCategory),
+                          "Category:", providerModel.authCategory as String?),
                       _buildDetailRow("Note:", providerModel.note),
                       providerModel.hasTransactionPassword == true
                           ? _buildDetailRow("Transaction Pass:",
@@ -160,8 +160,8 @@ class ProviderDetailPage extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                    builder: (context) => EditProviderPage(
-                                        userProviderModel: providerModel)),
+                                    builder: (context) => EditAuthPage(
+                                        userAuthModel: providerModel)),
                               );
                             },
                             backgroundColor: const Color.fromARGB(

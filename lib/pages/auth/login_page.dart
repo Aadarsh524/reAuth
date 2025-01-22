@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/auth_cubit.dart';
+import 'package:reauth/bloc/cubit/authentication_cubit.dart';
+
 import 'package:reauth/bloc/states/auth_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
@@ -24,7 +25,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authCubit = BlocProvider.of<AuthCubit>(context);
+    final authCubit = BlocProvider.of<AuthenticationCubit>(context);
     return Scaffold(
       backgroundColor:
           Theme.of(context).scaffoldBackgroundColor, // Change background color
@@ -100,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
                 const SizedBox(height: 30),
-                BlocConsumer<AuthCubit, AuthState>(
+                BlocConsumer<AuthenticationCubit, AuthenticationState>(
                   listener: (context, state) {
                     if (state is LoginSuccess) {
                       customSnackbar = CustomSnackbar("Login Success");
@@ -123,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   },
                   builder: (context, state) {
-                    if (state is AuthLoading) {
+                    if (state is AuthenticationLoading) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: Color.fromARGB(

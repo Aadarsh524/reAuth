@@ -4,14 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:reauth/bloc/cubit/auth_cubit.dart';
+import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/states/auth_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
 import 'package:reauth/pages/auth/login_page.dart';
 
 class SecuritySettingsCard extends StatefulWidget {
-  SecuritySettingsCard({Key? key}) : super(key: key);
+  const SecuritySettingsCard({Key? key}) : super(key: key);
 
   @override
   State<SecuritySettingsCard> createState() => _SecuritySettingsCardState();
@@ -25,9 +25,9 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-      child: BlocListener<AuthCubit, AuthState>(
+      child: BlocListener<AuthenticationCubit, AuthenticationState>(
         listener: (context, state) {
-          if (state is AuthLoading) {
+          if (state is AuthenticationLoading) {
             showDialog(
               context: context,
               barrierDismissible: false,
@@ -82,7 +82,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                 child: Column(
                   children: [
-                    Divider(),
+                    const Divider(),
                     _buildSettingItem(
                       icon: Icons.lock,
                       title: 'Change Password',
@@ -227,8 +227,9 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                     User? user = FirebaseAuth.instance.currentUser;
                     final String? email = user!.email;
 
-                    BlocProvider.of<AuthCubit>(context).changePassword(email!,
-                        oldPasswordController.text, newPasswordController.text);
+                    BlocProvider.of<AuthenticationCubit>(context)
+                        .changePassword(email!, oldPasswordController.text,
+                            newPasswordController.text);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
@@ -282,6 +283,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
     // Example: Navigate to account activity page or show dialog
   }
 
+  // ignore: unused_element
   void _logoutFromAllDevices(BuildContext context) async {
     final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
     try {
@@ -295,15 +297,93 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
   }
 
   void _deleteAccount(BuildContext context) async {
-    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    try {
-      await firebaseAuth.currentUser?.delete();
-      // Navigate to sign-up page
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/signup');
-      // Example: Fluttertoast.showToast(msg: 'Account deleted');
-    } catch (e) {
-      // Example: Fluttertoast.showToast(msg: 'Failed to delete account: ${e.toString()}');
-    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                "Delete Account",
+                style: TextStyle(
+                  fontSize: 16, // Smaller font size
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              content: const SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "This Will delete all your data.",
+                      style: TextStyle(
+                        fontSize: 14, // Smaller font size
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(
+                        color: Color.fromARGB(255, 111, 163, 219),
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(
+                      fontSize: 14, // Smaller font size
+                      color: Color.fromARGB(255, 111, 163, 219),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    BlocProvider.of<AuthenticationCubit>(context)
+                        .deleteAccount();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    "Delete",
+                    style: TextStyle(
+                      fontSize: 14, // Smaller font size
+                      color: Color.fromARGB(255, 255, 255, 255),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }

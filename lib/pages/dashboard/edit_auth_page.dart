@@ -1,80 +1,74 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
-import 'package:reauth/bloc/states/user_provider_state.dart';
+import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
+import 'package:reauth/bloc/states/user_auth_state.dart';
+
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
-import 'package:reauth/models/userprovider_model.dart';
+import 'package:reauth/constants/auth_category.dart';
+import 'package:reauth/models/user_auth_model.dart';
+
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
 
-class EditProviderPage extends StatefulWidget {
-  final UserProviderModel userProviderModel;
+class EditAuthPage extends StatefulWidget {
+  final UserAuthModel userAuthModel;
 
-  const EditProviderPage({Key? key, required this.userProviderModel})
-      : super(key: key);
+  const EditAuthPage({Key? key, required this.userAuthModel}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _EditProviderPageState createState() => _EditProviderPageState();
 }
 
-class _EditProviderPageState extends State<EditProviderPage> {
-  late TextEditingController _providerLinkController;
+class _EditProviderPageState extends State<EditAuthPage> {
+  late TextEditingController _authLinkController;
   late TextEditingController _passwordController;
   late TextEditingController _usernameController;
   late TextEditingController _noteController;
   late TextEditingController _transactionPasswordController;
-  late bool hasTransactionPass;
-  late TextEditingController _providerCategoryController;
+  late TextEditingController _tagsController;
+  late TextEditingController _authCategoryController;
 
-  var authCategories = [
-    'Social Media',
-    'Ecommerce',
-    'Educational',
-    'Lifestyle',
-    'Productivity',
-    'Entertainment',
-    'Game',
-  ];
-  late String dropdownvalue;
+  late bool hasTransactionPass;
+  late String dropdownValue;
 
   @override
   void initState() {
     super.initState();
-    _providerLinkController =
-        TextEditingController(text: widget.userProviderModel.authProviderLink);
+    _authLinkController =
+        TextEditingController(text: widget.userAuthModel.authLink);
     _passwordController =
-        TextEditingController(text: widget.userProviderModel.password);
+        TextEditingController(text: widget.userAuthModel.password);
     _usernameController =
-        TextEditingController(text: widget.userProviderModel.username);
-    _noteController =
-        TextEditingController(text: widget.userProviderModel.note);
+        TextEditingController(text: widget.userAuthModel.username);
+    _noteController = TextEditingController(text: widget.userAuthModel.note);
     _transactionPasswordController = TextEditingController(
-        text: widget.userProviderModel.transactionPassword);
+        text: widget.userAuthModel.transactionPassword ?? '');
+    _tagsController = TextEditingController(
+        text: widget.userAuthModel.tags?.join(', ') ?? '');
+    dropdownValue = widget.userAuthModel.authCategory.name;
 
-    _providerCategoryController =
-        TextEditingController(text: widget.userProviderModel.providerCategory);
-    dropdownvalue = widget.userProviderModel.providerCategory;
-
-    hasTransactionPass = widget.userProviderModel.hasTransactionPassword;
+    hasTransactionPass = widget.userAuthModel.hasTransactionPassword;
+    _authCategoryController =
+        widget.userAuthModel.authCategory.toString() as TextEditingController;
   }
 
   @override
   void dispose() {
-    _providerLinkController.dispose();
+    _authLinkController.dispose();
     _passwordController.dispose();
     _usernameController.dispose();
     _noteController.dispose();
     _transactionPasswordController.dispose();
+    _tagsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -87,18 +81,29 @@ class _EditProviderPageState extends State<EditProviderPage> {
                 child: TextButton(
                     onPressed: () {
                       userProviderCubit.editProvider(
-                        UserProviderModel(
-                          authName: widget.userProviderModel.authName,
+                        UserAuthModel(
+                          authName: widget.userAuthModel.authName,
                           username: _usernameController.text,
                           password: _passwordController.text,
                           note: _noteController.text,
-                          providerCategory: _providerCategoryController.text,
-                          authProviderLink: _providerLinkController.text,
-                          faviconUrl: widget.userProviderModel.faviconUrl,
-                          hasTransactionPassword:
-                              widget.userProviderModel.hasTransactionPassword,
-                          transactionPassword:
-                              _transactionPasswordController.text,
+                          authLink: _authLinkController.text,
+                          userAuthFavicon: widget.userAuthModel.userAuthFavicon,
+                          hasTransactionPassword: hasTransactionPass,
+                          transactionPassword: hasTransactionPass
+                              ? _transactionPasswordController.text
+                              : null,
+                          authCategory: AuthCategory.values.firstWhere(
+                              (e) => e.name == dropdownValue,
+                              orElse: () => AuthCategory.others),
+                          createdAt: widget.userAuthModel.createdAt,
+                          updatedAt: DateTime.now(),
+                          tags: _tagsController.text
+                              .split(',')
+                              .map((tag) => tag.trim())
+                              .toList(),
+                          isFavorite: widget.userAuthModel.isFavorite,
+                          lastAccessed: widget.userAuthModel.lastAccessed,
+                          mfaOptions: widget.userAuthModel.mfaOptions,
                         ),
                       );
                     },
@@ -120,13 +125,13 @@ class _EditProviderPageState extends State<EditProviderPage> {
                         letterSpacing: .75,
                         fontWeight: FontWeight.bold,
                       ),
-                    )))
+                    ))),
           ]),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: BlocListener<UserProviderCubit, UserProviderState>(
+        child: BlocListener<UserAuthCubit, UserAuthState>(
           listener: (context, state) {
-            if (state is UserProviderSubmissionSuccess) {
+            if (state is UserAuthSubmissionSuccess) {
               CustomSnackbar customSnackbar =
                   CustomSnackbar("Submission Completed");
 
@@ -137,7 +142,7 @@ class _EditProviderPageState extends State<EditProviderPage> {
                   builder: (context) => const DashboardPage(),
                 ),
               );
-            } else if (state is UserProviderSubmissionFailure) {
+            } else if (state is UserAuthSubmissionFailure) {
               CustomSnackbar customSnackbar =
                   CustomSnackbar("Submission Error: ${state.error}");
               customSnackbar.showCustomSnackbar(context);
@@ -152,21 +157,18 @@ class _EditProviderPageState extends State<EditProviderPage> {
                   child: Column(
                     children: [
                       CachedNetworkImage(
-                        imageUrl: widget.userProviderModel.faviconUrl,
-                        height: 50, // Adjust the height as needed
-                        width: 50, // Adjust the width as needed
-                        fit: BoxFit
-                            .cover, // Use BoxFit.cover for a more visually appealing effect
+                        imageUrl: widget.userAuthModel.userAuthFavicon,
+                        height: 50,
+                        width: 50,
+                        fit: BoxFit.cover,
                         placeholder: (context, url) =>
-                            const CircularProgressIndicator(), // Placeholder widget while loading
-                        errorWidget: (context, url, error) => const Icon(
-                            Icons.error), // Widget to show in case of an error
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
-                      const SizedBox(
-                          height:
-                              8), // Add some space between the image and text
+                      const SizedBox(height: 8),
                       Text(
-                        widget.userProviderModel.authName,
+                        widget.userAuthModel.authName,
                         style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 16,
@@ -194,12 +196,10 @@ class _EditProviderPageState extends State<EditProviderPage> {
                     Row(
                       children: [
                         Checkbox(
-                          value:
-                              widget.userProviderModel.hasTransactionPassword,
+                          value: hasTransactionPass,
                           onChanged: (value) {
                             setState(() {
-                              widget.userProviderModel.hasTransactionPassword =
-                                  value!;
+                              hasTransactionPass = value!;
                             });
                           },
                         ),
@@ -214,13 +214,12 @@ class _EditProviderPageState extends State<EditProviderPage> {
                         ),
                       ],
                     ),
-                    if (widget.userProviderModel.hasTransactionPassword) ...[
+                    if (hasTransactionPass)
                       CustomTextField(
                         controller: _transactionPasswordController,
                         hintText: 'Enter Transaction Password',
                         labelText: 'Transaction Password',
                       ),
-                    ],
                   ],
                 ),
                 CustomTextField(
@@ -233,48 +232,60 @@ class _EditProviderPageState extends State<EditProviderPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
                   child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                          color: const Color.fromARGB(255, 53, 64, 79),
-                          width: 2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: DropdownButton<String>(
-                      // Initial Value
-                      value: dropdownvalue,
-                      dropdownColor: const Color.fromARGB(255, 53, 64, 79),
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      isExpanded: true,
-                      // Array list of items
-                      items: authCategories.map((String items) {
-                        return DropdownMenuItem(
-                          value: items,
-                          child: Text(items,
-                              // Customize the style of each item
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: const Color.fromARGB(255, 53, 64, 79),
+                            width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButton<String>(
+                        // Initial Value
+                        value: dropdownValue,
+                        dropdownColor: const Color.fromARGB(255, 53, 64, 79),
+                        icon: const Icon(Icons.keyboard_arrow_down),
+                        isExpanded: true,
+                        // Array list of items
+                        items: AuthCategory.values.map((AuthCategory category) {
+                          return DropdownMenuItem(
+                            value: category
+                                .toString()
+                                .split('.')
+                                .last, // Get the name of the enum value
+                            child: Text(
+                              category
+                                  .toString()
+                                  .split('.')
+                                  .last, // Display the name of the enum value
                               style: GoogleFonts.karla(
-                                  color:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 14,
-                                  letterSpacing: .75,
-                                  fontWeight: FontWeight.w600)),
-                        );
-                      }).toList(),
-                      style: GoogleFonts.karla(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 14,
+                                letterSpacing: .75,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        style: GoogleFonts.karla(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 14,
                           letterSpacing: .75,
-                          fontWeight: FontWeight.w600),
-                      underline: Container(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          dropdownvalue = newValue!;
-                          _providerCategoryController.text = dropdownvalue;
-                        });
-                      },
-                    ),
-                  ),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        underline: Container(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            dropdownValue = newValue!;
+                            _authCategoryController.text = dropdownValue;
+                          });
+                        },
+                      )),
+                ),
+                CustomTextField(
+                  controller: _tagsController,
+                  hintText: 'Enter Tags (comma-separated)',
+                  labelText: 'Tags',
                 ),
               ],
             ),

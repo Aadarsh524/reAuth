@@ -4,9 +4,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reauth/bloc/states/auth_state.dart';
 import 'package:reauth/utils/validator.dart';
 
-class AuthCubit extends Cubit<AuthState> {
+class AuthenticationCubit extends Cubit<AuthenticationState> {
   User? user = FirebaseAuth.instance.currentUser;
-  AuthCubit() : super(AuthInitial());
+  AuthenticationCubit() : super(AuthenticationInitial());
+
+  Future<bool> isLoggedIn() async {
+    if (user != null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   Future<void> initiateLogin(String email, String password) async {
     final validationError = validateLogin(email, password);
@@ -15,7 +23,7 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
     try {
-      emit(AuthLoading());
+      emit(AuthenticationLoading());
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -41,7 +49,7 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
     try {
-      emit(AuthLoading());
+      emit(AuthenticationLoading());
 
       await FirebaseFirestore.instance
           .collection('users')
@@ -64,7 +72,7 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
     try {
-      emit(AuthLoading());
+      emit(AuthenticationLoading());
       await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
         email: email,
@@ -97,10 +105,32 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> changeEmailVerificationStatus() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('profiles')
+          .doc(user!.uid)
+          .update({
+        'isEmailVerified': true,
+      });
+
+      emit(RegisterSuccess());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        emit(const RegisterFailure(error: "Password is too weak."));
+      }
+      if (e.code == 'email-already-in-use') {
+        emit(const RegisterFailure(error: "Account already in exists."));
+      } else {
+        emit(const RegisterFailure(error: "Error Registeration"));
+      }
+    }
+  }
+
   Future<void> changePassword(
       String email, String currentPassword, String newPassword) async {
     try {
-      emit(AuthLoading());
+      emit(AuthenticationLoading());
       AuthCredential credential = EmailAuthProvider.credential(
         email: email,
         password: currentPassword,
@@ -109,6 +139,22 @@ class AuthCubit extends Cubit<AuthState> {
       await user?.reauthenticateWithCredential(credential);
 
       await user!.updatePassword(newPassword);
+
+      emit(RegisterSuccess());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        emit(const RegisterFailure(error: "Password is too weak."));
+      } else {
+        emit(const RegisterFailure(error: "Error Changing Passwords"));
+      }
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    try {
+      emit(AuthenticationLoading());
+      await user!.delete();
 
       emit(RegisterSuccess());
     } on FirebaseAuthException catch (e) {

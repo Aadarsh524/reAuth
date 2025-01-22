@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/models/userprovider_model.dart';
+import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/providerdetail_page.dart';
 
 class AuthsProviderCard extends StatelessWidget {
-  final UserProviderModel providerModel;
+  final UserAuthModel providerModel;
 
   const AuthsProviderCard({
     Key? key,
@@ -37,7 +37,7 @@ class AuthsProviderCard extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
-                  imageUrl: providerModel.faviconUrl,
+                  imageUrl: providerModel.userAuthFavicon,
                   width: 45,
                   height: 45,
                   fit: BoxFit.contain,

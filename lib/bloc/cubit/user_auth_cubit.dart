@@ -2,76 +2,84 @@ import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'package:reauth/bloc/states/user_provider_state.dart';
-import 'package:reauth/models/popularprovider_model.dart';
-import 'package:reauth/models/userprovider_model.dart';
+import 'package:reauth/bloc/states/user_auth_state.dart';
+import 'package:reauth/constants/auth_category.dart';
+import 'package:reauth/models/popular_auth_model.dart';
+import 'package:reauth/models/user_auth_model.dart';
 
-class UserProviderCubit extends Cubit<UserProviderState> {
+class UserAuthCubit extends Cubit<UserAuthState> {
   User? user = FirebaseAuth.instance.currentUser;
-  late List<UserProviderModel> _userProviders;
+  late List<UserAuthModel> _userAuths;
 
-  UserProviderCubit() : super(UserProviderInitial()) {
-    _userProviders = [];
+  UserAuthCubit() : super(UserAuthInitial()) {
+    _userAuths = [];
   }
 
-  Future<void> fetchUserProviders() async {
+  Future<void> fetchUserAuths() async {
     try {
-      emit(UserProviderLoading());
+      emit(UserAuthLoading());
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
           .collection("auths")
           .get();
 
-      _userProviders = snapshot.docs.map((doc) {
+      _userAuths = snapshot.docs.map((doc) {
         final data = doc.data();
 
-        return UserProviderModel.fromMap({
+        return UserAuthModel.fromMap({
           'username': data['username'] ?? '',
           'password': data['password'] ?? '',
           'note': data['note'] ?? '',
           'authProviderLink': data['authProviderLink'] ?? '',
-          'providerCategory': data['providerCategory'] ?? '',
-          'faviconUrl': data['faviconUrl'] ?? '',
+          'providerCategory':
+              data['providerCategory'] ?? AuthCategory.others.toString(),
+          'faviconUrl': data['faviconUrl'],
           'authName': data['authName'] ?? '',
+          'transactionPassword': data['transactionPassword'],
           'hasTransactionPassword': data['hasTransactionPassword'] ?? false,
-          'transactionPassword': data['transactionPassword'] ?? '',
+          'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
+          'updatedAt': data['updatedAt'] ?? DateTime.now().toIso8601String(),
+          'lastAccessed': data['lastAccessed'],
+          'tags': data['tags']?.cast<String>(),
+          'isFavorite': data['isFavorite'] ?? false,
+          'mfaOptions': data['mfaOptions'],
         });
       }).toList();
 
-      emit(UserProviderLoadSuccess(providers: _userProviders));
+      emit(UserAuthLoadSuccess(auths: _userAuths));
     } catch (e) {
-      emit(UserProviderLoadFailure(error: e.toString()));
+      emit(UserAuthLoadFailure(error: e.toString()));
     }
   }
 
   void searchUserAuth(String searchTerm) {
     final lowerCaseSearchTerm = searchTerm.toLowerCase();
-    final matchingProviders = _userProviders
+    final matchingProviders = _userAuths
         .where((provider) =>
             provider.authName.toLowerCase().contains(lowerCaseSearchTerm))
         .toList();
 
     if (matchingProviders.isEmpty) {
       // No exact or partial matches found
-      emit(const UserProviderSearchFailure(error: "Exact match not found"));
+      emit(const UserAuthSearchFailure(error: "Exact match not found"));
     } else {
       // Prioritize exact matches (if any)
       final exactMatch = matchingProviders.firstWhere(
           (provider) => provider.authName.toLowerCase() == lowerCaseSearchTerm);
 
       // Emit UserProviderSearchSuccess only for exact match
-      emit(UserProviderSearchSuccess(provider: exactMatch));
+      emit(UserAuthSearchSuccess(auth: exactMatch));
     }
   }
 
-  String? validateProvider(UserProviderModel provider) {
-    if (provider.authProviderLink.isEmpty) {
+  String? validateProvider(UserAuthModel provider) {
+    if (provider.authLink.isEmpty) {
       return 'Auth Provider Link is required';
     }
-    if (provider.authProviderLink.isNotEmpty) {
+    if (provider.authLink.isNotEmpty) {
       final urlPattern = RegExp(r'^www\.\w+\.\w+$');
-      if (!urlPattern.hasMatch(provider.authProviderLink)) {
+      if (!urlPattern.hasMatch(provider.authLink)) {
         return 'Url format is not matched';
       }
     }
@@ -81,12 +89,11 @@ class UserProviderCubit extends Cubit<UserProviderState> {
     if (provider.password.isEmpty) {
       return 'Password is required';
     }
-    if (provider.providerCategory.isEmpty) {
+    // ignore: unrelated_type_equality_checks
+    if (provider.authCategory == '') {
       return 'Provider Category is required';
     }
-    if (provider.note.isEmpty) {
-      return 'Note is required';
-    }
+
     if (provider.hasTransactionPassword == true) {
       if (provider.transactionPassword!.isEmpty) {
         return 'Transaction Pass is empty';
@@ -97,12 +104,12 @@ class UserProviderCubit extends Cubit<UserProviderState> {
   }
 
   Future<void> submitProvider(
-      UserProviderModel providerModel, bool popularProvider) async {
+      UserAuthModel providerModel, bool popularProvider) async {
     try {
-      emit(UserProviderLoading());
+      emit(UserAuthLoading());
       final validationError = validateProvider(providerModel);
       if (validationError != null) {
-        emit(UserProviderSubmissionFailure(error: validationError));
+        emit(UserAuthSubmissionFailure(error: validationError));
         return;
       }
 
@@ -120,26 +127,26 @@ class UserProviderCubit extends Cubit<UserProviderState> {
         'username': providerModel.username,
         'password': providerModel.password,
         'note': providerModel.note,
-        'authProviderLink': providerModel.authProviderLink,
-        'providerCategory': providerModel.providerCategory,
+        'authLink': providerModel.authLink,
+        'providerCategory': providerModel.authCategory,
         'faviconUrl': faviconUrl,
         'hasTransactionPassword': providerModel.hasTransactionPassword,
         'transactionPassword': providerModel.transactionPassword,
       });
 
-      emit(UserProviderSubmissionSuccess());
-      fetchUserProviders();
+      emit(UserAuthSubmissionSuccess());
+      fetchUserAuths();
     } catch (e) {
-      emit(UserProviderSubmissionFailure(error: e.toString()));
+      emit(UserAuthSubmissionFailure(error: e.toString()));
     }
   }
 
-  Future<void> editProvider(UserProviderModel providerModel) async {
+  Future<void> editProvider(UserAuthModel providerModel) async {
     try {
-      emit(UserProviderLoading());
+      emit(UserAuthLoading());
       final validationError = validateProvider(providerModel);
       if (validationError != null) {
-        emit(UserProviderSubmissionFailure(error: validationError));
+        emit(UserAuthSubmissionFailure(error: validationError));
         return;
       }
 
@@ -154,23 +161,23 @@ class UserProviderCubit extends Cubit<UserProviderState> {
         'username': providerModel.username,
         'password': providerModel.password,
         'note': providerModel.note,
-        'authProviderLink': providerModel.authProviderLink,
-        'providerCategory': providerModel.providerCategory,
-        'faviconUrl': providerModel.faviconUrl,
+        'authLink': providerModel.authLink,
+        'providerCategory': providerModel.authCategory,
+        'faviconUrl': providerModel.userAuthFavicon,
         'hasTransactionPassword': providerModel.hasTransactionPassword,
         'transactionPassword': providerModel.transactionPassword,
       });
 
-      emit(UserProviderSubmissionSuccess());
-      fetchUserProviders();
+      emit(UserAuthSubmissionSuccess());
+      fetchUserAuths();
     } catch (e) {
-      emit(UserProviderSubmissionFailure(error: e.toString()));
+      emit(UserAuthSubmissionFailure(error: e.toString()));
     }
   }
 
   Future<void> deleteProvider(String userAuthId) async {
     try {
-      emit(UserProviderLoading());
+      emit(UserAuthLoading());
 
       // Delete the provider document from Firestore
       await FirebaseFirestore.instance
@@ -180,9 +187,9 @@ class UserProviderCubit extends Cubit<UserProviderState> {
           .doc(userAuthId)
           .delete();
 
-      emit(UserProviderDeletedSuccess());
+      emit(UserAuthDeletedSuccess());
     } catch (e) {
-      emit(UserProviderDeletedFailure(error: e.toString()));
+      emit(UserAuthDeletedFailure(error: e.toString()));
     }
   }
 }
@@ -198,17 +205,20 @@ Future<String> getFaviconUrl(bool popularProvider, String authName) async {
       final providers = snapshot.docs.map((doc) {
         final data = doc.data();
 
-        return PopularProviderModel.fromMap({
+        return PopularAuthModel.fromMap({
           'authName': data['authName'] ?? '',
           'authLink': data['authLink'] ?? '',
-          'authCategory': data['authCategory'] ?? '',
-          'faviconUrl': data['faviconUrl'] ?? ''
+          'authCategory':
+              data['authCategory'] ?? AuthCategory.others.toString(),
+          'faviconUrl': data['faviconUrl'],
+          'popularityRank': data['popularityRank'] ?? 0,
+          'description': data['description'] ?? '',
         });
       }).toList();
 
       for (var provider in providers) {
         if (provider.authName.toLowerCase().contains(auth)) {
-          faviconLink = provider.faviconUrl;
+          faviconLink = provider.authFavicon;
         }
       }
       return faviconLink;

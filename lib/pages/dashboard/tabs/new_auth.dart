@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/popular_provider_cubit.dart';
+import 'package:reauth/bloc/cubit/popular_auth_cubit.dart';
 import 'package:reauth/bloc/states/popular_provider_state.dart';
+
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
 import 'package:reauth/pages/addprovider_page.dart';
 
-class NewProviderPage extends StatefulWidget {
-  const NewProviderPage({Key? key}) : super(key: key);
+class NewAuthPage extends StatefulWidget {
+  const NewAuthPage({Key? key}) : super(key: key);
 
   @override
-  State<NewProviderPage> createState() => _NewProviderPageState();
+  State<NewAuthPage> createState() => _NewProviderPageState();
 }
 
-class _NewProviderPageState extends State<NewProviderPage> {
+class _NewProviderPageState extends State<NewAuthPage> {
   bool isSearchHasValue = false;
   TextEditingController searchController = TextEditingController();
   CustomSnackbar customSnackbar = CustomSnackbar('');
@@ -22,15 +23,15 @@ class _NewProviderPageState extends State<NewProviderPage> {
   @override
   void initState() {
     super.initState();
-    final popularProviderCubit = BlocProvider.of<PopularProviderCubit>(context);
-    popularProviderCubit.fetchPopularProviders();
+    final popularAuthCubit = BlocProvider.of<PopularAuthCubit>(context);
+    popularAuthCubit.fetchPopularAuths();
 
     searchController.addListener(() {
-      final userProviderCubit = BlocProvider.of<PopularProviderCubit>(context);
+      final userProviderCubit = BlocProvider.of<PopularAuthCubit>(context);
       if (searchController.text.isEmpty) {
         setState(() {
           isSearchHasValue = false;
-          userProviderCubit.fetchPopularProviders();
+          userProviderCubit.fetchPopularAuths();
         });
       } else {
         setState(() {
@@ -86,7 +87,7 @@ class _NewProviderPageState extends State<NewProviderPage> {
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const AddProviderPage(),
+                                  builder: (context) => const AddAuthPage(),
                                 ),
                               );
                             },
@@ -114,7 +115,7 @@ class _NewProviderPageState extends State<NewProviderPage> {
                     child: SizedBox(
                       height: 50,
                       child: SearchBar(
-                        padding: const MaterialStatePropertyAll(
+                        padding: const WidgetStatePropertyAll(
                           EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
                         ),
                         controller: searchController,
@@ -123,16 +124,16 @@ class _NewProviderPageState extends State<NewProviderPage> {
                             isSearchHasValue = text.isNotEmpty;
                           });
                         },
-                        backgroundColor: const MaterialStatePropertyAll(
+                        backgroundColor: const WidgetStatePropertyAll(
                             Color.fromARGB(255, 43, 51, 63)),
                         hintText: "Search",
-                        hintStyle: MaterialStatePropertyAll(GoogleFonts.karla(
+                        hintStyle: WidgetStatePropertyAll(GoogleFonts.karla(
                           color: const Color.fromARGB(255, 125, 125, 125),
                           fontSize: 16,
                           letterSpacing: .5,
                           fontWeight: FontWeight.w600,
                         )),
-                        textStyle: MaterialStatePropertyAll(GoogleFonts.karla(
+                        textStyle: WidgetStatePropertyAll(GoogleFonts.karla(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 16,
                           letterSpacing: .5,
@@ -153,45 +154,44 @@ class _NewProviderPageState extends State<NewProviderPage> {
                   SizedBox(
                     height: MediaQuery.of(context).size.height * .55,
                     width: MediaQuery.of(context).size.width,
-                    child: BlocConsumer<PopularProviderCubit,
-                        PopularProviderState>(
+                    child: BlocConsumer<PopularAuthCubit, PopularAuthState>(
                       listener: (context, state) {
-                        if (state is PopularProviderLoadFailure) {
+                        if (state is PopularAuthLoadFailure) {
                           customSnackbar = CustomSnackbar(
                               "Failed to load popular providers: ${state.error}");
                           customSnackbar.showCustomSnackbar(context);
                         }
                       },
                       builder: (context, state) {
-                        if (state is PopularProviderLoading) {
+                        if (state is PopularAuthLoading) {
                           return const Center(
                               child: CircularProgressIndicator(
                                   color: Color.fromARGB(255, 106, 172, 191)));
-                        } else if (state is PopularProviderLoadSuccess &&
+                        } else if (state is PopularAuthLoadSuccess &&
                             !isSearchHasValue) {
                           return ListView.builder(
-                            itemCount: state.providers.length,
+                            itemCount: state.auths.length,
                             itemBuilder: (context, index) {
-                              final provider = state.providers[index];
-                              return PopularProviderCard(
-                                providerModel: provider,
+                              final provider = state.auths[index];
+                              return PopularAuthCard(
+                                authModel: provider,
                               );
                             },
                           );
-                        } else if (state is PopularProviderSearching) {
+                        } else if (state is PopularAuthSearching) {
                           return const Center(
                               child: CircularProgressIndicator(
                                   color: Color.fromARGB(255, 106, 172, 191)));
-                        } else if (state is PopularProviderSearchSuccess) {
+                        } else if (state is PopularAuthSearchSuccess) {
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              PopularProviderCard(
-                                providerModel: state.provider,
+                              PopularAuthCard(
+                                authModel: state.auth,
                               ),
                             ],
                           );
-                        } else if (state is PopularProviderSearchFailure) {
+                        } else if (state is PopularAuthSearchFailure) {
                           return _buildSearchFailure(context, state.error);
                         } else {
                           return Container();

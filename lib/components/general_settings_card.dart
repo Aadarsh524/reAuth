@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
-  GeneralSettingsCard({Key? key}) : super(key: key);
+  const GeneralSettingsCard({Key? key}) : super(key: key);
 
   @override
   State<GeneralSettingsCard> createState() => _GeneralSettingsCardState();
@@ -44,7 +44,7 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
               child: Column(
                 children: [
-                  Divider(),
+                  const Divider(),
                   _buildSettingItem(
                     icon: Icons.info,
                     title: 'Password Generator',

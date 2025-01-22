@@ -2,12 +2,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/user_provider_cubit.dart';
-import 'package:reauth/bloc/states/user_provider_state.dart';
+import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
+import 'package:reauth/bloc/states/user_auth_state.dart';
+
 import 'package:reauth/components/custom_textfield.dart';
 
 import 'package:reauth/components/password_suggestion.dart';
-import 'package:reauth/models/userprovider_model.dart';
+import 'package:reauth/constants/auth_category.dart';
+import 'package:reauth/models/user_auth_model.dart';
+
 import 'package:reauth/utils/strength_checker.dart';
 
 class SecurityPage extends StatefulWidget {
@@ -22,8 +25,8 @@ class _SecurityPageState extends State<SecurityPage>
   final TextEditingController _passwordController = TextEditingController();
   List<String> allPasswords = [];
 
-  List<UserProviderModel> strongPasswords = [];
-  List<UserProviderModel> weakPasswords = [];
+  List<UserAuthModel> strongPasswords = [];
+  List<UserAuthModel> weakPasswords = [];
   Color strongTabColor = Colors.green;
   Color weakTabColor = Colors.red;
 
@@ -33,7 +36,7 @@ class _SecurityPageState extends State<SecurityPage>
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<UserProviderCubit>(context).fetchUserProviders();
+    BlocProvider.of<UserAuthCubit>(context).fetchUserAuths();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabSelection);
   }
@@ -51,7 +54,7 @@ class _SecurityPageState extends State<SecurityPage>
     });
   }
 
-  void classifyPasswords(List<UserProviderModel> providers) {
+  void classifyPasswords(List<UserAuthModel> providers) {
     strongPasswords.clear();
     weakPasswords.clear();
 
@@ -74,20 +77,19 @@ class _SecurityPageState extends State<SecurityPage>
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: BlocBuilder<UserProviderCubit, UserProviderState>(
+          child: BlocBuilder<UserAuthCubit, UserAuthState>(
             builder: (context, state) {
-              if (state is UserProviderLoading) {
+              if (state is UserAuthLoading) {
                 return const Center(
                   child: CircularProgressIndicator(
                     color: Color.fromARGB(255, 106, 172, 191),
                   ),
                 );
-              } else if (state is UserProviderLoadSuccess) {
-                allPasswords = state.providers
-                    .map((provider) => provider.password)
-                    .toList();
+              } else if (state is UserAuthLoadSuccess) {
+                allPasswords =
+                    state.auths.map((provider) => provider.password).toList();
 
-                classifyPasswords(state.providers);
+                classifyPasswords(state.auths);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,7 +176,7 @@ class _SecurityPageState extends State<SecurityPage>
                     ),
                   ],
                 );
-              } else if (state is UserProviderLoadFailure) {
+              } else if (state is UserAuthLoadFailure) {
                 return Center(
                   child: Text(
                     state.error,
@@ -195,8 +197,7 @@ class _SecurityPageState extends State<SecurityPage>
     );
   }
 
-  Widget _buildPasswordsList(
-      List<UserProviderModel> providers, int passwordCount,
+  Widget _buildPasswordsList(List<UserAuthModel> providers, int passwordCount,
       {required bool isStrong}) {
     if (passwordCount == 0) {
       return Center(
@@ -253,7 +254,7 @@ class _SecurityPageState extends State<SecurityPage>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: CachedNetworkImageProvider(provider.faviconUrl),
+                    image: CachedNetworkImageProvider(provider.userAuthFavicon),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -280,8 +281,8 @@ class _SecurityPageState extends State<SecurityPage>
 }
 
 void _showChangePasswordDialog(
-    BuildContext context, UserProviderModel userProviderModel) {
-  final userProviderCubit = BlocProvider.of<UserProviderCubit>(context);
+    BuildContext context, UserAuthModel userProviderModel) {
+  final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
   final TextEditingController passwordController = TextEditingController();
 
   final List<Map<String, dynamic>> suggestions = [
@@ -334,7 +335,7 @@ void _showChangePasswordDialog(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: CachedNetworkImage(
-                        imageUrl: userProviderModel.faviconUrl,
+                        imageUrl: userProviderModel.userAuthFavicon,
                         width: 40,
                         height: 40,
                         fit: BoxFit.contain,
@@ -400,18 +401,21 @@ void _showChangePasswordDialog(
               TextButton(
                 onPressed: () {
                   userProviderCubit.editProvider(
-                    UserProviderModel(
+                    UserAuthModel(
                       authName: userProviderModel.authName,
                       username: userProviderModel.username,
                       password: passwordController.text,
                       note: userProviderModel.note,
-                      providerCategory: userProviderModel.providerCategory,
-                      authProviderLink: userProviderModel.authProviderLink,
-                      faviconUrl: userProviderModel.faviconUrl,
+                      authLink: userProviderModel.authLink,
+                      userAuthFavicon: userProviderModel.userAuthFavicon,
                       hasTransactionPassword:
                           userProviderModel.hasTransactionPassword,
                       transactionPassword:
                           userProviderModel.transactionPassword,
+                      authCategory: AuthCategory.communication,
+                      createdAt: DateTime.now(),
+                      updatedAt: DateTime.now(),
+                      isFavorite: false,
                     ),
                   );
                   Navigator.of(context).pop();

@@ -1,19 +1,19 @@
 import 'package:equatable/equatable.dart';
 
-abstract class AuthState extends Equatable {
-  const AuthState();
+abstract class AuthenticationState extends Equatable {
+  const AuthenticationState();
 
   @override
   List<Object?> get props => [];
 }
 
-class AuthInitial extends AuthState {}
+class AuthenticationInitial extends AuthenticationState {}
 
-class AuthLoading extends AuthState {}
+class AuthenticationLoading extends AuthenticationState {}
 
-class LoginSuccess extends AuthState {}
+class LoginSuccess extends AuthenticationState {}
 
-class LoginFailure extends AuthState {
+class LoginFailure extends AuthenticationState {
   final String error;
 
   const LoginFailure({required this.error});
@@ -22,7 +22,7 @@ class LoginFailure extends AuthState {
   List<Object?> get props => [error];
 }
 
-class LoginSubmissionFailure extends AuthState {
+class LoginSubmissionFailure extends AuthenticationState {
   final String error;
 
   const LoginSubmissionFailure({required this.error});
@@ -31,9 +31,9 @@ class LoginSubmissionFailure extends AuthState {
   List<Object?> get props => [error];
 }
 
-class RegisterSuccess extends AuthState {}
+class RegisterSuccess extends AuthenticationState {}
 
-class RegisterFailure extends AuthState {
+class RegisterFailure extends AuthenticationState {
   final String error;
 
   const RegisterFailure({required this.error});
@@ -42,7 +42,7 @@ class RegisterFailure extends AuthState {
   List<Object?> get props => [error];
 }
 
-class RegisterSubmissionFailure extends AuthState {
+class RegisterSubmissionFailure extends AuthenticationState {
   final String error;
 
   const RegisterSubmissionFailure({required this.error});
@@ -51,11 +51,11 @@ class RegisterSubmissionFailure extends AuthState {
   List<Object?> get props => [error];
 }
 
-class PinMatched extends AuthState {}
+class PinMatched extends AuthenticationState {}
 
-class PinSetSuccess extends AuthState {}
+class PinSetSuccess extends AuthenticationState {}
 
-class PinError extends AuthState {
+class PinError extends AuthenticationState {
   final String error;
 
   const PinError({required this.error});
