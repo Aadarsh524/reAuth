@@ -184,12 +184,14 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     CustomTextField(
+                      isRequired: true,
                       keyboardType: TextInputType.text,
                       controller: oldPasswordController,
                       hintText: 'Enter Old Password',
                       labelText: 'Old Password',
                     ),
                     CustomTextField(
+                      isRequired: true,
                       keyboardType: TextInputType.text,
                       controller: newPasswordController,
                       hintText: 'Enter New Password',

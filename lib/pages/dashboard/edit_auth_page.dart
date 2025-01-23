@@ -181,11 +181,13 @@ class _EditProviderPageState extends State<EditAuthPage> {
                 ),
                 const SizedBox(height: 10),
                 CustomTextField(
+                  isRequired: true,
                   controller: _usernameController,
                   hintText: 'Enter Auth Username',
                   labelText: 'Username',
                 ),
                 CustomTextField(
+                  isRequired: true,
                   controller: _passwordController,
                   hintText: 'Enter Auth Password',
                   labelText: 'Password',
@@ -216,6 +218,7 @@ class _EditProviderPageState extends State<EditAuthPage> {
                     ),
                     if (hasTransactionPass)
                       CustomTextField(
+                        isRequired: true,
                         controller: _transactionPasswordController,
                         hintText: 'Enter Transaction Password',
                         labelText: 'Transaction Password',
@@ -223,6 +226,7 @@ class _EditProviderPageState extends State<EditAuthPage> {
                   ],
                 ),
                 CustomTextField(
+                  isRequired: true,
                   keyboardType: TextInputType.text,
                   controller: _noteController,
                   hintText: 'Write some notes',
@@ -283,6 +287,7 @@ class _EditProviderPageState extends State<EditAuthPage> {
                       )),
                 ),
                 CustomTextField(
+                  isRequired: true,
                   controller: _tagsController,
                   hintText: 'Enter Tags (comma-separated)',
                   labelText: 'Tags',

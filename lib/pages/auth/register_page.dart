@@ -65,18 +65,22 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 30),
                       CustomTextField(
+                        isRequired: true,
                         keyboardType: TextInputType.text,
                         controller: fullNameController,
                         hintText: 'Enter your full name',
                         labelText: 'Full Name',
                       ),
                       CustomTextField(
+                        isRequired: true,
                         keyboardType: TextInputType.emailAddress,
                         controller: emailController,
                         hintText: 'Enter your email',
                         labelText: 'Email',
                       ),
                       CustomTextField(
+                        isRequired: true,
+
                         isFormTypePassword: true,
                         keyboardType: TextInputType.visiblePassword,
                         controller: passwordController,
@@ -90,6 +94,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       CustomTextField(
+                        isRequired: true,
+
                         isFormTypePassword: true,
                         keyboardType: TextInputType.visiblePassword,
                         controller: confirmPasswordController,

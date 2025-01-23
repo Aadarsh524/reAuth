@@ -6,7 +6,7 @@ import 'package:reauth/bloc/states/popular_provider_state.dart';
 
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
-import 'package:reauth/pages/addprovider_page.dart';
+import 'package:reauth/pages/add_auth_page.dart';
 
 class NewAuthPage extends StatefulWidget {
   const NewAuthPage({Key? key}) : super(key: key);

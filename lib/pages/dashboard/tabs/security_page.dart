@@ -356,6 +356,7 @@ void _showChangePasswordDialog(
                   ),
                   const SizedBox(height: 5),
                   CustomTextField(
+                    isRequired: true,
                     keyboardType: TextInputType.text,
                     controller: passwordController,
                     hintText: 'Enter New Password',
@@ -412,7 +413,7 @@ void _showChangePasswordDialog(
                           userProviderModel.hasTransactionPassword,
                       transactionPassword:
                           userProviderModel.transactionPassword,
-                      authCategory: AuthCategory.communication,
+                      authCategory: AuthCategory.socialMedia,
                       createdAt: DateTime.now(),
                       updatedAt: DateTime.now(),
                       isFavorite: false,

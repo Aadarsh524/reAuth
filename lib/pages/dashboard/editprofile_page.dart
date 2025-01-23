@@ -194,6 +194,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 ),
                                 const SizedBox(height: 20),
                                 CustomTextField(
+                                  isRequired: true,
                                   keyboardType: TextInputType.text,
                                   controller: usernameController,
                                   hintText: 'Enter your full name',
@@ -201,6 +202,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 ),
                                 const SizedBox(height: 10),
                                 CustomTextField(
+                                  isRequired: true,
                                   keyboardType: TextInputType.emailAddress,
                                   controller: emailController,
                                   hintText: 'Enter your email',

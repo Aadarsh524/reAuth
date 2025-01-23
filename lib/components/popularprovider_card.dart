@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/models/popular_auth_model.dart';
-import 'package:reauth/pages/addprovider_page.dart';
+import 'package:reauth/pages/add_auth_page.dart';
 
 class PopularAuthCard extends StatelessWidget {
   final PopularAuthModel authModel;

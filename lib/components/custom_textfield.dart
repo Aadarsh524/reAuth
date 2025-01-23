@@ -12,6 +12,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final Function(bool)? passwordVisibility;
   final Function(String)? onChanged;
+  final bool isRequired;
 
   const CustomTextField({
     Key? key,
@@ -24,6 +25,7 @@ class CustomTextField extends StatelessWidget {
     this.textInputFormatter = const [],
     this.keyboardType = TextInputType.text,
     this.onChanged,
+    required this.isRequired,
   }) : super(key: key);
 
   @override
@@ -33,14 +35,27 @@ class CustomTextField extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            labelText,
-            style: GoogleFonts.karla(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              fontSize: 14,
-              letterSpacing: 0.75,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Text(
+                labelText,
+                style: GoogleFonts.karla(
+                  color: const Color.fromARGB(255, 255, 255, 255),
+                  fontSize: 14,
+                  letterSpacing: 0.75,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (isRequired)
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 10),
           SizedBox(

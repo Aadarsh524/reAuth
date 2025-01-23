@@ -62,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 30),
                 CustomTextField(
+                  isRequired: true,
                   keyboardType: TextInputType.emailAddress,
                   controller: emailController,
                   hintText: 'Enter your email',
@@ -69,6 +70,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 20),
                 CustomTextField(
+                  isRequired: true,
+
                   isFormTypePassword: true,
                   keyboardType: TextInputType.visiblePassword,
                   controller: passwordController,
