@@ -53,14 +53,6 @@ class OtherFieldsWidget extends StatelessWidget {
           obscureText: true,
           textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
         ),
-        CustomTextField(
-          controller: noteController,
-          labelText: "Note",
-          hintText: "Enter Note",
-          keyboardType: TextInputType.text,
-          textInputFormatter: [FilteringTextInputFormatter.singleLineFormatter],
-          isRequired: false,
-        ),
         CustomTagsField(
           availableTags: availableTags,
           selectedTags: selectedTags,
@@ -68,6 +60,14 @@ class OtherFieldsWidget extends StatelessWidget {
           labelText: "Tags",
           isRequired: false,
           onTagsUpdated: onTagsUpdated,
+        ),
+        CustomTextField(
+          controller: noteController,
+          labelText: "Note",
+          hintText: "Enter Note",
+          keyboardType: TextInputType.text,
+          textInputFormatter: [FilteringTextInputFormatter.singleLineFormatter],
+          isRequired: false,
         ),
       ],
     );

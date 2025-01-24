@@ -401,7 +401,7 @@ void _showChangePasswordDialog(
             actions: [
               TextButton(
                 onPressed: () {
-                  userProviderCubit.editProvider(
+                  userProviderCubit.editAuth(
                     UserAuthModel(
                       authName: userProviderModel.authName,
                       username: userProviderModel.username,
@@ -417,6 +417,7 @@ void _showChangePasswordDialog(
                       createdAt: DateTime.now(),
                       updatedAt: DateTime.now(),
                       isFavorite: false,
+                      lastAccessed: DateTime.now(),
                     ),
                   );
                   Navigator.of(context).pop();

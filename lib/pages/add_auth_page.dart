@@ -116,6 +116,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          authNameController: authNameController,
         );
       case AuthCategory.others:
         return OtherFieldsWidget(
@@ -203,9 +204,11 @@ class _AddAuthPageState extends State<AddAuthPage> {
 
   void handleSave() {
     final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
+    final cleanAuthName = authNameController.text.replaceAll(' ', '');
+
     final authLink = widget.popularAuthModel != null
         ? widget.popularAuthModel!.authLink
-        : "www.${authNameController.text.toLowerCase()}.com";
+        : "www.${cleanAuthName.toLowerCase()}.com";
 
     AuthCategory selectedCategory =
         AuthCategory.values.firstWhere((e) => e.toString() == dropdownValue);
@@ -241,9 +244,9 @@ class _AddAuthPageState extends State<AddAuthPage> {
         break;
       case AuthCategory.network:
         isValid = NetworkFieldsValidator.validateFields(
-          authNameController: authNameController,
           usernameController: usernameController,
           passwordController: passwordController,
+          authNameController: authNameController,
         );
         break;
       case AuthCategory.others:
@@ -269,13 +272,16 @@ class _AddAuthPageState extends State<AddAuthPage> {
           userAuthFavicon: authLink,
           hasTransactionPassword:
               hasTransactionPass, // Correctly reflects the checkbox
-          transactionPassword:
-              hasTransactionPass ? transactionPasswordController.text : '',
+          transactionPassword: hasTransactionPass
+              ? transactionPasswordController.text
+              : '', // Optional, empty if no transaction password
           authCategory: selectedCategory,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          isFavorite: false,
-          tags: selectedTags,
+          createdAt: DateTime.now(), // Set to current date and time
+          updatedAt: DateTime.now(), // Set to current date and time
+          lastAccessed: DateTime.now(), // Set to current date and time)
+
+          isFavorite: false, // Example value (set according to your logic)
+          tags: selectedTags, // Tags will be set as selectedTags
         ),
         popularAuth,
       );
@@ -359,7 +365,6 @@ class _AddAuthPageState extends State<AddAuthPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
                 const SizedBox(height: 20),
                 BlocConsumer<UserAuthCubit, UserAuthState>(
                   listener: (context, state) {

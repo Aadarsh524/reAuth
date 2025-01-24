@@ -4,6 +4,8 @@ import 'package:reauth/components/custom_tags_field.dart';
 import 'package:reauth/components/custom_textfield.dart';
 
 class NetworkFieldsWidget extends StatelessWidget {
+  final TextEditingController authNameController;
+
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   final TextEditingController noteController;
@@ -13,6 +15,7 @@ class NetworkFieldsWidget extends StatelessWidget {
 
   const NetworkFieldsWidget({
     Key? key,
+    required this.authNameController,
     required this.usernameController,
     required this.passwordController,
     required this.noteController,
@@ -25,6 +28,14 @@ class NetworkFieldsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        CustomTextField(
+          isRequired: true,
+          controller: authNameController,
+          labelText: "Auth Name",
+          hintText: "Enter Auth Name",
+          keyboardType: TextInputType.text,
+          textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+        ),
         CustomTextField(
           isRequired: true,
           controller: usernameController,

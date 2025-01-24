@@ -8,12 +8,14 @@ class UserAuthModel {
   AuthCategory authCategory; // Changed to enum
   String userAuthFavicon; // Made optional for custom icons
   String authName;
+  String? accountNumber;
+
   String?
       transactionPassword; // Optional for providers with transaction passwords
   bool hasTransactionPassword;
-  DateTime createdAt; // Timestamp for record creation
-  DateTime updatedAt; // Timestamp for last update
-  DateTime? lastAccessed; // Optional field for tracking the last usage
+  DateTime? createdAt; // Nullable field for record creation timestamp
+  DateTime? updatedAt; // Nullable field for last update timestamp
+  DateTime? lastAccessed; // Nullable field for tracking last usage
   List<String>? tags; // Optional tags for categorization
   bool isFavorite; // Flag for marking favorite providers
   MFAOptions? mfaOptions; // Optional multi-factor authentication configuration
@@ -23,13 +25,14 @@ class UserAuthModel {
     required this.authName,
     required this.password,
     this.note,
+    this.accountNumber,
     required this.authLink,
     required this.authCategory,
     required this.userAuthFavicon,
     this.transactionPassword,
     required this.hasTransactionPassword,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     this.lastAccessed,
     this.tags,
     required this.isFavorite,
@@ -41,18 +44,23 @@ class UserAuthModel {
       authName: map['authName'] ?? '',
       username: map['username'] ?? '',
       password: map['password'] ?? '',
-      note: map['note'] ?? '',
+      note: map['note'],
       authLink: map['authLink'] ?? '',
+      accountNumber: map['accountNumber'],
       authCategory: AuthCategory.values.firstWhere(
         (e) => e.toString() == map['authCategory'],
         orElse: () => AuthCategory.others,
       ),
       userAuthFavicon: map['userAuthFavicon'] ?? '',
-      transactionPassword: map['transactionPassword'] ?? '',
+      transactionPassword: map['transactionPassword'],
       hasTransactionPassword: map['hasTransactionPassword'] ?? false,
-      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(map['updatedAt'] ?? '') ?? DateTime.now(),
-      lastAccessed: map['lastAccessed'] != null
+      createdAt: map['createdAt'] != null && map['createdAt'] != ''
+          ? DateTime.tryParse(map['createdAt'])
+          : null,
+      updatedAt: map['updatedAt'] != null && map['updatedAt'] != ''
+          ? DateTime.tryParse(map['updatedAt'])
+          : null,
+      lastAccessed: map['lastAccessed'] != null && map['lastAccessed'] != ''
           ? DateTime.tryParse(map['lastAccessed'])
           : null,
       tags: (map['tags'] ?? []).cast<String>(),

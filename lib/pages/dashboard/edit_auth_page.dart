@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/bloc/states/user_auth_state.dart';
-
+import 'package:reauth/components/AuthCategory/entertainment_fields_widget.dart';
+import 'package:reauth/components/AuthCategory/financial_fields_widget.dart';
+import 'package:reauth/components/AuthCategory/network_fields_widget.dart';
+import 'package:reauth/components/AuthCategory/other_fields_widget.dart';
+import 'package:reauth/components/AuthCategory/social_media_fields_widget.dart';
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/custom_textfield.dart';
 import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/user_auth_model.dart';
-
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import 'package:reauth/validator/auth_category_field_validator/entertainment_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/financial_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/network_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/other_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/socialmedia_fields_validator.dart';
 
 class EditAuthPage extends StatefulWidget {
   final UserAuthModel userAuthModel;
@@ -19,282 +24,272 @@ class EditAuthPage extends StatefulWidget {
 
   @override
   // ignore: library_private_types_in_public_api
-  _EditProviderPageState createState() => _EditProviderPageState();
+  _EditAuthPageState createState() => _EditAuthPageState();
 }
 
-class _EditProviderPageState extends State<EditAuthPage> {
-  late TextEditingController _authLinkController;
-  late TextEditingController _passwordController;
-  late TextEditingController _usernameController;
-  late TextEditingController _noteController;
-  late TextEditingController _transactionPasswordController;
-  late TextEditingController _tagsController;
-  late TextEditingController _authCategoryController;
+class _EditAuthPageState extends State<EditAuthPage> {
+  late TextEditingController authNameController;
+  late TextEditingController usernameController;
+  late TextEditingController passwordController;
+  late TextEditingController noteController;
+  late TextEditingController transactionPasswordController;
+  late TextEditingController accountNumberController;
+  late TextEditingController tagsController;
 
-  late bool hasTransactionPass;
-  late String dropdownValue;
+  List<String> selectedTags = [];
+  bool hasTransactionPass = false;
+  late AuthCategory selectedCategory;
+
+  CustomSnackbar customSnackbar = CustomSnackbar('');
 
   @override
   void initState() {
     super.initState();
-    _authLinkController =
-        TextEditingController(text: widget.userAuthModel.authLink);
-    _passwordController =
-        TextEditingController(text: widget.userAuthModel.password);
-    _usernameController =
+    authNameController =
+        TextEditingController(text: widget.userAuthModel.authName);
+    accountNumberController =
+        TextEditingController(text: widget.userAuthModel.accountNumber);
+    usernameController =
         TextEditingController(text: widget.userAuthModel.username);
-    _noteController = TextEditingController(text: widget.userAuthModel.note);
-    _transactionPasswordController = TextEditingController(
+    passwordController =
+        TextEditingController(text: widget.userAuthModel.password);
+    noteController = TextEditingController(text: widget.userAuthModel.note);
+    transactionPasswordController = TextEditingController(
         text: widget.userAuthModel.transactionPassword ?? '');
-    _tagsController = TextEditingController(
+    tagsController = TextEditingController(
         text: widget.userAuthModel.tags?.join(', ') ?? '');
-    dropdownValue = widget.userAuthModel.authCategory.name;
-
+    selectedTags = widget.userAuthModel.tags ?? [];
     hasTransactionPass = widget.userAuthModel.hasTransactionPassword;
-    _authCategoryController =
-        widget.userAuthModel.authCategory.toString() as TextEditingController;
+    selectedCategory = widget.userAuthModel.authCategory;
   }
 
   @override
   void dispose() {
-    _authLinkController.dispose();
-    _passwordController.dispose();
-    _usernameController.dispose();
-    _noteController.dispose();
-    _transactionPasswordController.dispose();
-    _tagsController.dispose();
+    authNameController.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    noteController.dispose();
+    transactionPasswordController.dispose();
+    accountNumberController.dispose();
+    tagsController.dispose();
     super.dispose();
+  }
+
+  Widget buildFieldsByCategory(AuthCategory category) {
+    final availableTags = authCategoryTags[category] ?? [];
+
+    switch (category) {
+      case AuthCategory.financial:
+        return FinancialFieldsWidget(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          transactionPasswordController: transactionPasswordController,
+          noteController: noteController,
+          tagsController: tagsController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          onTransactionPasswordToggle: (hasPassword) {
+            setState(() => hasTransactionPass = hasPassword);
+          },
+          accountNumberController: accountNumberController,
+        );
+      case AuthCategory.socialMedia:
+        return SocialMediaFieldsWidget(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+        );
+      case AuthCategory.entertainment:
+        return EntertainmentFieldsWidget(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+        );
+      case AuthCategory.network:
+        return NetworkFieldsWidget(
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          authNameController: authNameController,
+        );
+      case AuthCategory.others:
+        return OtherFieldsWidget(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  void handleUpdate() {
+    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
+    final authLink = widget.userAuthModel.authLink.isNotEmpty
+        ? widget.userAuthModel.authLink
+        : "www.${authNameController.text.toLowerCase().replaceAll(' ', '')}.com";
+
+    bool isValid = false;
+
+    switch (selectedCategory) {
+      case AuthCategory.financial:
+        isValid = FinancialFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          transactionPasswordController: transactionPasswordController,
+          hasTransactionPassword: hasTransactionPass,
+        );
+        break;
+      case AuthCategory.socialMedia:
+        isValid = SocialMediaFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+      case AuthCategory.entertainment:
+        isValid = EntertainmentFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+      case AuthCategory.network:
+        isValid = NetworkFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+      case AuthCategory.others:
+        isValid = OtherFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+      default:
+        break;
+    }
+
+    if (isValid) {
+      final updatedModel = UserAuthModel(
+        authName: authNameController.text.trim().toLowerCase(),
+        username: usernameController.text.trim(),
+        password: passwordController.text,
+        note: noteController.text,
+        authLink: authLink,
+        userAuthFavicon: widget.userAuthModel.userAuthFavicon,
+        hasTransactionPassword: hasTransactionPass,
+        transactionPassword:
+            hasTransactionPass ? transactionPasswordController.text : '',
+        authCategory: selectedCategory,
+        createdAt: widget.userAuthModel.createdAt,
+        updatedAt: DateTime.now(),
+        isFavorite: widget.userAuthModel.isFavorite,
+        tags: selectedTags,
+        lastAccessed: widget.userAuthModel.lastAccessed,
+        mfaOptions: widget.userAuthModel.mfaOptions,
+      );
+
+      userProviderCubit.editAuth(updatedModel).then((_) {
+        Navigator.of(context).pop(updatedModel);
+      }).catchError((error) {
+        customSnackbar =
+            CustomSnackbar("Please enter required fields.", isError: true);
+        customSnackbar.showCustomSnackbar(context);
+      });
+    } else {
+      CustomSnackbar("Please fill in all required fields.", isError: true)
+          .showCustomSnackbar(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
-
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Edit Provider'),
-          centerTitle: false,
-          elevation: 0,
-          actions: [
-            Padding(
-                padding: const EdgeInsets.only(right: 10.0),
-                child: TextButton(
-                    onPressed: () {
-                      userProviderCubit.editProvider(
-                        UserAuthModel(
-                          authName: widget.userAuthModel.authName,
-                          username: _usernameController.text,
-                          password: _passwordController.text,
-                          note: _noteController.text,
-                          authLink: _authLinkController.text,
-                          userAuthFavicon: widget.userAuthModel.userAuthFavicon,
-                          hasTransactionPassword: hasTransactionPass,
-                          transactionPassword: hasTransactionPass
-                              ? _transactionPasswordController.text
-                              : null,
-                          authCategory: AuthCategory.values.firstWhere(
-                              (e) => e.name == dropdownValue,
-                              orElse: () => AuthCategory.others),
-                          createdAt: widget.userAuthModel.createdAt,
-                          updatedAt: DateTime.now(),
-                          tags: _tagsController.text
-                              .split(',')
-                              .map((tag) => tag.trim())
-                              .toList(),
-                          isFavorite: widget.userAuthModel.isFavorite,
-                          lastAccessed: widget.userAuthModel.lastAccessed,
-                          mfaOptions: widget.userAuthModel.mfaOptions,
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(
-                          color: Color.fromARGB(255, 111, 163, 219),
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      "Update",
-                      style: GoogleFonts.karla(
-                        color: const Color.fromARGB(255, 111, 163, 219),
-                        fontSize: 16,
-                        letterSpacing: .75,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ))),
-          ]),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: BlocListener<UserAuthCubit, UserAuthState>(
-          listener: (context, state) {
-            if (state is UserAuthSubmissionSuccess) {
-              CustomSnackbar customSnackbar =
-                  CustomSnackbar("Submission Completed");
-
-              customSnackbar.showCustomSnackbar(context);
-
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const DashboardPage(),
-                ),
-              );
-            } else if (state is UserAuthSubmissionFailure) {
-              CustomSnackbar customSnackbar =
-                  CustomSnackbar("Submission Error: ${state.error}");
-              customSnackbar.showCustomSnackbar(context);
-            }
-          },
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                Center(
-                  child: Column(
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: widget.userAuthModel.userAuthFavicon,
-                        height: 50,
-                        width: 50,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            const CircularProgressIndicator(),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.userAuthModel.authName,
-                        style: GoogleFonts.karla(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 16,
-                          letterSpacing: .75,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+        title: const Text('Edit Provider'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: TextButton(
+              onPressed: handleUpdate,
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(
+                    color: Color.fromARGB(255, 111, 163, 219),
                   ),
                 ),
-                const SizedBox(height: 10),
-                CustomTextField(
-                  isRequired: true,
-                  controller: _usernameController,
-                  hintText: 'Enter Auth Username',
-                  labelText: 'Username',
+              ),
+              child: Text(
+                "Update",
+                style: GoogleFonts.karla(
+                  color: const Color.fromARGB(255, 111, 163, 219),
+                  fontSize: 16,
+                  letterSpacing: .75,
+                  fontWeight: FontWeight.bold,
                 ),
-                CustomTextField(
-                  isRequired: true,
-                  controller: _passwordController,
-                  hintText: 'Enter Auth Password',
-                  labelText: 'Password',
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: hasTransactionPass,
-                          onChanged: (value) {
-                            setState(() {
-                              hasTransactionPass = value!;
-                            });
-                          },
-                        ),
-                        Text(
-                          'Transaction Password Exists',
-                          style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 16,
-                            letterSpacing: .75,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (hasTransactionPass)
-                      CustomTextField(
-                        isRequired: true,
-                        controller: _transactionPasswordController,
-                        hintText: 'Enter Transaction Password',
-                        labelText: 'Transaction Password',
-                      ),
-                  ],
-                ),
-                CustomTextField(
-                  isRequired: true,
-                  keyboardType: TextInputType.text,
-                  controller: _noteController,
-                  hintText: 'Write some notes',
-                  labelText: 'Notes',
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
-                  child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: const Color.fromARGB(255, 53, 64, 79),
-                            width: 2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButton<String>(
-                        // Initial Value
-                        value: dropdownValue,
-                        dropdownColor: const Color.fromARGB(255, 53, 64, 79),
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        isExpanded: true,
-                        // Array list of items
-                        items: AuthCategory.values.map((AuthCategory category) {
-                          return DropdownMenuItem(
-                            value: category
-                                .toString()
-                                .split('.')
-                                .last, // Get the name of the enum value
-                            child: Text(
-                              category
-                                  .toString()
-                                  .split('.')
-                                  .last, // Display the name of the enum value
-                              style: GoogleFonts.karla(
-                                color: const Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 14,
-                                letterSpacing: .75,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        style: GoogleFonts.karla(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 14,
-                          letterSpacing: .75,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        underline: Container(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            dropdownValue = newValue!;
-                            _authCategoryController.text = dropdownValue;
-                          });
-                        },
-                      )),
-                ),
-                CustomTextField(
-                  isRequired: true,
-                  controller: _tagsController,
-                  hintText: 'Enter Tags (comma-separated)',
-                  labelText: 'Tags',
-                ),
-              ],
+              ),
             ),
           ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            CachedNetworkImage(
+              imageUrl: widget.userAuthModel.userAuthFavicon,
+              height: 50,
+              width: 50,
+              placeholder: (_, __) => const CircularProgressIndicator(),
+              errorWidget: (context, url, error) => Image.asset(
+                'assets/error.png',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              widget.userAuthModel.authName.toUpperCase(),
+              style: GoogleFonts.karla(
+                color: const Color.fromARGB(255, 255, 255, 255),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 5),
+            Text(
+              widget.userAuthModel.authLink,
+              style: GoogleFonts.karla(
+                color: Colors.grey[600],
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            buildFieldsByCategory(selectedCategory),
+          ],
         ),
       ),
     );

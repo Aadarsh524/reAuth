@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
@@ -10,12 +11,25 @@ import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
 import 'package:reauth/pages/dashboard/edit_auth_page.dart';
-import 'package:intl/intl.dart';
 
-class AuthDetailPage extends StatelessWidget {
+class AuthDetailPage extends StatefulWidget {
   final UserAuthModel authModel;
 
   const AuthDetailPage({Key? key, required this.authModel}) : super(key: key);
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _AuthDetailPageState createState() => _AuthDetailPageState();
+}
+
+class _AuthDetailPageState extends State<AuthDetailPage> {
+  late UserAuthModel authModel;
+
+  @override
+  void initState() {
+    super.initState();
+    authModel = widget.authModel; // Initialize the mutable authModel
+  }
 
   void copyToClipboard(BuildContext context, String value) {
     final customSnackbar = CustomSnackbar("Copied");
@@ -91,13 +105,24 @@ class AuthDetailPage extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
+                        onPressed: () async {
+                          // Await the updated model from EditAuthPage
+                          final updatedModel = await Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>
                                   EditAuthPage(userAuthModel: authModel),
                             ),
                           );
+
+                          // Check if an updated model was returned
+                          if (updatedModel != null &&
+                              updatedModel is UserAuthModel) {
+                            // Update the state with the new model
+                            authModel =
+                                updatedModel; // If immutable, clone the object instead.
+                            (context as Element)
+                                .markNeedsBuild(); // Rebuild the widget tree
+                          }
                         },
                         icon: const Icon(
                           Icons.edit,
@@ -136,7 +161,7 @@ class AuthDetailPage extends StatelessWidget {
           Text(
             authModel.authName.toUpperCase(),
             style: GoogleFonts.karla(
-              color: Colors.white,
+              color: const Color.fromARGB(255, 255, 255, 255),
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -170,8 +195,8 @@ class AuthDetailPage extends StatelessWidget {
     };
 
     final Map<String, DateTime?> dateDetails = {
-      "Last Accessed": authModel.lastAccessed,
       "Created At": authModel.createdAt,
+      "Last Accessed": authModel.lastAccessed,
       "Updated At": authModel.updatedAt,
     };
 
@@ -185,10 +210,15 @@ class AuthDetailPage extends StatelessWidget {
           }
 
           if (entry.key == "Tags") {
-            // Render tags with colored backgrounds
-            return _buildTagsSection(entry.value as List<String>);
+            if (entry.value == null ||
+                entry.value == '' ||
+                (entry.value as List).isEmpty) {
+              return const SizedBox(); // Return empty widget if Tags field is empty or null
+            } else {
+              return _buildTagsSection(entry.value
+                  as List<String>); // Render tags if Tags field has values
+            }
           }
-
           return _buildDetailRow(
             context,
             label: "${entry.key}:",
@@ -199,7 +229,8 @@ class AuthDetailPage extends StatelessWidget {
           );
         }).toList(),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
+        const Divider(),
         ExpansionTile(
           title: Text(
             "Dates & Activity",
@@ -211,16 +242,18 @@ class AuthDetailPage extends StatelessWidget {
           ),
           collapsedBackgroundColor: Colors.transparent,
           iconColor: Colors.white,
-          // Remove any padding from the title
-          tilePadding: EdgeInsets.zero,
-          // Remove divider when expanded
+          tilePadding: EdgeInsets.zero, // Remove any padding from the title
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero), // No divider when expanded
+          collapsedShape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero), // No divider when collapsed
           expandedAlignment: Alignment.centerLeft,
-          expandedCrossAxisAlignment: CrossAxisAlignment
-              .start, // Set the color for the expand/collapse icon
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Directly map the date details without extra padding or divider
             ...dateDetails.entries.map((entry) {
-              if (entry.value == null) {
+              // ignore: unrelated_type_equality_checks
+              if (entry.value == null || entry.value == '') {
                 return const SizedBox(); // Skip null values
               }
               return _buildDetailRow(
@@ -248,9 +281,10 @@ class AuthDetailPage extends StatelessWidget {
     bool copyAction = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // Ensures proper alignment
         children: [
           Expanded(
             flex: 2,
@@ -266,13 +300,15 @@ class AuthDetailPage extends StatelessWidget {
           Expanded(
             flex: 4,
             child: Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.center, // Aligns text and icon together
               children: [
                 Flexible(
                   child: Text(
                     value,
                     style: GoogleFonts.karla(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
