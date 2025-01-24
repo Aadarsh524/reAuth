@@ -6,6 +6,7 @@ import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
+import 'package:http/http.dart' as http;
 
 class UserAuthCubit extends Cubit<UserAuthState> {
   User? user = FirebaseAuth.instance.currentUser;
@@ -31,17 +32,18 @@ class UserAuthCubit extends Cubit<UserAuthState> {
           'username': data['username'] ?? '',
           'password': data['password'] ?? '',
           'note': data['note'] ?? '',
-          'authProviderLink': data['authProviderLink'] ?? '',
-          'providerCategory':
-              data['providerCategory'] ?? AuthCategory.others.toString(),
-          'faviconUrl': data['faviconUrl'],
+          'authLink': data['authLink'] ?? '',
+          'authCategory':
+              data['authCategory'] ?? AuthCategory.others.toString(),
+          'userAuthFavicon': data['userAuthFavicon'] ?? '',
           'authName': data['authName'] ?? '',
-          'transactionPassword': data['transactionPassword'],
+          'transactionPassword': data['transactionPassword'] ?? '',
           'hasTransactionPassword': data['hasTransactionPassword'] ?? false,
           'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
           'updatedAt': data['updatedAt'] ?? DateTime.now().toIso8601String(),
-          'lastAccessed': data['lastAccessed'],
-          'tags': data['tags']?.cast<String>(),
+          'lastAccessed':
+              data['lastAccessed'] ?? DateTime.now().toIso8601String(),
+          'tags': (data['tags'] ?? []).cast<String>(),
           'isFavorite': data['isFavorite'] ?? false,
           'mfaOptions': data['mfaOptions'],
         });
@@ -73,65 +75,44 @@ class UserAuthCubit extends Cubit<UserAuthState> {
     }
   }
 
-  String? validateProvider(UserAuthModel provider) {
-    if (provider.authLink.isEmpty) {
-      return 'Auth Provider Link is required';
-    }
-    if (provider.authLink.isNotEmpty) {
-      final urlPattern = RegExp(r'^www\.\w+\.\w+$');
-      if (!urlPattern.hasMatch(provider.authLink)) {
-        return 'Url format is not matched';
-      }
-    }
-    if (provider.username.isEmpty) {
-      return 'Username is required';
-    }
-    if (provider.password.isEmpty) {
-      return 'Password is required';
-    }
-    // ignore: unrelated_type_equality_checks
-    if (provider.authCategory == '') {
-      return 'Provider Category is required';
-    }
-
-    if (provider.hasTransactionPassword == true) {
-      if (provider.transactionPassword!.isEmpty) {
-        return 'Transaction Pass is empty';
-      }
-    }
-
-    return null;
-  }
-
-  Future<void> submitProvider(
-      UserAuthModel providerModel, bool popularProvider) async {
+  Future<void> submitUserAuth(
+      UserAuthModel userAuthModel, bool popularAuth) async {
     try {
       emit(UserAuthLoading());
-      final validationError = validateProvider(providerModel);
-      if (validationError != null) {
-        emit(UserAuthSubmissionFailure(error: validationError));
-        return;
-      }
 
-      final faviconUrl =
-          await getFaviconUrl(popularProvider, providerModel.authName);
+      final userAuthFavicon =
+          await getFaviconUrl(popularAuth, userAuthModel.authName);
 
-      // Send data to Firebase
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
           .collection('auths')
-          .doc(providerModel.authName)
+          .doc(userAuthModel.authName)
           .set({
-        'authName': providerModel.authName,
-        'username': providerModel.username,
-        'password': providerModel.password,
-        'note': providerModel.note,
-        'authLink': providerModel.authLink,
-        'providerCategory': providerModel.authCategory,
-        'faviconUrl': faviconUrl,
-        'hasTransactionPassword': providerModel.hasTransactionPassword,
-        'transactionPassword': providerModel.transactionPassword,
+        'authName': userAuthModel.authName,
+        'username': userAuthModel.username,
+        'password': userAuthModel.password,
+        'note': userAuthModel.note, // Optional
+        'authLink': userAuthModel.authLink,
+        'authCategory': userAuthModel.authCategory.toString(),
+        'userAuthFavicon': userAuthFavicon,
+        'hasTransactionPassword': userAuthModel.hasTransactionPassword,
+        'transactionPassword': userAuthModel.transactionPassword, // Optional
+        'createdAt': userAuthModel.createdAt
+            .toIso8601String()
+            .split('T')
+            .first, // Only date
+        'updatedAt': userAuthModel.updatedAt
+            .toIso8601String()
+            .split('T')
+            .first, // Only date
+        'lastAccessed': userAuthModel.lastAccessed
+            ?.toIso8601String()
+            .split('T')
+            .first, // Only date, Optional
+        'tags': userAuthModel.tags ?? [],
+        'isFavorite': userAuthModel.isFavorite,
+        'mfaOptions': userAuthModel.mfaOptions?.toMap(), // Optional
       });
 
       emit(UserAuthSubmissionSuccess());
@@ -141,31 +122,31 @@ class UserAuthCubit extends Cubit<UserAuthState> {
     }
   }
 
-  Future<void> editProvider(UserAuthModel providerModel) async {
+  Future<void> editProvider(UserAuthModel userAuthModel) async {
     try {
       emit(UserAuthLoading());
-      final validationError = validateProvider(providerModel);
-      if (validationError != null) {
-        emit(UserAuthSubmissionFailure(error: validationError));
-        return;
-      }
-
-      // Send data to Firebase
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
           .collection('auths')
-          .doc(providerModel.authName)
+          .doc(userAuthModel.authName)
           .set({
-        'authName': providerModel.authName,
-        'username': providerModel.username,
-        'password': providerModel.password,
-        'note': providerModel.note,
-        'authLink': providerModel.authLink,
-        'providerCategory': providerModel.authCategory,
-        'faviconUrl': providerModel.userAuthFavicon,
-        'hasTransactionPassword': providerModel.hasTransactionPassword,
-        'transactionPassword': providerModel.transactionPassword,
+        'authName': userAuthModel.authName,
+        'username': userAuthModel.username,
+        'password': userAuthModel.password,
+        'note': userAuthModel.note, // Optional
+        'authLink': userAuthModel.authLink,
+        'authCategory': userAuthModel.authCategory.toString(),
+        'userAuthFavicon': userAuthModel.userAuthFavicon,
+        'hasTransactionPassword': userAuthModel.hasTransactionPassword,
+        'transactionPassword': userAuthModel.transactionPassword, // Optional
+        'createdAt': userAuthModel.createdAt.toIso8601String(),
+        'updatedAt': userAuthModel.updatedAt.toIso8601String(),
+        'lastAccessed':
+            userAuthModel.lastAccessed?.toIso8601String(), // Optional
+        'tags': userAuthModel.tags ?? [],
+        'isFavorite': userAuthModel.isFavorite,
+        'mfaOptions': userAuthModel.mfaOptions?.toMap(), // Optional
       });
 
       emit(UserAuthSubmissionSuccess());
@@ -194,39 +175,60 @@ class UserAuthCubit extends Cubit<UserAuthState> {
   }
 }
 
-Future<String> getFaviconUrl(bool popularProvider, String authName) async {
+Future<String?> getFaviconUrl(bool popularAuth, String authName) async {
   String auth = authName.toLowerCase();
+
   try {
-    if (popularProvider == true) {
-      String faviconLink = '';
+    if (popularAuth) {
+      // Check predefined popular providers in Firebase
       final snapshot =
           await FirebaseFirestore.instance.collection('popularAuths').get();
 
       final providers = snapshot.docs.map((doc) {
         final data = doc.data();
-
         return PopularAuthModel.fromMap({
           'authName': data['authName'] ?? '',
           'authLink': data['authLink'] ?? '',
           'authCategory':
               data['authCategory'] ?? AuthCategory.others.toString(),
-          'faviconUrl': data['faviconUrl'],
-          'popularityRank': data['popularityRank'] ?? 0,
+          'authFavicon': data['authFavicon'],
           'description': data['description'] ?? '',
+          'tags': data['tags'] ?? []
         });
       }).toList();
 
       for (var provider in providers) {
         if (provider.authName.toLowerCase().contains(auth)) {
-          faviconLink = provider.authFavicon;
+          return provider.authFavicon; // Return the favicon URL if found
         }
       }
-      return faviconLink;
-    } else {
-      String faviconLink = "https://api.statvoo.com/favicon/$auth.com";
+    }
+
+    // Use Favicon API for fallback
+    String faviconLink = "https://api.statvoo.com/favicon/$auth.com";
+    if (await _isValidUrl(faviconLink)) {
       return faviconLink;
     }
+
+    // Try DuckDuckGo Favicon API as another fallback
+    faviconLink = "https://icons.duckduckgo.com/ip3/$auth.com.ico";
+    if (await _isValidUrl(faviconLink)) {
+      return faviconLink;
+    }
+
+    // If no favicon is found
+    return null;
   } catch (e) {
-    return e.toString();
+    return null; // Return null in case of errors
+  }
+}
+
+/// Helper function to validate URL
+Future<bool> _isValidUrl(String url) async {
+  try {
+    final response = await http.head(Uri.parse(url));
+    return response.statusCode == 200;
+  } catch (e) {
+    return false;
   }
 }

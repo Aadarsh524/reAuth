@@ -2,12 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/models/user_auth_model.dart';
-import 'package:reauth/pages/providerdetail_page.dart';
+import 'package:reauth/pages/auth_detail_page.dart';
 
-class AuthsProviderCard extends StatelessWidget {
+class AuthsCard extends StatelessWidget {
   final UserAuthModel providerModel;
 
-  const AuthsProviderCard({
+  const AuthsCard({
     Key? key,
     required this.providerModel,
   }) : super(key: key);
@@ -15,7 +15,7 @@ class AuthsProviderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Container(
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 53, 64, 79),
@@ -51,7 +51,10 @@ class AuthsProviderCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  errorWidget: (context, url, error) => Image.asset(
+                    'assets/error.png', // Path to your asset image
+                    fit: BoxFit.cover, // Adjust as needed
+                  ),
                 ),
               ),
             ),
@@ -63,7 +66,7 @@ class AuthsProviderCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      providerModel.authName,
+                      providerModel.authName.toUpperCase(),
                       style: GoogleFonts.karla(
                         color: Colors.white,
                         fontSize: 16,
@@ -93,8 +96,8 @@ class AuthsProviderCard extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => ProviderDetailPage(
-                      providerModel: providerModel,
+                    builder: (context) => AuthDetailPage(
+                      authModel: providerModel,
                     ),
                   ),
                 );

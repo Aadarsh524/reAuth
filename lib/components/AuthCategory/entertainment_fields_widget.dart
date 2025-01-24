@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:reauth/components/custom_tags_field.dart';
 import 'package:reauth/components/custom_textfield.dart';
 
 class EntertainmentFieldsWidget extends StatelessWidget {
@@ -7,6 +8,9 @@ class EntertainmentFieldsWidget extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   final TextEditingController noteController;
+  final List<String> availableTags;
+  final List<String> selectedTags;
+  final Function(List<String>) onTagsUpdated;
 
   const EntertainmentFieldsWidget({
     Key? key,
@@ -14,6 +18,9 @@ class EntertainmentFieldsWidget extends StatelessWidget {
     required this.usernameController,
     required this.passwordController,
     required this.noteController,
+    required this.availableTags,
+    required this.selectedTags,
+    required this.onTagsUpdated,
   }) : super(key: key);
 
   @override
@@ -45,6 +52,14 @@ class EntertainmentFieldsWidget extends StatelessWidget {
           hintText: "Enter Password",
           obscureText: true,
           textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+        ),
+        CustomTagsField(
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          hintText: "Enter Tags",
+          labelText: "Tags",
+          isRequired: false,
+          onTagsUpdated: onTagsUpdated,
         ),
         CustomTextField(
           controller: noteController,

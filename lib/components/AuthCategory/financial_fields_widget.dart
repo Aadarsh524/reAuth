@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:reauth/components/custom_tags_field.dart';
 import 'package:reauth/components/custom_textfield.dart';
 
-class FinancialFieldsWidget extends StatelessWidget {
+class FinancialFieldsWidget extends StatefulWidget {
   final TextEditingController authNameController;
   final TextEditingController accountNumberController;
   final TextEditingController usernameController;
@@ -10,6 +11,10 @@ class FinancialFieldsWidget extends StatelessWidget {
   final TextEditingController transactionPasswordController;
   final TextEditingController noteController;
   final TextEditingController tagsController;
+  final List<String> availableTags;
+  final List<String> selectedTags;
+  final Function(List<String>) onTagsUpdated;
+  final Function(bool) onTransactionPasswordToggle; // Add this callback
 
   const FinancialFieldsWidget({
     Key? key,
@@ -20,14 +25,26 @@ class FinancialFieldsWidget extends StatelessWidget {
     required this.transactionPasswordController,
     required this.noteController,
     required this.tagsController,
+    required this.availableTags,
+    required this.selectedTags,
+    required this.onTagsUpdated,
+    required this.onTransactionPasswordToggle, // Receive this callback
   }) : super(key: key);
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _FinancialFieldsWidgetState createState() => _FinancialFieldsWidgetState();
+}
+
+class _FinancialFieldsWidgetState extends State<FinancialFieldsWidget> {
+  bool hasTransactionPassword = false;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         CustomTextField(
-          controller: authNameController,
+          controller: widget.authNameController,
           labelText: "Auth Name",
           hintText: "Enter Auth Name",
           keyboardType: TextInputType.text,
@@ -37,16 +54,8 @@ class FinancialFieldsWidget extends StatelessWidget {
           isRequired: true,
         ),
         CustomTextField(
-          controller: accountNumberController,
-          labelText: "Account Number",
-          hintText: "Enter Account Number",
-          keyboardType: TextInputType.number,
-          textInputFormatter: [FilteringTextInputFormatter.digitsOnly],
-          isRequired: false,
-        ),
-        CustomTextField(
           isRequired: true,
-          controller: usernameController,
+          controller: widget.usernameController,
           labelText: "User Name",
           hintText: "Enter User Name",
           keyboardType: TextInputType.text,
@@ -54,22 +63,63 @@ class FinancialFieldsWidget extends StatelessWidget {
         ),
         CustomTextField(
           isRequired: true,
-          controller: passwordController,
+          controller: widget.passwordController,
           labelText: "Password",
           hintText: "Enter Password",
           obscureText: true,
           textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Has Transaction Password?",
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Checkbox(
+              value: hasTransactionPassword,
+              onChanged: (value) {
+                setState(() {
+                  hasTransactionPassword = value!;
+                });
+                widget.onTransactionPasswordToggle(
+                    hasTransactionPassword); // Notify parent
+              },
+              activeColor: Colors.blue,
+            ),
+          ],
+        ),
+        if (hasTransactionPassword)
+          CustomTextField(
+            controller: widget.transactionPasswordController,
+            labelText: "Transaction Password",
+            hintText: "Enter Transaction Password",
+            obscureText: true,
+            textInputFormatter: [FilteringTextInputFormatter.digitsOnly],
+            isRequired: true,
+          ),
         CustomTextField(
-          controller: transactionPasswordController,
-          labelText: "Transaction Password",
-          hintText: "Enter Transaction Password",
-          obscureText: true,
-          textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+          controller: widget.accountNumberController,
+          labelText: "Account Number",
+          hintText: "Enter Account Number",
+          keyboardType: TextInputType.number,
+          textInputFormatter: [FilteringTextInputFormatter.digitsOnly],
           isRequired: false,
         ),
+        CustomTagsField(
+          availableTags: widget.availableTags,
+          selectedTags: widget.selectedTags,
+          hintText: "Enter Tags",
+          labelText: "Tags",
+          isRequired: false,
+          onTagsUpdated: widget.onTagsUpdated,
+        ),
         CustomTextField(
-          controller: noteController,
+          controller: widget.noteController,
           labelText: "Note",
           hintText: "Enter Note",
           keyboardType: TextInputType.text,

@@ -38,22 +38,24 @@ class UserAuthModel {
 
   factory UserAuthModel.fromMap(Map<String, dynamic> map) {
     return UserAuthModel(
-      authName: map['authName'],
-      username: map['username'],
-      password: map['password'],
-      note: map['note'],
-      authLink: map['authLink'],
-      authCategory: AuthCategory.values
-          .firstWhere((e) => e.toString() == map['authCategory']),
-      userAuthFavicon: map['userAuthFavicon'],
-      transactionPassword: map['transactionPassword'],
+      authName: map['authName'] ?? '',
+      username: map['username'] ?? '',
+      password: map['password'] ?? '',
+      note: map['note'] ?? '',
+      authLink: map['authLink'] ?? '',
+      authCategory: AuthCategory.values.firstWhere(
+        (e) => e.toString() == map['authCategory'],
+        orElse: () => AuthCategory.others,
+      ),
+      userAuthFavicon: map['userAuthFavicon'] ?? '',
+      transactionPassword: map['transactionPassword'] ?? '',
       hasTransactionPassword: map['hasTransactionPassword'] ?? false,
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(map['updatedAt'] ?? '') ?? DateTime.now(),
       lastAccessed: map['lastAccessed'] != null
-          ? DateTime.parse(map['lastAccessed'])
+          ? DateTime.tryParse(map['lastAccessed'])
           : null,
-      tags: map['tags']?.cast<String>(),
+      tags: (map['tags'] ?? []).cast<String>(),
       isFavorite: map['isFavorite'] ?? false,
       mfaOptions: map['mfaOptions'] != null
           ? MFAOptions.fromMap(map['mfaOptions'])

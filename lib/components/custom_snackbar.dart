@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 class CustomSnackbar {
   final String message;
+  final bool isError; // Flag to indicate if the message is an error
 
-  CustomSnackbar(this.message);
+  CustomSnackbar(this.message, {this.isError = false});
 
   void showCustomSnackbar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -21,7 +22,9 @@ class CustomSnackbar {
           style: GoogleFonts.karla(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: isError
+                ? Colors.red
+                : Colors.white, // Change color based on isError
           ),
         ),
       ),

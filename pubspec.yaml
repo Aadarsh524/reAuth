@@ -53,6 +53,9 @@ dependencies:
   permission_handler: ^11.3.1
   local_auth: ^2.2.0
   fl_chart: ^0.36.0
+  flutter_secure_storage: ^9.2.4
+  encrypt: ^5.0.3
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

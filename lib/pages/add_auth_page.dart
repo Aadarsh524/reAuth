@@ -11,13 +11,15 @@ import 'package:reauth/components/AuthCategory/network_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/other_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/social_media_fields_widget.dart';
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/custom_tags_field.dart';
-import 'package:reauth/components/custom_textfield.dart';
-import 'package:reauth/components/formatter.dart';
 import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import 'package:reauth/validator/auth_category_field_validator/entertainment_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/financial_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/network_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/other_fields_validator.dart';
+import 'package:reauth/validator/auth_category_field_validator/socialmedia_fields_validator.dart';
 
 class AddAuthPage extends StatefulWidget {
   final PopularAuthModel? popularAuthModel;
@@ -37,10 +39,14 @@ class _AddAuthPageState extends State<AddAuthPage> {
   final TextEditingController authNameController = TextEditingController();
   final TextEditingController transactionPasswordController =
       TextEditingController();
+  final TextEditingController accountNumberController = TextEditingController();
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  CustomSnackbar customSnackbar = CustomSnackbar('');
 
-  String? dropdownvalue = AuthCategory.financial.toString();
+  List<String> selectedTags = [];
+
+  String? dropdownValue;
   bool popularAuth = false;
   bool hasTransactionPass = false;
   bool isDropdownOpen = false;
@@ -48,305 +54,242 @@ class _AddAuthPageState extends State<AddAuthPage> {
   @override
   void initState() {
     super.initState();
-
     if (widget.popularAuthModel != null) {
-      dropdownvalue = widget.popularAuthModel!.authCategory.toString();
+      dropdownValue = widget.popularAuthModel!.authCategory.toString();
       authNameController.text = widget.popularAuthModel!.authName;
       authLinkController.text = widget.popularAuthModel!.authLink;
       popularAuth = true;
+    } else {
+      dropdownValue = AuthCategory.financial.toString();
     }
-
-    authCategoryController.text = dropdownvalue!;
+    authCategoryController.text = dropdownValue!;
   }
 
-  Widget buildDynamicFields() {
-    // Get selected category fields
+  Widget buildFieldsByCategory(AuthCategory category) {
+    final availableTags = authCategoryTags[category] ?? [];
+
+    switch (category) {
+      case AuthCategory.financial:
+        return FinancialFieldsWidget(
+          authNameController: authNameController,
+          accountNumberController: accountNumberController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          transactionPasswordController: transactionPasswordController,
+          noteController: noteController,
+          tagsController: TextEditingController(),
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          onTransactionPasswordToggle: (hasPassword) {
+            setState(() {
+              hasTransactionPass = hasPassword; // Update the parent’s value
+            });
+          },
+        );
+
+      case AuthCategory.socialMedia:
+        return SocialMediaFieldsWidget(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+        );
+      case AuthCategory.entertainment:
+        return EntertainmentFieldsWidget(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+        );
+      case AuthCategory.network:
+        return NetworkFieldsWidget(
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+        );
+      case AuthCategory.others:
+        return OtherFieldsWidget(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          noteController: noteController,
+          availableTags: availableTags,
+          selectedTags: selectedTags,
+          onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget buildDropdown() {
+    return Center(
+      child: Container(
+        width: MediaQuery.of(context).size.width * .60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color.fromARGB(255, 43, 51, 63),
+            width: 1.5,
+          ),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            dropdownColor: const Color.fromARGB(255, 43, 51, 63),
+            menuMaxHeight: 300,
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: isDropdownOpen
+                  ? const Icon(
+                      Icons.arrow_drop_up,
+                      color: Color.fromARGB(255, 125, 125, 125),
+                      size: 28,
+                    )
+                  : const Icon(
+                      Icons.arrow_drop_down,
+                      color: Color.fromARGB(255, 125, 125, 125),
+                      size: 28,
+                    ),
+            ),
+            value: dropdownValue,
+            isExpanded: false, // Restrict full width
+            iconSize: 24,
+            style: const TextStyle(
+              color: Colors.white, // White text style
+              fontSize: 16,
+            ),
+            onChanged: widget.popularAuthModel != null
+                ? null // Disable the dropdown when popularAuthModel is not null
+                : (String? newValue) {
+                    setState(() {
+                      dropdownValue = newValue!;
+                      isDropdownOpen = !isDropdownOpen;
+                    });
+                  },
+            items: authCategoryStrings.entries.map((entry) {
+              return DropdownMenuItem<String>(
+                value: entry.key.toString(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12.0,
+                    horizontal: 16.0,
+                  ),
+                  child: Text(
+                    entry.value,
+                    style: const TextStyle(
+                      color: Colors.white, // White text for items
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void handleSave() {
+    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
+    final authLink = widget.popularAuthModel != null
+        ? widget.popularAuthModel!.authLink
+        : "www.${authNameController.text.toLowerCase()}.com";
+
     AuthCategory selectedCategory =
-        AuthCategory.values.firstWhere((e) => e.toString() == dropdownvalue);
-    final List<String> availableTags = authCategoryTags[selectedCategory] ?? [];
-    List<String> selectedTags = [];
+        AuthCategory.values.firstWhere((e) => e.toString() == dropdownValue);
 
-    if (popularAuth) {
-      print(widget.popularAuthModel!.authCategory);
+    bool isValid = false;
 
-      switch (widget.popularAuthModel!.authCategory) {
-        case AuthCategory.financial:
-          return Expanded(
-            child: Column(
-              children: [
-                FinancialFieldsWidget(
-                  authNameController: TextEditingController(
-                      text: widget.popularAuthModel!.authName.toString()),
-                  accountNumberController: TextEditingController(),
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  transactionPasswordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                  tagsController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        case AuthCategory.socialMedia:
-          return Expanded(
-            child: Column(
-              children: [
-                SocialMediaFieldsWidget(
-                  authNameController: TextEditingController(
-                      text: widget.popularAuthModel!.authName.toString()),
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
+    // Determine the appropriate validator based on the category
+    switch (selectedCategory) {
+      case AuthCategory.financial:
+        isValid = FinancialFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+          transactionPasswordController: transactionPasswordController,
+          hasTransactionPassword: hasTransactionPass,
+        );
+        break;
 
-        case AuthCategory.entertainment:
-          return Expanded(
-            child: Column(
-              children: [
-                EntertainmentFieldsWidget(
-                  authNameController: TextEditingController(
-                      text: widget.popularAuthModel!.authName.toString()),
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        case AuthCategory.network:
-          return Expanded(
-            child: Column(
-              children: [
-                NetworkFieldsWidget(
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        case AuthCategory.others:
-          return Expanded(
-            child: Column(
-              children: [
-                OtherFieldsWidget(
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                  authNameController: TextEditingController(
-                      text: widget.popularAuthModel!.authName.toString()),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        default:
-          return Container();
-      }
+      case AuthCategory.socialMedia:
+        isValid = SocialMediaFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+
+      case AuthCategory.entertainment:
+        isValid = EntertainmentFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+      case AuthCategory.network:
+        isValid = NetworkFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+      case AuthCategory.others:
+        isValid = OtherFieldsValidator.validateFields(
+          authNameController: authNameController,
+          usernameController: usernameController,
+          passwordController: passwordController,
+        );
+        break;
+
+      default:
+        break;
+    }
+
+    if (isValid) {
+      userProviderCubit.submitUserAuth(
+        UserAuthModel(
+          authName: authNameController.text.toLowerCase(),
+          username: usernameController.text,
+          password: passwordController.text,
+          note: noteController.text,
+          authLink: authLink,
+          userAuthFavicon: authLink,
+          hasTransactionPassword:
+              hasTransactionPass, // Correctly reflects the checkbox
+          transactionPassword:
+              hasTransactionPass ? transactionPasswordController.text : '',
+          authCategory: selectedCategory,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          isFavorite: false,
+          tags: selectedTags,
+        ),
+        popularAuth,
+      );
     } else {
-      switch (selectedCategory) {
-        case AuthCategory.financial:
-          return Expanded(
-            child: Column(
-              children: [
-                FinancialFieldsWidget(
-                  authNameController: TextEditingController(),
-                  accountNumberController: TextEditingController(),
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  transactionPasswordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                  tagsController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        case AuthCategory.socialMedia:
-          return Expanded(
-            child: Column(
-              children: [
-                SocialMediaFieldsWidget(
-                  authNameController: TextEditingController(),
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-
-        case AuthCategory.entertainment:
-          return Expanded(
-            child: Column(
-              children: [
-                EntertainmentFieldsWidget(
-                  authNameController: TextEditingController(),
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        case AuthCategory.network:
-          return Expanded(
-            child: Column(
-              children: [
-                NetworkFieldsWidget(
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        case AuthCategory.others:
-          return Expanded(
-            child: Column(
-              children: [
-                OtherFieldsWidget(
-                  usernameController: TextEditingController(),
-                  passwordController: TextEditingController(),
-                  noteController: TextEditingController(),
-                  authNameController: TextEditingController(),
-                ),
-                CustomTagsField(
-                  availableTags: availableTags,
-                  selectedTags: selectedTags,
-                  hintText: "Enter Tags",
-                  labelText: "Tags",
-                  isRequired: false,
-                  onTagsUpdated: (tags) {
-                    setState(() {
-                      selectedTags = tags;
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
-        default:
-          return Container();
-      }
+      customSnackbar =
+          CustomSnackbar("Please enter required fields.", isError: true);
+      customSnackbar.showCustomSnackbar(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
-
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true, // Ensure space for keyboard
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 53, 64, 79),
         centerTitle: true,
@@ -355,33 +298,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: TextButton(
-              onPressed: () {
-                widget.popularAuthModel != null
-                    ? authLinkController.text =
-                        widget.popularAuthModel!.authLink
-                    : authLinkController.text =
-                        "www.${authNameController.text.toLowerCase()}.com";
-                userProviderCubit.submitProvider(
-                  UserAuthModel(
-                    authName: authNameController.text.toLowerCase(),
-                    username: usernameController.text,
-                    password: passwordController.text,
-                    note: noteController.text,
-                    authLink: authLinkController.text,
-                    userAuthFavicon: authLinkController.text,
-                    hasTransactionPassword: hasTransactionPass,
-                    transactionPassword: hasTransactionPass
-                        ? transactionPasswordController.text
-                        : '',
-                    authCategory: AuthCategory.values
-                        .firstWhere((e) => e.toString() == dropdownvalue),
-                    createdAt: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                    isFavorite: false,
-                  ),
-                  popularAuth,
-                );
-              },
+              onPressed: handleSave,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -405,156 +322,76 @@ class _AddAuthPageState extends State<AddAuthPage> {
           )
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromARGB(255, 53, 64, 79),
-              Color.fromARGB(255, 53, 64, 79),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 15.0,
-                  ),
-                  child: Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+                Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      widget.popularAuthModel != null
+                          ? CachedNetworkImage(
+                              imageUrl: widget.popularAuthModel!.authFavicon,
+                              height: 45,
+                              fit: BoxFit.contain,
+                            )
+                          : const Icon(
+                              Icons.add_circle,
+                              size: 24,
+                              color: Color.fromARGB(255, 111, 163, 219),
+                            ),
+                      const SizedBox(height: 10),
+                      Text(
                         widget.popularAuthModel != null
-                            ? CachedNetworkImage(
-                                imageUrl: widget.popularAuthModel!.authFavicon,
-                                height: 45,
-                                fit: BoxFit.contain,
-                              )
-                            : const Icon(
-                                Icons.add_circle,
-                                size: 24,
-                                color: Color.fromARGB(255, 111, 163, 219),
-                              ),
-                        const SizedBox(height: 10),
-                        Text(
-                          widget.popularAuthModel != null
-                              ? 'Add ${widget.popularAuthModel!.authName}'
-                              : "Add Auth",
-                          style: GoogleFonts.karla(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 20,
-                            letterSpacing: .75,
-                            fontWeight: FontWeight.w600,
-                          ),
+                            ? 'Add ${widget.popularAuthModel!.authName}'
+                            : "Add Auth",
+                        style: GoogleFonts.karla(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 20,
+                          letterSpacing: .75,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                Center(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * .85,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 43, 51, 63),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        dropdownColor: const Color.fromARGB(255, 43, 51, 63),
-                        menuMaxHeight: 300,
-                        icon: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: isDropdownOpen
-                              ? const Icon(
-                                  Icons.arrow_drop_up,
-                                  color: Color.fromARGB(255, 125, 125, 125),
-                                  size: 28,
-                                )
-                              : const Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Color.fromARGB(255, 125, 125, 125),
-                                  size: 28,
-                                ),
+                const SizedBox(height: 20),
+                BlocConsumer<UserAuthCubit, UserAuthState>(
+                  listener: (context, state) {
+                    if (state is UserAuthSubmissionSuccess) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                            builder: (_) => const DashboardPage()),
+                      );
+                    } else if (state is UserAuthSubmissionFailure) {
+                      CustomSnackbar("Submission Error: ${state.error}")
+                          .showCustomSnackbar(context);
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is UserAuthLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: Color.fromARGB(255, 106, 172, 191),
                         ),
-                        value: dropdownvalue,
-                        isExpanded: false, // Restrict full width
-                        iconSize: 24,
-                        style: const TextStyle(
-                          color: Colors.white, // White text style
-                          fontSize: 16,
+                      );
+                    }
+                    return Column(
+                      children: [
+                        buildDropdown(),
+                        buildFieldsByCategory(
+                          AuthCategory.values
+                              .firstWhere((e) => e.toString() == dropdownValue),
                         ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            dropdownvalue = newValue!;
-                            isDropdownOpen = !isDropdownOpen;
-                          });
-                        },
-                        items: authCategoryStrings.entries.map((entry) {
-                          return DropdownMenuItem<String>(
-                            value: entry.key.toString(),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12.0,
-                                horizontal: 16.0,
-                              ),
-                              child: Text(
-                                entry.value,
-                                style: const TextStyle(
-                                  color: Colors.white, // White text for items
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
+                      ],
+                    );
+                  },
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 15.0, vertical: 10.0),
-                  child: BlocConsumer<UserAuthCubit, UserAuthState>(
-                    listener: (context, state) {
-                      if (state is UserAuthSubmissionSuccess) {
-                        CustomSnackbar customSnackbar =
-                            CustomSnackbar("Submission Completed");
-
-                        customSnackbar.showCustomSnackbar(context);
-
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => const DashboardPage(),
-                          ),
-                        );
-                      } else if (state is UserAuthSubmissionFailure) {
-                        CustomSnackbar customSnackbar =
-                            CustomSnackbar("Submission Error: ${state.error}");
-                        customSnackbar.showCustomSnackbar(context);
-                      }
-                    },
-                    builder: (context, state) {
-                      if (state is UserAuthLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Color.fromARGB(255, 106, 172, 191),
-                          ),
-                        );
-                      }
-                      return buildDynamicFields();
-                    },
-                  ),
-                )
               ],
             ),
           ),

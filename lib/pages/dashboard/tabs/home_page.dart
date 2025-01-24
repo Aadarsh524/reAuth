@@ -8,7 +8,7 @@ import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/popular_provider_state.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/bloc/states/user_auth_state.dart';
-import 'package:reauth/components/authsprovider_card.dart';
+import 'package:reauth/components/auths_card.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
 import 'package:reauth/models/popular_auth_model.dart';
@@ -92,37 +92,32 @@ class _HomePageState extends State<HomePage> {
                             profileImage =
                                 state.profile.profileImage.toString();
 
-                            return SizedBox(
-                              width: 30,
-                              height: 30.0,
-                              child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ProfilePage(),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                        image: CachedNetworkImageProvider(
-                                            profileImage),
-                                        fit: BoxFit.cover,
-                                      ),
+                            return GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const ProfilePage(),
                                     ),
-                                  )),
-                            );
+                                  );
+                                },
+                                child: Container(
+                                  width: 35,
+                                  height: 35,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    image: DecorationImage(
+                                      image: CachedNetworkImageProvider(
+                                          profileImage),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ));
                           }
                         }
 
                         return const SizedBox(
-                          width: 40,
-                          height: 40,
+                          width: 35,
+                          height: 35,
                           child: CircleAvatar(
                             radius: 50,
                             backgroundImage:
@@ -271,7 +266,7 @@ class _HomePageState extends State<HomePage> {
             itemCount: providers.length,
             itemBuilder: (context, index) {
               final provider = providers[index];
-              return AuthsProviderCard(
+              return AuthsCard(
                 providerModel: provider,
               );
             },
@@ -345,7 +340,7 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        AuthsProviderCard(
+        AuthsCard(
           providerModel: provider,
         )
       ],
