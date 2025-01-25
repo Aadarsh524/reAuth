@@ -11,6 +11,7 @@ class SocialMediaFieldsWidget extends StatelessWidget {
   final List<String> availableTags;
   final List<String> selectedTags;
   final Function(List<String>) onTagsUpdated;
+  final bool isUpdating; // New field to check updating state
 
   const SocialMediaFieldsWidget({
     Key? key,
@@ -21,6 +22,7 @@ class SocialMediaFieldsWidget extends StatelessWidget {
     required this.availableTags,
     required this.selectedTags,
     required this.onTagsUpdated,
+    required this.isUpdating, // Initialize this field
   }) : super(key: key);
 
   @override
@@ -36,6 +38,7 @@ class SocialMediaFieldsWidget extends StatelessWidget {
           textInputFormatter: [
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
           ],
+          enabled: !isUpdating, // Disable if updating
         ),
         CustomTextField(
           isRequired: true,

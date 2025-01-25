@@ -1,14 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
-
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/bloc/states/user_auth_state.dart';
-
 import 'package:reauth/pages/auth/email_verification_page.dart';
 import 'package:reauth/pages/dashboard/editprofile_page.dart';
 import 'package:reauth/utils/strength_checker.dart';
@@ -22,26 +19,26 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   bool verifiedEmail = false;
-
   List<String> allPasswords = [];
 
   @override
   Widget build(BuildContext context) {
     BlocProvider.of<ProfileCubit>(context).fetchProfile();
     BlocProvider.of<UserAuthCubit>(context).fetchUserAuths();
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 36, 45, 58),
+      backgroundColor: const Color(0xFF212C3C), // A deep blue-grey background
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 36, 45, 58),
+        backgroundColor: const Color(0xFF212C3C),
         centerTitle: true,
         title: Text(
           "Profile",
           style: GoogleFonts.karla(
-            color: const Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white,
             fontSize: 25,
-            letterSpacing: .75,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.75,
           ),
         ),
         elevation: 0,
@@ -53,7 +50,7 @@ class _ProfilePageState extends State<ProfilePage> {
               icon: const Icon(
                 Icons.edit,
                 size: 24,
-                color: Color.fromARGB(255, 111, 163, 219),
+                color: Color(0xFF6FA3DB), // Lighter blue for edit icon
               ),
               onPressed: () {
                 Navigator.of(context).push(
@@ -63,17 +60,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             ),
-          )
+          ),
         ],
       ),
       body: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, profileState) {
           if (profileState is ProfileLoaded) {
             verifiedEmail = profileState.profile.isEmailVerified;
-            String profileImage = '';
-            if (profileState.profile.profileImage != '') {
-              profileImage = profileState.profile.profileImage.toString();
-            }
+            String profileImage = profileState.profile.profileImage;
 
             return BlocBuilder<UserAuthCubit, UserAuthState>(
               builder: (context, userProviderState) {
@@ -85,7 +79,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   Map<String, int> strengthCounts =
                       classifyPasswordStrengths(allPasswords);
-
                   int weakPasswordsCount = strengthCounts['Weak'] ?? 0;
                   int strongPasswordsCount = strengthCounts['Strong'] ?? 0;
 
@@ -95,12 +88,21 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          // Profile Picture with a gradient background
                           profileImage != ''
                               ? Container(
                                   width: 100,
                                   height: 100,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.blue.shade400,
+                                        Colors.blue.shade600
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
                                     image: DecorationImage(
                                       image: CachedNetworkImageProvider(
                                           profileImage),
@@ -138,48 +140,49 @@ class _ProfilePageState extends State<ProfilePage> {
                                   Colors.green,
                                   Icons.check_circle,
                                 )
-                              : Column(children: [
-                                  _buildVerificationStatus(
-                                    "Not Verified",
-                                    Colors.red,
-                                    Icons.cancel,
-                                  ),
-                                  const SizedBox(
-                                    height: 5,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        "Click here to verify ",
-                                        style: GoogleFonts.karla(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const EmailVerificationPage(),
-                                            ),
-                                          );
-                                        },
-                                        child: Text(
-                                          "Here",
+                              : Column(
+                                  children: [
+                                    _buildVerificationStatus(
+                                      "Not Verified",
+                                      Colors.red,
+                                      Icons.cancel,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          "Click here to verify ",
                                           style: GoogleFonts.karla(
-                                            color: Colors.green,
+                                            color: Colors.white,
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                ]),
+                                        GestureDetector(
+                                          onTap: () {
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const EmailVerificationPage(),
+                                              ),
+                                            );
+                                          },
+                                          child: Text(
+                                            "Here",
+                                            style: GoogleFonts.karla(
+                                              color: Colors.green,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                           const SizedBox(height: 30),
                           _buildProfileCard(
                             totalPasswords.toString(),
@@ -209,7 +212,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 }
                 return const Center(
                   child: CircularProgressIndicator(
-                    color: Color.fromARGB(255, 106, 172, 191),
+                    color: Color(0xFF6AABC0),
                   ),
                 );
               },
@@ -217,7 +220,7 @@ class _ProfilePageState extends State<ProfilePage> {
           }
           return const Center(
             child: CircularProgressIndicator(
-              color: Color.fromARGB(255, 106, 172, 191),
+              color: Color(0xFF6AABC0),
             ),
           );
         },
@@ -256,8 +259,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildProfileCard(String count, String label, IconData icon) {
     return Card(
-      color: const Color.fromARGB(255, 40, 50, 65),
-      elevation: 4,
+      color: const Color(0xFF2A3241),
+      elevation: 6,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
@@ -265,11 +268,11 @@ class _ProfilePageState extends State<ProfilePage> {
         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
         child: Column(
           children: [
-            Icon(icon,
-                color: label == "Weak"
-                    ? Colors.red
-                    : const Color.fromARGB(255, 106, 172, 191),
-                size: 30),
+            Icon(
+              icon,
+              color: label == "Weak" ? Colors.red : const Color(0xFF6AABC0),
+              size: 30,
+            ),
             const SizedBox(height: 10),
             Text(
               count,

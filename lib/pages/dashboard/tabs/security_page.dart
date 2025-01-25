@@ -248,14 +248,17 @@ class _SecurityPageState extends State<SecurityPage>
                   color: Colors.white,
                 ),
               ),
-              leading: Container(
+              leading: SizedBox(
                 width: 50,
                 height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: CachedNetworkImageProvider(provider.userAuthFavicon),
-                    fit: BoxFit.cover,
+                child: CachedNetworkImage(
+                  imageUrl: provider.userAuthFavicon,
+                  height: 60,
+                  fit: BoxFit.contain,
+                  errorWidget: (context, url, error) => Image.asset(
+                    'assets/error.png',
+                    height: 60,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
@@ -349,8 +352,11 @@ void _showChangePasswordDialog(
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
+                        errorWidget: (context, url, error) => Image.asset(
+                          'assets/error.png',
+                          height: 60,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),

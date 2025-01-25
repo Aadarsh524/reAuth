@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -18,36 +19,21 @@ class _NotificationPageState extends State<NotificationPage> {
       appBar: AppBar(
         title: const Text('Notifications'),
         backgroundColor: const Color.fromARGB(255, 40, 50, 65),
-        elevation: 0, // Remove app bar shadow
+        elevation: 4, // Add a subtle shadow
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(15.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Latest Notifications",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white, // Set text color
-                ),
-              ),
-              const SizedBox(height: 20),
               Expanded(
                 child: ListView(
                   children: [
                     _buildNotificationItem(
-                      title: "New Message",
-                      description: "You have received a new message.",
-                      date: "June 10, 2024",
-                    ),
-                    _buildNotificationItem(
                       title: "Reminder",
-                      description:
-                          "Don't forget to attend the meeting tomorrow.",
-                      date: "June 9, 2024",
+                      description: "Don't forget to update passwords.",
+                      date: "Feb 9, 2025",
                     ),
                     // Add more notification items as needed
                   ],
@@ -66,39 +52,62 @@ class _NotificationPageState extends State<NotificationPage> {
     required String date,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 43, 51, 63),
-        borderRadius: BorderRadius.circular(15),
+        color: const Color(0xFF37474F), // Darker background for notifications
+        borderRadius:
+            BorderRadius.circular(16), // Rounded corners for modern style
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.karla(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 12,
+                    color: Colors.white54,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    date,
+                    style: GoogleFonts.karla(
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
           Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            description,
+            style: GoogleFonts.karla(
+              fontSize: 14,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 5),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            date,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white54,
-            ),
-          ),
+          const SizedBox(height: 6),
         ],
       ),
     );

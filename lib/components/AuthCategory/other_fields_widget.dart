@@ -11,6 +11,7 @@ class OtherFieldsWidget extends StatelessWidget {
   final List<String> availableTags;
   final List<String> selectedTags;
   final Function(List<String>) onTagsUpdated;
+  final bool isUpdating; // New field to check updating state
 
   const OtherFieldsWidget({
     Key? key,
@@ -21,6 +22,7 @@ class OtherFieldsWidget extends StatelessWidget {
     required this.availableTags,
     required this.selectedTags,
     required this.onTagsUpdated,
+    required this.isUpdating, // Initialize this field
   }) : super(key: key);
 
   @override
@@ -36,6 +38,7 @@ class OtherFieldsWidget extends StatelessWidget {
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
           ],
           isRequired: true,
+          enabled: !isUpdating, // Disable if updating
         ),
         CustomTextField(
           isRequired: true,

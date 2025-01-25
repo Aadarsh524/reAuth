@@ -14,7 +14,8 @@ class FinancialFieldsWidget extends StatefulWidget {
   final List<String> availableTags;
   final List<String> selectedTags;
   final Function(List<String>) onTagsUpdated;
-  final Function(bool) onTransactionPasswordToggle; // Add this callback
+  final Function(bool) onTransactionPasswordToggle;
+  final bool isUpdating; // New field to check updating state
 
   const FinancialFieldsWidget({
     Key? key,
@@ -28,7 +29,8 @@ class FinancialFieldsWidget extends StatefulWidget {
     required this.availableTags,
     required this.selectedTags,
     required this.onTagsUpdated,
-    required this.onTransactionPasswordToggle, // Receive this callback
+    required this.onTransactionPasswordToggle,
+    required this.isUpdating, // Initialize this field
   }) : super(key: key);
 
   @override
@@ -52,6 +54,7 @@ class _FinancialFieldsWidgetState extends State<FinancialFieldsWidget> {
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
           ],
           isRequired: true,
+          enabled: !widget.isUpdating, // Disable if updating
         ),
         CustomTextField(
           isRequired: true,

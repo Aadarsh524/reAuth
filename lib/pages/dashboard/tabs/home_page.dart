@@ -246,8 +246,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildUserProviders(
-      BuildContext context, List<UserAuthModel> providers) {
+  Widget _buildUserProviders(BuildContext context, List<UserAuthModel> auths) {
+    // Group providers by category (just an example)
+    // Map<String, List<UserAuthModel>> categorizedAuths = {};
+    // for (var auth in auths) {
+    //   if (categorizedAuths.containsKey(auth.authCategory)) {
+    //     categorizedAuths[auth.authCategory]?.add(auth);
+    //   } else {
+    //     categorizedAuths[auth.authCategory] = [auth];
+    //   }
+    // }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -263,9 +271,9 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 10),
         Expanded(
           child: ListView.builder(
-            itemCount: providers.length,
+            itemCount: auths.length,
             itemBuilder: (context, index) {
-              final provider = providers[index];
+              final provider = auths[index];
               return AuthsCard(
                 providerModel: provider,
               );

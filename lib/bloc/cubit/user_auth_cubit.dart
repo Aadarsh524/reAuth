@@ -87,7 +87,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
           .collection('users')
           .doc(user?.uid)
           .collection('auths')
-          .doc(userAuthModel.authName)
+          .doc(cleanAuthName)
           .set({
         'authName': cleanAuthName,
         'username': userAuthModel.username,
@@ -152,6 +152,16 @@ class UserAuthCubit extends Cubit<UserAuthState> {
     } catch (e) {
       emit(UserAuthSubmissionFailure(error: e.toString()));
     }
+  }
+
+  Future<void> updateAuthLastAccessed(
+      String authName, DateTime lastAccessed) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid)
+        .collection('auths')
+        .doc(authName)
+        .update({'lastAccessed': lastAccessed.toIso8601String()});
   }
 
   Future<void> deleteProvider(String userAuthId) async {

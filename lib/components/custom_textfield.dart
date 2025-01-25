@@ -13,6 +13,7 @@ class CustomTextField extends StatelessWidget {
   final Function(bool)? passwordVisibility;
   final Function(String)? onChanged;
   final bool isRequired;
+  final bool enabled; // New parameter to enable/disable editing
 
   const CustomTextField({
     Key? key,
@@ -26,6 +27,7 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.onChanged,
     required this.isRequired,
+    this.enabled = true, // Default is true to enable editing
   }) : super(key: key);
 
   @override
@@ -67,6 +69,7 @@ class CustomTextField extends StatelessWidget {
               keyboardType: keyboardType,
               cursorColor: Colors.white,
               onChanged: onChanged,
+              enabled: enabled, // Use the new `enabled` property
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: const TextStyle(

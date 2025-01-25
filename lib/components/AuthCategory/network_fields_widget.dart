@@ -5,13 +5,13 @@ import 'package:reauth/components/custom_textfield.dart';
 
 class NetworkFieldsWidget extends StatelessWidget {
   final TextEditingController authNameController;
-
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   final TextEditingController noteController;
   final List<String> availableTags;
   final List<String> selectedTags;
   final Function(List<String>) onTagsUpdated;
+  final bool isUpdating; // New field to check updating state
 
   const NetworkFieldsWidget({
     Key? key,
@@ -22,6 +22,7 @@ class NetworkFieldsWidget extends StatelessWidget {
     required this.availableTags,
     required this.selectedTags,
     required this.onTagsUpdated,
+    required this.isUpdating, // Initialize this field
   }) : super(key: key);
 
   @override
@@ -35,6 +36,7 @@ class NetworkFieldsWidget extends StatelessWidget {
           hintText: "Enter Auth Name",
           keyboardType: TextInputType.text,
           textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+          enabled: !isUpdating, // Disable if updating
         ),
         CustomTextField(
           isRequired: true,

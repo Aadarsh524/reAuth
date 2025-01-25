@@ -34,7 +34,15 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
   void copyToClipboard(BuildContext context, String value) {
     final customSnackbar = CustomSnackbar("Copied");
     Clipboard.setData(ClipboardData(text: value)).then((_) {
+      // Show the snackbar after copying
       customSnackbar.showCustomSnackbar(context);
+      final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
+
+      DateTime lastAccessed = DateTime.now();
+      authModel.lastAccessed = lastAccessed;
+      // Call the update function and handle success/error
+      userProviderCubit.updateAuthLastAccessed(
+          authModel.authName, lastAccessed);
     });
   }
 

@@ -94,6 +94,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
             setState(() => hasTransactionPass = hasPassword);
           },
           accountNumberController: accountNumberController,
+          isUpdating: true,
         );
       case AuthCategory.socialMedia:
         return SocialMediaFieldsWidget(
@@ -104,6 +105,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          isUpdating: true,
         );
       case AuthCategory.entertainment:
         return EntertainmentFieldsWidget(
@@ -114,6 +116,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          isUpdating: true,
         );
       case AuthCategory.network:
         return NetworkFieldsWidget(
@@ -124,6 +127,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
           authNameController: authNameController,
+          isUpdating: true,
         );
       case AuthCategory.others:
         return OtherFieldsWidget(
@@ -134,6 +138,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          isUpdating: true,
         );
       default:
         return const SizedBox.shrink();
@@ -227,6 +232,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: const Text('Edit Provider'),
         actions: [
           Padding(

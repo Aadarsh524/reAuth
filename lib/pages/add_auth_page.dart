@@ -86,6 +86,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
               hasTransactionPass = hasPassword; // Update the parent’s value
             });
           },
+          isUpdating: false,
         );
 
       case AuthCategory.socialMedia:
@@ -97,6 +98,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          isUpdating: false,
         );
       case AuthCategory.entertainment:
         return EntertainmentFieldsWidget(
@@ -107,6 +109,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          isUpdating: false,
         );
       case AuthCategory.network:
         return NetworkFieldsWidget(
@@ -117,6 +120,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
           authNameController: authNameController,
+          isUpdating: false,
         );
       case AuthCategory.others:
         return OtherFieldsWidget(
@@ -127,6 +131,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
+          isUpdating: false,
         );
       default:
         return const SizedBox.shrink();
