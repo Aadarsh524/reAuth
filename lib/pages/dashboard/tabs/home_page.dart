@@ -11,6 +11,7 @@ import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/auths_card.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popularprovider_card.dart';
+import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/dashboard/profile_page.dart';
@@ -247,15 +248,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildUserProviders(BuildContext context, List<UserAuthModel> auths) {
-    // Group providers by category (just an example)
-    // Map<String, List<UserAuthModel>> categorizedAuths = {};
-    // for (var auth in auths) {
-    //   if (categorizedAuths.containsKey(auth.authCategory)) {
-    //     categorizedAuths[auth.authCategory]?.add(auth);
-    //   } else {
-    //     categorizedAuths[auth.authCategory] = [auth];
-    //   }
-    // }
+    // Group providers by category
+    Map<AuthCategory, List<UserAuthModel>> categorizedAuths = {};
+
+    for (var auth in auths) {
+      final category = auth.authCategory; // Use AuthCategory enum directly
+      if (categorizedAuths.containsKey(category)) {
+        categorizedAuths[category]?.add(auth);
+      } else {
+        categorizedAuths[category] = [auth];
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -271,11 +275,51 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 10),
         Expanded(
           child: ListView.builder(
-            itemCount: auths.length,
+            itemCount: categorizedAuths.keys.length,
             itemBuilder: (context, index) {
-              final provider = auths[index];
-              return AuthsCard(
-                providerModel: provider,
+              final category = categorizedAuths.keys.elementAt(index);
+              final categoryAuths = categorizedAuths[category];
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Display category name and divider
+
+                  // Display auths under each category
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Disable scrolling here
+                    itemCount: categoryAuths!.length,
+                    itemBuilder: (context, authIndex) {
+                      final provider = categoryAuths[authIndex];
+                      return AuthsCard(providerModel: provider);
+                    },
+                  ),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          authCategoryStrings[category] ??
+                              '', // Get category name from map
+                          style: GoogleFonts.karla(
+                            color: const Color.fromARGB(255, 125, 125, 125),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          height: 1,
+                          color: Colors.grey, // Divider color
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               );
             },
           ),
