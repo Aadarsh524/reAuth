@@ -7,7 +7,7 @@ import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/pages/auth/email_verification_page.dart';
-import 'package:reauth/pages/dashboard/editprofile_page.dart';
+import 'package:reauth/pages/dashboard/edit_profile_page.dart';
 import 'package:reauth/utils/strength_checker.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -115,74 +115,75 @@ class _ProfilePageState extends State<ProfilePage> {
                                   backgroundImage:
                                       AssetImage('assets/defaultAvatar.png'),
                                 ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 15),
                           Text(
                             profileState.profile.fullname,
                             style: GoogleFonts.karla(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 5),
+
                           Text(
                             profileState.profile.email,
                             style: GoogleFonts.karla(
                               color: Colors.grey[400],
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           verifiedEmail
-                              ? _buildVerificationStatus(
-                                  "Verified",
-                                  Colors.green,
-                                  Icons.check_circle,
+                              ? Center(
+                                  child: _buildVerificationStatus(
+                                    status: "Verified",
+                                    color: Colors.green,
+                                    icon: Icons.check_circle,
+                                  ),
                                 )
                               : Column(
                                   children: [
-                                    _buildVerificationStatus(
-                                      "Not Verified",
-                                      Colors.red,
-                                      Icons.cancel,
+                                    Center(
+                                      child: _buildVerificationStatus(
+                                        status: "Not Verified",
+                                        color: Colors.red,
+                                        icon: Icons.cancel,
+                                      ),
                                     ),
-                                    const SizedBox(height: 5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          "Click here to verify ",
-                                          style: GoogleFonts.karla(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                    const SizedBox(height: 12),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.pushReplacement(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const EmailVerificationPage(),
-                                              ),
-                                            );
-                                          },
-                                          child: Text(
-                                            "Here",
-                                            style: GoogleFonts.karla(
-                                              color: Colors.green,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const EmailVerificationPage(),
                                           ),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.email, size: 20),
+                                      label: const Text(
+                                        "Verify Now",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ],
                                 ),
+
                           const SizedBox(height: 30),
                           _buildProfileCard(
                             totalPasswords.toString(),
@@ -228,32 +229,25 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildVerificationStatus(
-    String status,
-    Color color,
-    IconData icon,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(color: color, width: 1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 5),
-          Text(
-            status,
-            style: GoogleFonts.karla(
-              color: color,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+  Widget _buildVerificationStatus({
+    required String status,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          status,
+          style: GoogleFonts.karla(
+            color: color,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

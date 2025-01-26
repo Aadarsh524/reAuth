@@ -92,37 +92,62 @@ class _HomePageState extends State<HomePage> {
                           if (state.profile.profileImage != '') {
                             profileImage =
                                 state.profile.profileImage.toString();
-
                             return GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => const ProfilePage(),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 35,
-                                  height: 35,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    image: DecorationImage(
-                                      image: CachedNetworkImageProvider(
-                                          profileImage),
-                                      fit: BoxFit.cover,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProfilePage(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: 35,
+                                height: 35,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                ),
+                                child: CachedNetworkImage(
+                                  imageUrl: profileImage,
+                                  imageBuilder: (context, imageProvider) =>
+                                      Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                        image: imageProvider,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
-                                ));
+                                  placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(
+                                    Icons.error,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            );
                           }
                         }
 
-                        return const SizedBox(
-                          width: 35,
-                          height: 35,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage:
-                                AssetImage('assets/defaultAvatar.png'),
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const ProfilePage(),
+                              ),
+                            );
+                          },
+                          child: const SizedBox(
+                            width: 35,
+                            height: 35,
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage:
+                                  AssetImage('assets/defaultAvatar.png'),
+                            ),
                           ),
                         );
                       },

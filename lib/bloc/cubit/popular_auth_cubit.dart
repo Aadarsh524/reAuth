@@ -73,4 +73,8 @@ class PopularAuthCubit extends Cubit<PopularAuthState> {
       emit(PopularAuthSearchSuccess(auth: exactMatch));
     }
   }
+
+  void clearUserData() {
+    emit(PopularAuthInitial()); // Reset to initial state
+  }
 }

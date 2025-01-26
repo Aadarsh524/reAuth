@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
+import 'package:reauth/bloc/states/auth_state.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/components/about_settings_card.dart';
 import 'package:reauth/components/general_settings_card.dart';
@@ -172,82 +172,98 @@ void _showLogoutDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: const Color.fromARGB(255, 40, 50, 65),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          'Log Out',
-          style: TextStyle(
-            fontSize: 18, // Smaller font size
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      return BlocListener<AuthenticationCubit, AuthenticationState>(
+        listener: (context, state) {
+          if (state is LoggingOut) {
+            // Show a loading indicator or progress dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          } else if (state is LoggedOutSuccess) {
+            // Dismiss the dialog and navigate to the login page
+            Navigator.pop(context); // Dismiss the loading dialog
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+              (route) => false,
+            );
+          }
+        },
+        child: AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 40, 50, 65),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-        ),
-        content: const Text(
-          'Are you sure you want to logout?',
-          style: TextStyle(
-            fontSize: 14, // Smaller font size
-            color: Color.fromARGB(255, 111, 163, 219),
-            fontWeight: FontWeight.bold,
+          title: const Text(
+            'Log Out',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(
+          content: const Text(
+            'Are you sure you want to logout?',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color.fromARGB(255, 111, 163, 219),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(
+                    color: Color.fromARGB(255, 111, 163, 219),
+                  ),
+                ),
+              ),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(
+                  fontSize: 14,
                   color: Color.fromARGB(255, 111, 163, 219),
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(
-                fontSize: 14, // Smaller font size
-                color: Color.fromARGB(255, 111, 163, 219),
-                fontWeight: FontWeight.bold,
+            TextButton(
+              onPressed: () {
+                // Trigger the logout process
+                BlocProvider.of<AuthenticationCubit>(context).logOut(context);
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(
+                    color: Colors.red,
+                  ),
+                ),
               ),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-              GoogleSignIn googleSignIn = GoogleSignIn();
-              await googleSignIn.signOut();
-              await firebaseAuth
-                  .signOut()
-                  .then((value) => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
-                        ),
-                      ));
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(
-                  color: Colors.red,
+              child: const Text(
+                "Logout",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            child: const Text(
-              "Logout",
-              style: TextStyle(
-                fontSize: 14, // Smaller font size
-                color: Color.fromARGB(255, 255, 255, 255),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       );
     },
   );

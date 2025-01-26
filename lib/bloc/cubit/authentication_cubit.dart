@@ -1,11 +1,19 @@
-import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:reauth/bloc/cubit/popular_auth_cubit.dart';
+import 'package:reauth/bloc/cubit/profile_cubit.dart';
+import 'package:reauth/bloc/cubit/recent_auth_cubit.dart';
+import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/auth_state.dart';
 import 'package:reauth/utils/validator.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   User? user = FirebaseAuth.instance.currentUser;
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  GoogleSignIn googleSignIn = GoogleSignIn();
   AuthenticationCubit() : super(AuthenticationInitial());
 
   Future<bool> isLoggedIn() async {
@@ -115,15 +123,8 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       });
 
       emit(RegisterSuccess());
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        emit(const RegisterFailure(error: "Password is too weak."));
-      }
-      if (e.code == 'email-already-in-use') {
-        emit(const RegisterFailure(error: "Account already in exists."));
-      } else {
-        emit(const RegisterFailure(error: "Error Registeration"));
-      }
+    } on FirebaseAuthException {
+      emit(const RegisterFailure(error: "Cannot Verify Email"));
     }
   }
 
@@ -163,6 +164,42 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       } else {
         emit(const RegisterFailure(error: "Error Changing Passwords"));
       }
+    }
+  }
+
+  void clearUserData() {
+    emit(AuthenticationInitial()); // Reset to initial state
+  }
+
+  Future<bool> logOut(BuildContext context) async {
+    try {
+      // Emit loading state
+      emit(LoggingOut());
+      clearUserData();
+
+      // Clear user data from the application
+      BlocProvider.of<UserAuthCubit>(context).clearUserData();
+      BlocProvider.of<PopularAuthCubit>(context).clearUserData();
+      BlocProvider.of<ProfileCubit>(context).clearUserData();
+      BlocProvider.of<RecentAuthCubit>(context).clearUserData();
+
+      // Sign out from Google and Firebase
+      await googleSignIn.signOut();
+      await firebaseAuth.signOut();
+
+      // Ensure the user is signed out
+      if (FirebaseAuth.instance.currentUser == null) {
+        emit(LoggedOutSuccess());
+        return true; // Logout successful
+      } else {
+        emit(const RegisterFailure(
+            error: "Failed to sign out. Please try again."));
+        return false; // Logout failed
+      }
+    } catch (e) {
+      // Emit a failure state with error message
+      emit(const RegisterFailure(error: "An error occurred during sign-out."));
+      return false; // An error occurred
     }
   }
 }

@@ -11,7 +11,6 @@ class EmailVerificationPage extends StatefulWidget {
   const EmailVerificationPage({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _EmailVerificationPageState createState() => _EmailVerificationPageState();
 }
 
@@ -27,8 +26,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   @override
   void initState() {
     super.initState();
-
-    _checkEmailVerified();
+    // Initial check for email verification
+    _checkEmailVerified(initialCheck: true);
   }
 
   void _sendVerificationEmail() async {
@@ -47,28 +46,51 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         });
       });
 
-      _checkEmailVerified();
+      _checkEmailVerified(initialCheck: false);
     } catch (e) {
       setState(() {
         _isCheckingVerification = false;
       });
+      customSnackbar = CustomSnackbar("Failed to send verification email.");
+      customSnackbar.showCustomSnackbar(context);
     }
   }
 
-  void _checkEmailVerified() async {
-    while (!_isEmailVerified) {
-      await Future.delayed(const Duration(seconds: 3));
+  void _checkEmailVerified({required bool initialCheck}) async {
+    if (initialCheck) {
       await user!.reload();
       setState(() {
         _isEmailVerified = user!.emailVerified;
-        _isCheckingVerification = false;
       });
+      if (_isEmailVerified) {
+        BlocProvider.of<AuthenticationCubit>(context)
+            .changeEmailVerificationStatus();
+        return;
+      }
     }
-    if (_isEmailVerified == true) {
-      // ignore: use_build_context_synchronously
-      BlocProvider.of<AuthenticationCubit>(context)
-          .changeEmailVerificationStatus();
+
+    for (int i = 0; i < 10; i++) {
+      // Poll for a maximum of 10 times
+      await Future.delayed(const Duration(seconds: 3));
+      await user!.reload();
+      if (user!.emailVerified) {
+        setState(() {
+          _isEmailVerified = true;
+          _isCheckingVerification = false;
+        });
+        BlocProvider.of<AuthenticationCubit>(context)
+            .changeEmailVerificationStatus();
+        customSnackbar = CustomSnackbar("Email verified successfully!");
+        customSnackbar.showCustomSnackbar(context);
+
+        return;
+      }
     }
+    setState(() {
+      _isCheckingVerification = false;
+    });
+    customSnackbar = CustomSnackbar("Email verification failed. Try again.");
+    customSnackbar.showCustomSnackbar(context);
   }
 
   @override
@@ -78,115 +100,117 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: BlocConsumer<AuthenticationCubit, AuthenticationState>(
-            listener: (BuildContext context, AuthenticationState state) {
-          if (state is RegisterSuccess) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DashboardPage(),
-              ),
-            );
-          }
-        }, builder: (context, state) {
-          if (state is AuthenticationLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Color.fromARGB(255, 106, 172, 191), // Change color
-              ),
-            );
-          }
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "User email: ${user!.email}",
-                style: GoogleFonts.karla(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+          listener: (BuildContext context, AuthenticationState state) {
+            if (state is RegisterSuccess) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardPage(),
                 ),
-              ),
-              const SizedBox(height: 20),
-              _isEmailVerified
-                  ? Center(
-                      child: Text(
-                        "Your Email is Verified",
-                        style: GoogleFonts.karla(
-                          color: Colors.green,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _isVerificationEmailSent
-                              ? null
-                              : _sendVerificationEmail,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 16, horizontal: 32),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is AuthenticationLoading) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Color.fromARGB(255, 106, 172, 191), // Change color
+                ),
+              );
+            }
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "User email: ${user!.email}",
+                  style: GoogleFonts.karla(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _isEmailVerified
+                    ? Center(
+                        child: Text(
+                          "Your Email is Verified",
+                          style: GoogleFonts.karla(
+                            color: Colors.green,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
                           ),
-                          child: _isCheckingVerification
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white)
-                              : Text(
-                                  _isVerificationEmailSent
-                                      ? 'Verifying...'
-                                      : 'Verify',
-                                  style: GoogleFonts.karla(
-                                    color: const Color.fromARGB(
-                                        255, 106, 172, 191),
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
                         ),
-                        const SizedBox(height: 10),
-                        _isVerificationEmailSent && !_didnotReceived
-                            ? const Text(
-                                "Didn't receive email? Wait 30 seconds to resend.",
-                                style: TextStyle(color: Colors.white),
-                              )
-                            : Container(),
-                      ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _isVerificationEmailSent
+                                ? null
+                                : _sendVerificationEmail,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 32),
+                            ),
+                            child: _isCheckingVerification
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white)
+                                : Text(
+                                    _isVerificationEmailSent
+                                        ? 'Verifying...'
+                                        : 'Verify',
+                                    style: GoogleFonts.karla(
+                                      color: const Color.fromARGB(
+                                          255, 106, 172, 191),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(height: 10),
+                          _isVerificationEmailSent && !_didnotReceived
+                              ? const Text(
+                                  "Didn't receive email? Wait 30 seconds to resend.",
+                                  style: TextStyle(color: Colors.white),
+                                )
+                              : Container(),
+                        ],
+                      ),
+                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 106, 172, 191),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 32),
                     ),
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 106, 172, 191),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 32),
-                  ),
-                  onPressed: () {
-                    // Navigate to another page or perform any action for verify later
-                  },
-                  child: Text(
-                    'Verify Later',
-                    style: GoogleFonts.karla(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
+                    onPressed: () {
+                      // Navigate to another page or perform any action for verify later
+                    },
+                    child: Text(
+                      'Verify Later',
+                      style: GoogleFonts.karla(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-            ],
-          );
-        }),
+                const SizedBox(height: 20),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

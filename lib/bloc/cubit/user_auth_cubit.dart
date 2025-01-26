@@ -181,6 +181,10 @@ class UserAuthCubit extends Cubit<UserAuthState> {
       emit(UserAuthDeletedFailure(error: e.toString()));
     }
   }
+
+  void clearUserData() {
+    emit(UserAuthInitial()); // Reset to initial state
+  }
 }
 
 Future<String?> getFaviconUrl(bool popularAuth, String authName) async {

@@ -37,4 +37,8 @@ class RecentAuthCubit extends Cubit<RecentAuthState> {
       emit(RecentAuthLoadFailure(error: e.toString()));
     }
   }
+
+  void clearUserData() {
+    emit(RecentAuthInitial()); // Reset to initial state
+  }
 }

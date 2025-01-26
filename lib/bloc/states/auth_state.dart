@@ -63,3 +63,7 @@ class PinError extends AuthenticationState {
   @override
   List<Object?> get props => [error];
 }
+
+class LoggingOut extends AuthenticationState {}
+
+class LoggedOutSuccess extends AuthenticationState {}

@@ -105,7 +105,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             !isConfirmPasswordVisible, // Inverted value
                         passwordVisibility: (e) {
                           setState(() {
-                            isPasswordVisible = !isPasswordVisible;
+                            isConfirmPasswordVisible =
+                                !isConfirmPasswordVisible;
                           });
                         },
                       ),

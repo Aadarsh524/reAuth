@@ -78,4 +78,8 @@ class ProfileCubit extends Cubit<ProfileState> {
       'profileImage': imageUrl,
     }, SetOptions(merge: true));
   }
+
+  void clearUserData() {
+    emit(ProfileInitial()); // Reset to initial state
+  }
 }
