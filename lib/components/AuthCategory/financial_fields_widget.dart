@@ -70,7 +70,8 @@ class _FinancialFieldsWidgetState extends State<FinancialFieldsWidget> {
           controller: widget.passwordController,
           labelText: "Password",
           hintText: "Enter Password",
-          obscureText: true,
+          obscureText: !isPasswordVisible,
+          isFormTypePassword: true,
           passwordVisibility: (e) {
             setState(() {
               isPasswordVisible = !isPasswordVisible;

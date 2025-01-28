@@ -59,6 +59,7 @@ class _NetworkFieldsWidgetState extends State<NetworkFieldsWidget> {
           labelText: "Password",
           hintText: "Enter Password",
           obscureText: !isPasswordVisible,
+          isFormTypePassword: true,
           passwordVisibility: (e) {
             setState(() {
               isPasswordVisible = !isPasswordVisible;

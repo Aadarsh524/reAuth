@@ -61,6 +61,7 @@ class _OtherFieldsWidgetState extends State<OtherFieldsWidget> {
           labelText: "Password",
           hintText: "Enter Password",
           obscureText: !isPasswordVisible,
+          isFormTypePassword: true,
           passwordVisibility: (e) {
             setState(() {
               isPasswordVisible = !isPasswordVisible;

@@ -62,6 +62,7 @@ class _EntertainmentFieldsWidgetState extends State<EntertainmentFieldsWidget> {
           labelText: "Password",
           hintText: "Enter Password",
           obscureText: !isPasswordVisible,
+            isFormTypePassword: true,
           passwordVisibility: (e) {
             setState(() {
               isPasswordVisible = !isPasswordVisible;

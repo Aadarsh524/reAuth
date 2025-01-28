@@ -62,6 +62,7 @@ class _SocialMediaFieldsWidgetState extends State<SocialMediaFieldsWidget> {
           labelText: "Password",
           hintText: "Enter Password",
           obscureText: !isPasswordVisible,
+          isFormTypePassword: true,
           passwordVisibility: (e) {
             setState(() {
               isPasswordVisible = !isPasswordVisible;
