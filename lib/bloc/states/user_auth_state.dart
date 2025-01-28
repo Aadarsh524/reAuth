@@ -41,8 +41,6 @@ class UserAuthSubmissionFailure extends UserAuthState {
   List<Object?> get props => [error];
 }
 
-class UserAuthSearching extends UserAuthState {}
-
 class UserAuthSearchSuccess extends UserAuthState {
   final UserAuthModel auth;
 

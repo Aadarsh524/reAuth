@@ -3,6 +3,7 @@ import 'package:reauth/models/profile_model.dart';
 
 abstract class ProfileState extends Equatable {
   const ProfileState();
+
   @override
   List<Object?> get props => [];
 }
@@ -12,15 +13,6 @@ class ProfileInitial extends ProfileState {}
 class ProfileLoading extends ProfileState {}
 
 class ProfileUpdated extends ProfileState {}
-
-class ProfileUpdateError extends ProfileState {
-  final String error;
-
-  const ProfileUpdateError({required this.error});
-
-  @override
-  List<Object?> get props => [error];
-}
 
 class ProfileLoaded extends ProfileState {
   final ProfileModel profile;
@@ -40,10 +32,10 @@ class ProfileLoadingError extends ProfileState {
   List<Object?> get props => [error];
 }
 
-class ProfileSetError extends ProfileState {
+class ProfileUpdateError extends ProfileState {
   final String error;
 
-  const ProfileSetError({required this.error});
+  const ProfileUpdateError({required this.error});
 
   @override
   List<Object?> get props => [error];

@@ -32,10 +32,12 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
   }
 
   void copyToClipboard(BuildContext context, String value) {
-    final customSnackbar = CustomSnackbar("Copied");
     Clipboard.setData(ClipboardData(text: value)).then((_) {
       // Show the snackbar after copying
-      customSnackbar.showCustomSnackbar(context);
+      CustomSnackbar.show(
+        context,
+        message: "Copied",
+      );
       final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
 
       DateTime lastAccessed = DateTime.now();
@@ -52,7 +54,7 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF35404F),
+        backgroundColor: const Color.fromARGB(255, 53, 64, 79),
         centerTitle: true,
         elevation: 0,
         actions: [
@@ -74,10 +76,14 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
       body: BlocConsumer<UserAuthCubit, UserAuthState>(
         listener: (context, state) {
           if (state is UserAuthDeletedFailure) {
-            CustomSnackbar(state.error).showCustomSnackbar(context);
+            CustomSnackbar.show(context, message: state.error, isError: true);
           }
           if (state is UserAuthDeletedSuccess) {
-            CustomSnackbar("Delete Success").showCustomSnackbar(context);
+            CustomSnackbar.show(
+              context,
+              message: "Delete Success",
+            );
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const DashboardPage()),
@@ -156,7 +162,7 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
       child: Column(
         children: [
           CachedNetworkImage(
-            imageUrl: authModel.userAuthFavicon,
+            imageUrl: authModel.userAuthFavicon!,
             height: 60,
             fit: BoxFit.contain,
             errorWidget: (context, url, error) => Image.asset(

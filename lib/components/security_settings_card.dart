@@ -19,7 +19,6 @@ class SecuritySettingsCard extends StatefulWidget {
 
 class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
   bool _isSecurityExpanded = false;
-  CustomSnackbar customSnackbar = CustomSnackbar('');
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +33,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
               builder: (context) =>
                   const Center(child: CircularProgressIndicator()),
             );
-          } else if (state is RegisterSuccess) {
+          } else if (state is RegistrationSuccess) {
             final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
             GoogleSignIn googleSignIn = GoogleSignIn();
             googleSignIn.signOut();
@@ -43,13 +42,16 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                     builder: (context) => const LoginPage(),
                   ),
                 ));
-
-            customSnackbar = CustomSnackbar("Password change success");
-            customSnackbar.showCustomSnackbar(context);
-          } else if (state is RegisterFailure) {
+            CustomSnackbar.show(
+              context,
+              message: "Password change success",
+            );
+          } else if (state is ValidationError) {
             Navigator.of(context).pop(); // Pop the loading dialog
-            customSnackbar = CustomSnackbar(state.error.toString());
-            customSnackbar.showCustomSnackbar(context);
+            CustomSnackbar.show(
+              context,
+              message: state.error.toString(),
+            );
           }
         },
         child: ExpansionPanelList(
@@ -228,10 +230,8 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                   onPressed: () {
                     User? user = FirebaseAuth.instance.currentUser;
                     final String? email = user!.email;
-
                     BlocProvider.of<AuthenticationCubit>(context)
-                        .changePassword(email!, oldPasswordController.text,
-                            newPasswordController.text);
+                        .resetPassword(email!);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,

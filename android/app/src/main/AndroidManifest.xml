@@ -7,7 +7,7 @@
    <application
         android:label="reauth"
         android:name="${applicationName}"
-        android:icon="@mipmap/icon">
+        android:icon="@mipmap/favicon">
         <activity
             
             android:name=".MainActivity"

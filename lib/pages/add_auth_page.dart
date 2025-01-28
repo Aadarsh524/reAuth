@@ -42,7 +42,6 @@ class _AddAuthPageState extends State<AddAuthPage> {
   final TextEditingController accountNumberController = TextEditingController();
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  CustomSnackbar customSnackbar = CustomSnackbar('');
 
   List<String> selectedTags = [];
 
@@ -209,11 +208,6 @@ class _AddAuthPageState extends State<AddAuthPage> {
 
   void handleSave() {
     final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
-    final cleanAuthName = authNameController.text.replaceAll(' ', '');
-
-    final authLink = widget.popularAuthModel != null
-        ? widget.popularAuthModel!.authLink
-        : "www.${cleanAuthName.toLowerCase()}.com";
 
     AuthCategory selectedCategory =
         AuthCategory.values.firstWhere((e) => e.toString() == dropdownValue);
@@ -267,33 +261,30 @@ class _AddAuthPageState extends State<AddAuthPage> {
     }
 
     if (isValid) {
+      final userAuthModel = UserAuthModel(
+        authName: authNameController.text.trim(),
+        username: usernameController.text.trim(),
+        password: passwordController.text.trim(),
+        note: noteController.text.trim(),
+        authLink: widget.popularAuthModel?.authLink ??
+            'www.${authNameController.text.trim().toLowerCase()}.com',
+        authCategory: selectedCategory,
+        hasTransactionPassword: hasTransactionPass,
+        transactionPassword: transactionPasswordController.text.trim(),
+        accountNumber: accountNumberController.text.trim(),
+        tags: selectedTags,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        lastAccessed: DateTime.now(),
+        isFavorite: false,
+      );
       userProviderCubit.submitUserAuth(
-        UserAuthModel(
-          authName: authNameController.text.toLowerCase(),
-          username: usernameController.text,
-          password: passwordController.text,
-          note: noteController.text,
-          authLink: authLink,
-          userAuthFavicon: authLink,
-          hasTransactionPassword:
-              hasTransactionPass, // Correctly reflects the checkbox
-          transactionPassword: hasTransactionPass
-              ? transactionPasswordController.text
-              : '', // Optional, empty if no transaction password
-          authCategory: selectedCategory,
-          createdAt: DateTime.now(), // Set to current date and time
-          updatedAt: DateTime.now(), // Set to current date and time
-          lastAccessed: DateTime.now(), // Set to current date and time)
-
-          isFavorite: false, // Example value (set according to your logic)
-          tags: selectedTags, // Tags will be set as selectedTags
-        ),
-        popularAuth,
+        userAuthModel: userAuthModel,
+        popularAuth: popularAuth,
       );
     } else {
-      customSnackbar =
-          CustomSnackbar("Please enter required fields.", isError: true);
-      customSnackbar.showCustomSnackbar(context);
+      CustomSnackbar.show(context,
+          message: "Please enter required fields.", isError: true);
     }
   }
 
@@ -379,8 +370,8 @@ class _AddAuthPageState extends State<AddAuthPage> {
                             builder: (_) => const DashboardPage()),
                       );
                     } else if (state is UserAuthSubmissionFailure) {
-                      CustomSnackbar("Submission Error: ${state.error}")
-                          .showCustomSnackbar(context);
+                      CustomSnackbar.show(context,
+                          message: state.error.toString(), isError: true);
                     }
                   },
                   builder: (context, state) {

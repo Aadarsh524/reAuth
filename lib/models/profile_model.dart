@@ -1,25 +1,29 @@
 class ProfileModel {
-  final String fullname;
+  final String fullName;
   final String email;
-  final String pin;
   final String profileImage;
-  final bool isEmailVerified;
 
   ProfileModel({
-    required this.pin,
-    required this.isEmailVerified,
-    required this.fullname,
+    required this.fullName,
     required this.email,
     required this.profileImage,
   });
 
+  /// Factory constructor to create a ProfileModel instance from a map
   factory ProfileModel.fromMap(Map<String, dynamic> map) {
     return ProfileModel(
-      fullname: map['fullname'],
-      email: map['email'],
-      isEmailVerified: map['isEmailVerified'],
-      pin: map['pin'],
+      fullName: map['fullName'] ?? '',
+      email: map['email'] ?? '',
       profileImage: map['profileImage'] ?? '',
     );
+  }
+
+  /// Converts the ProfileModel instance to a map
+  Map<String, dynamic> toMap() {
+    return {
+      'fullName': fullName,
+      'email': email,
+      'profileImage': profileImage,
+    };
   }
 }

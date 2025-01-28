@@ -12,7 +12,7 @@ class _PasswordSuggestionsState extends State<PasswordSuggestions> {
   bool _isExpanded = false;
 
   List<Map<String, dynamic>> suggestions = [
-    {"text": "Use at least 8 characters.", "icon": Icons.security},
+    {"text": "Use atleast 8 characters.", "icon": Icons.security},
     {
       "text": "Include both upper and lower case characters.",
       "icon": Icons.text_fields
@@ -24,7 +24,6 @@ class _PasswordSuggestionsState extends State<PasswordSuggestions> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(top: 15),
       color: const Color.fromARGB(255, 40, 50, 65),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -35,7 +34,7 @@ class _PasswordSuggestionsState extends State<PasswordSuggestions> {
           borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: EdgeInsets.all(_isExpanded ? 12.0 : 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

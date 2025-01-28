@@ -15,15 +15,19 @@ class AddPinPage extends StatefulWidget {
 }
 
 class _AddPinPageState extends State<AddPinPage> {
-  TextEditingController pinController = TextEditingController();
-  TextEditingController pin2Controller = TextEditingController();
-  CustomSnackbar customSnackbar = CustomSnackbar('');
+  final TextEditingController pinController = TextEditingController();
+  final TextEditingController confirmPinController = TextEditingController();
+
+  // Constants for colors and styles
+  static const Color scaffoldBackgroundColor = Colors.black;
+  static const Color textColor = Colors.white;
+  static const Color primaryColor = Colors.blue;
+  static const Color secondaryTextColor = Colors.grey;
 
   @override
   Widget build(BuildContext context) {
-    final authCubit = BlocProvider.of<AuthenticationCubit>(context);
     return Scaffold(
-      backgroundColor: Colors.black, // Change background color
+      backgroundColor: scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -31,47 +35,47 @@ class _AddPinPageState extends State<AddPinPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                "Set Pin", // Update title
+                "Set PIN",
                 style: GoogleFonts.karla(
-                  color: Colors.white,
-                  fontSize: 28, // Increase font size
+                  color: textColor,
+                  fontSize: 28,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 20),
-              _buildEmailRow(), // New widget for email row
+              _buildEmailRow(),
               const SizedBox(height: 40),
-              _buildPinTextField(
-                  "Enter Pin", pinController), // Updated hint text
+              _buildPinTextField("Enter PIN", pinController),
               const SizedBox(height: 20),
-              _buildPinTextField(
-                  "Confirm Pin", pin2Controller), // Updated hint text
+              _buildPinTextField("Confirm PIN", confirmPinController),
               const SizedBox(height: 20),
-              _buildDescription(), // New widget for description
+              _buildDescription(),
               const Spacer(),
               BlocConsumer<AuthenticationCubit, AuthenticationState>(
                 listener: (context, state) {
-                  if (state is PinSetSuccess) {
-                    customSnackbar = CustomSnackbar(
-                        "Pin Saved Successfully"); // Updated snackbar message
-                    customSnackbar.showCustomSnackbar(context);
+                  if (state is PinUpdateSuccess) {
+                    CustomSnackbar.show(
+                      context,
+                      message: "PIN saved successfuly",
+                    );
+
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (context) => const DashboardPage(),
                       ),
                     );
-                  }
-                  if (state is PinError) {
-                    customSnackbar = CustomSnackbar(state.error);
-                    customSnackbar.showCustomSnackbar(context);
+                  } else if (state is AuthError &&
+                      state.errorType == AuthErrorType.pinOperation) {
+                    CustomSnackbar.show(context,
+                        message: state.message, isError: true);
                   }
                 },
                 builder: (context, state) {
                   if (state is AuthenticationLoading) {
                     return const Center(
                       child: CircularProgressIndicator(
-                        color: Colors.white, // Change color to match theme
+                        color: primaryColor,
                       ),
                     );
                   }
@@ -79,11 +83,13 @@ class _AddPinPageState extends State<AddPinPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: ElevatedButton(
                       onPressed: () {
-                        authCubit.setPin(
-                            pinController.text, pin2Controller.text);
+                        // authCubit.setPin(
+                        //   pinController.text,
+                        //   confirmPinController.text,
+                        // );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue, // Change button color
+                        backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -92,7 +98,7 @@ class _AddPinPageState extends State<AddPinPage> {
                       child: Text(
                         'Save',
                         style: GoogleFonts.karla(
-                          color: Colors.white,
+                          color: textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
@@ -112,10 +118,10 @@ class _AddPinPageState extends State<AddPinPage> {
   Widget _buildEmailRow() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[800], // Update color
+        color: Colors.grey[800],
         border: const Border(
           bottom: BorderSide(
-            color: Colors.blue, // Update color
+            color: primaryColor,
             width: 2,
           ),
         ),
@@ -127,15 +133,14 @@ class _AddPinPageState extends State<AddPinPage> {
           Text(
             "aadarshghimire524@gmail.com",
             style: TextStyle(
-              color: Colors.white,
+              color: textColor,
               fontSize: 16,
-              letterSpacing: .5,
               fontWeight: FontWeight.w400,
             ),
           ),
           Icon(
             Icons.arrow_drop_down_outlined,
-            color: Colors.white,
+            color: textColor,
             size: 20,
           ),
         ],
@@ -147,12 +152,11 @@ class _AddPinPageState extends State<AddPinPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Text(
-        "Your pin will be used to secure your account and view saved passwords.",
+        "Your PIN will be used to secure your account and view saved passwords.",
         textAlign: TextAlign.center,
         style: GoogleFonts.karla(
-          color: Colors.grey[400], // Update color
+          color: secondaryTextColor,
           fontSize: 14,
-          letterSpacing: .75,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -164,14 +168,7 @@ class _AddPinPageState extends State<AddPinPage> {
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: PinCodeTextField(
         appContext: context,
-        backgroundColor: Colors.transparent,
         length: 6,
-        textStyle: GoogleFonts.karla(
-          color: Colors.white,
-          fontSize: 16,
-          letterSpacing: .75,
-          fontWeight: FontWeight.w600,
-        ),
         obscureText: true,
         blinkWhenObscuring: true,
         animationType: AnimationType.fade,
@@ -179,16 +176,12 @@ class _AddPinPageState extends State<AddPinPage> {
           shape: PinCodeFieldShape.underline,
           fieldHeight: 40,
           fieldWidth: 35,
-          activeFillColor: Colors.transparent,
-          activeColor: Colors.grey[400], // Update color
-          inactiveColor: Colors.grey[400], // Update color
-          selectedColor: Colors.grey[400], // Update color
-          inactiveFillColor: Colors.transparent,
-          selectedFillColor: Colors.transparent,
+          activeColor: primaryColor,
+          inactiveColor: secondaryTextColor,
+          selectedColor: primaryColor,
         ),
-        cursorColor: Colors.white,
+        cursorColor: textColor,
         animationDuration: const Duration(milliseconds: 300),
-        enableActiveFill: true,
         controller: controller,
         keyboardType: TextInputType.number,
         onChanged: (value) {},

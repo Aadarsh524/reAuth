@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,6 +20,23 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  bool verifiedEmail = false;
+  User? user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkEmailVerification();
+  }
+
+  Future<void> _checkEmailVerification() async {
+    bool verified = await BlocProvider.of<AuthenticationCubit>(context)
+        .checkEmailVerification(user!);
+    setState(() {
+      verifiedEmail = verified;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(10.0),
         child: ListView(
           children: [
-            _buildPersonalInfoCard(context),
+            _buildPersonalInfoCard(context, verifiedEmail),
             const SecuritySettingsCard(),
             const GeneralSettingsCard(),
             const AboutSettingsCard(),
@@ -41,7 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-Widget _buildPersonalInfoCard(BuildContext context) {
+Widget _buildPersonalInfoCard(BuildContext context, bool verifiedEmail) {
   return BlocBuilder<ProfileCubit, ProfileState>(
     builder: (context, state) {
       if (state is ProfileLoading) {
@@ -68,8 +86,8 @@ Widget _buildPersonalInfoCard(BuildContext context) {
                   children: [
                     state.profile.profileImage != ''
                         ? Container(
-                            width: 40,
-                            height: 40,
+                            width: 45,
+                            height: 45,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               image: DecorationImage(
@@ -80,7 +98,6 @@ Widget _buildPersonalInfoCard(BuildContext context) {
                             ),
                           )
                         : const CircleAvatar(
-                            radius: 20,
                             backgroundImage:
                                 AssetImage('assets/defaultAvatar.png'),
                           ),
@@ -90,7 +107,7 @@ Widget _buildPersonalInfoCard(BuildContext context) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            state.profile.fullname,
+                            state.profile.fullName,
                             style: GoogleFonts.karla(
                               color: Colors.white,
                               fontSize: 16,
@@ -117,9 +134,11 @@ Widget _buildPersonalInfoCard(BuildContext context) {
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.badge,
-                          color: Colors.white,
+                        Icon(
+                          verifiedEmail
+                              ? Icons.verified_user_outlined
+                              : Icons.gpp_maybe_outlined,
+                          color: verifiedEmail ? Colors.green : Colors.red,
                           size: 35,
                         ),
                         const SizedBox(
@@ -136,11 +155,15 @@ Widget _buildPersonalInfoCard(BuildContext context) {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          icon: const Icon(Icons.arrow_upward, size: 20),
+                          icon: const Icon(
+                            Icons.arrow_upward,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                           label: Text(
                             "Upgrade",
                             style: GoogleFonts.karla(
-                              color: Colors.black,
+                              color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -152,7 +175,10 @@ Widget _buildPersonalInfoCard(BuildContext context) {
                       onPressed: () {
                         _showLogoutDialog(context);
                       },
-                      icon: const Icon(Icons.logout),
+                      icon: const Icon(
+                        Icons.logout,
+                        size: 32,
+                      ),
                       color: Colors.redAccent,
                     ),
                   ],
@@ -174,8 +200,7 @@ void _showLogoutDialog(BuildContext context) {
     builder: (BuildContext context) {
       return BlocListener<AuthenticationCubit, AuthenticationState>(
         listener: (context, state) {
-          if (state is LoggingOut) {
-            // Show a loading indicator or progress dialog
+          if (state is LogoutInProgress) {
             showDialog(
               context: context,
               barrierDismissible: false,
@@ -183,13 +208,12 @@ void _showLogoutDialog(BuildContext context) {
                 child: CircularProgressIndicator(),
               ),
             );
-          } else if (state is LoggedOutSuccess) {
-            // Dismiss the dialog and navigate to the login page
-            Navigator.pop(context); // Dismiss the loading dialog
-            Navigator.pushAndRemoveUntil(
+          } else if (state is LogoutSuccess) {
+            // Close all dialogs and navigate to LoginPage
+            Navigator.popUntil(context, (route) => route.isFirst);
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const LoginPage()),
-              (route) => false,
             );
           }
         },
@@ -241,7 +265,7 @@ void _showLogoutDialog(BuildContext context) {
             TextButton(
               onPressed: () {
                 // Trigger the logout process
-                BlocProvider.of<AuthenticationCubit>(context).logOut(context);
+                BlocProvider.of<AuthenticationCubit>(context).logout();
               },
               style: TextButton.styleFrom(
                 backgroundColor: Colors.transparent,

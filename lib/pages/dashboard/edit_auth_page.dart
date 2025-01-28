@@ -40,8 +40,6 @@ class _EditAuthPageState extends State<EditAuthPage> {
   bool hasTransactionPass = false;
   late AuthCategory selectedCategory;
 
-  CustomSnackbar customSnackbar = CustomSnackbar('');
-
   @override
   void initState() {
     super.initState();
@@ -218,13 +216,12 @@ class _EditAuthPageState extends State<EditAuthPage> {
       userProviderCubit.editAuth(updatedModel).then((_) {
         Navigator.of(context).pop(updatedModel);
       }).catchError((error) {
-        customSnackbar =
-            CustomSnackbar("Please enter required fields.", isError: true);
-        customSnackbar.showCustomSnackbar(context);
+        CustomSnackbar.show(context,
+            message: "Please enter required fields.", isError: true);
       });
     } else {
-      CustomSnackbar("Please fill in all required fields.", isError: true)
-          .showCustomSnackbar(context);
+      CustomSnackbar.show(context,
+          message: "Please enter all required fields.", isError: true);
     }
   }
 
@@ -266,7 +263,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
         child: Column(
           children: [
             CachedNetworkImage(
-              imageUrl: widget.userAuthModel.userAuthFavicon,
+              imageUrl: widget.userAuthModel.userAuthFavicon!,
               height: 50,
               width: 50,
               placeholder: (_, __) => const CircularProgressIndicator(),

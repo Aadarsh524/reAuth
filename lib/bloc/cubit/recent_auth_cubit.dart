@@ -5,40 +5,50 @@ import 'package:reauth/bloc/states/recent_auth_state.dart';
 import 'package:reauth/models/user_auth_model.dart';
 
 class RecentAuthCubit extends Cubit<RecentAuthState> {
-  User? user = FirebaseAuth.instance.currentUser;
-  RecentAuthCubit() : super(RecentAuthInitial());
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
+
+  RecentAuthCubit({
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+  })  : _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        super(RecentAuthInitial());
 
   Future<void> fetchUserRecentProviders() async {
     try {
       emit(RecentAuthLoading());
+      final currentUser = _auth.currentUser;
 
-      final snapshot = await FirebaseFirestore.instance
+      if (currentUser == null) {
+        emit(const RecentAuthLoadFailure(error: 'User not authenticated'));
+        return;
+      }
+
+      final snapshot = await _firestore
           .collection('users')
-          .doc(user?.uid)
-          .collection("auths")
+          .doc(currentUser.uid)
+          .collection('auths')
           .get();
 
       final auths = snapshot.docs.map((doc) {
-        final data = doc.data();
-
-        return UserAuthModel.fromMap({
-          'username': data['username'] ?? '',
-          'password': data['password'] ?? '',
-          'note': data['note'] ?? '',
-          'authProviderLink': data['authProviderLink'] ?? '',
-          'providerCategory': data['providerCategory'] ?? '',
-          'faviconUrl': data['faviconUrl'] ?? '',
-          'authName': data['authName'] ?? '',
-        });
+        return UserAuthModel.fromMap(doc.data());
       }).toList();
 
       emit(RecentAuthLoadSuccess(auths: auths));
-    } catch (e) {
-      emit(RecentAuthLoadFailure(error: e.toString()));
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(RecentAuthLoadFailure(error: 'Failed to fetch recent auths: $e'));
     }
   }
 
   void clearUserData() {
-    emit(RecentAuthInitial()); // Reset to initial state
+    emit(RecentAuthInitial());
+  }
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    // Log errors (e.g., using Crashlytics or Sentry)
+    super.onError(error, stackTrace);
   }
 }

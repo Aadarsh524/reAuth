@@ -1,85 +1,112 @@
 import 'dart:io';
-
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/models/profile_model.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
-  User? user = FirebaseAuth.instance.currentUser;
-  ProfileCubit() : super(ProfileInitial());
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
+
+  ProfileCubit({
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+  })  : _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        _storage = storage ?? FirebaseStorage.instance,
+        super(ProfileInitial());
 
   Future<void> fetchProfile() async {
     try {
       emit(ProfileLoading());
+      final currentUser = _auth.currentUser;
 
-      final profile = await FirebaseFirestore.instance
-          .collection('profiles')
-          .doc(user!.uid)
-          .get();
-
-      final profileData = profile.data();
-
-      if (profileData != null) {
-        final profileModel = ProfileModel.fromMap({
-          'fullname': profileData['fullname'] ?? '',
-          'email': profileData['email'] ?? '',
-          'pin': profileData['pin'] ?? '',
-          'profileImage': profileData['profileImage'] ?? '',
-          'isEmailVerified': profileData['isEmailVerified'] ?? false,
-        });
-
-        emit(ProfileLoaded(profile: profileModel));
+      if (currentUser == null) {
+        emit(const ProfileLoadingError(error: 'User not authenticated'));
+        return;
       }
-    } on FirebaseAuthException catch (e) {
-      emit(ProfileLoadingError(error: e.toString()));
+
+      final profileDoc =
+          await _firestore.collection('profiles').doc(currentUser.uid).get();
+
+      if (!profileDoc.exists) {
+        emit(const ProfileLoadingError(error: 'Profile not found'));
+        return;
+      }
+
+      final profileModel = ProfileModel.fromMap(profileDoc.data()!);
+      emit(ProfileLoaded(profile: profileModel));
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(ProfileLoadingError(error: 'Failed to fetch profile: $e'));
     }
   }
 
   Future<void> editProfile(
-      String fullname, String email, String profileImage) async {
+    String text, {
+    required String fullname,
+    required String email,
+    String? profileImage,
+  }) async {
     try {
       emit(ProfileLoading());
-      await FirebaseFirestore.instance
-          .collection('profiles')
-          .doc(user!.uid)
-          .set({
+      final currentUser = _auth.currentUser;
+
+      if (currentUser == null) {
+        emit(const ProfileUpdateError(error: 'User not authenticated'));
+        return;
+      }
+
+      await _firestore.collection('profiles').doc(currentUser.uid).set({
         'fullname': fullname,
         'email': email,
-        'profileImage': profileImage,
-      });
+        if (profileImage != null) 'profileImage': profileImage,
+      }, SetOptions(merge: true));
 
       emit(ProfileUpdated());
-    } on FirebaseAuthException catch (e) {
-      emit(ProfileUpdateError(error: e.toString()));
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(ProfileUpdateError(error: 'Failed to update profile: $e'));
     }
   }
 
   Future<void> uploadImageToFirebase(File image) async {
     try {
       emit(ProfileLoading());
-      FirebaseStorage storage = FirebaseStorage.instance;
-      Reference ref = storage.ref().child('profile_images/${user!.uid}');
-      UploadTask uploadTask = ref.putFile(image);
-      TaskSnapshot snapshot = await uploadTask;
-      String downloadURL = await snapshot.ref.getDownloadURL();
-      await saveImageURLToFirestore(downloadURL);
+      final currentUser = _auth.currentUser;
+
+      if (currentUser == null) {
+        emit(const ProfileUpdateError(error: 'User not authenticated'));
+        return;
+      }
+
+      final ref = _storage.ref().child('profile_images/${currentUser.uid}');
+      final uploadTask = ref.putFile(image);
+      final snapshot = await uploadTask;
+      final downloadURL = await snapshot.ref.getDownloadURL();
+
+      await _firestore.collection('profiles').doc(currentUser.uid).set({
+        'profileImage': downloadURL,
+      }, SetOptions(merge: true));
+
       emit(ProfileUpdated());
-    } catch (e) {
-      emit(ProfileUpdateError(error: e.toString()));
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(ProfileUpdateError(error: 'Failed to upload image: $e'));
     }
   }
 
-  Future<void> saveImageURLToFirestore(String imageUrl) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    await firestore.collection('profiles').doc(user!.uid).set({
-      'profileImage': imageUrl,
-    }, SetOptions(merge: true));
+  void clearUserData() {
+    emit(ProfileInitial());
   }
 
-  void clearUserData() {
-    emit(ProfileInitial()); // Reset to initial state
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    // Log errors (e.g., using Crashlytics or Sentry)
+    super.onError(error, stackTrace);
   }
 }

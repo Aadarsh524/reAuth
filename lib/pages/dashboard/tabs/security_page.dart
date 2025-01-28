@@ -205,21 +205,19 @@ class _SecurityPageState extends State<SecurityPage>
             ? const Column(
                 children: [
                   SizedBox(height: 20),
-                  Text(
-                    "Please improve your password",
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 10),
                   PasswordSuggestions(),
                 ],
               )
-            : const Text(
-                "Congratulations, you have strong passwords!!!",
-                style: TextStyle(color: Colors.white),
+            : Center(
+                child: Text(
+                  "Congratulations, you have strong passwords!!!",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.karla(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
       );
     }
@@ -252,7 +250,7 @@ class _SecurityPageState extends State<SecurityPage>
                 width: 50,
                 height: 50,
                 child: CachedNetworkImage(
-                  imageUrl: provider.userAuthFavicon,
+                  imageUrl: provider.userAuthFavicon!,
                   height: 60,
                   fit: BoxFit.contain,
                   errorWidget: (context, url, error) => Image.asset(
@@ -338,7 +336,7 @@ void _showChangePasswordDialog(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: CachedNetworkImage(
-                        imageUrl: userProviderModel.userAuthFavicon,
+                        imageUrl: userProviderModel.userAuthFavicon!,
                         width: 40,
                         height: 40,
                         fit: BoxFit.contain,

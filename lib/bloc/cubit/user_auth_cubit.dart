@@ -1,61 +1,153 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:reauth/bloc/states/user_auth_state.dart';
-import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
-import 'package:http/http.dart' as http;
 
 class UserAuthCubit extends Cubit<UserAuthState> {
-  User? user = FirebaseAuth.instance.currentUser;
-  late List<UserAuthModel> _userAuths;
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
+  final http.Client _httpClient;
 
-  UserAuthCubit() : super(UserAuthInitial()) {
-    _userAuths = [];
-  }
+  List<UserAuthModel> _userAuths = [];
+
+  UserAuthCubit({
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+    http.Client? httpClient,
+  })  : _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        _httpClient = httpClient ?? http.Client(),
+        super(UserAuthInitial());
 
   Future<void> fetchUserAuths() async {
     try {
       emit(UserAuthLoading());
-      final snapshot = await FirebaseFirestore.instance
+      final currentUser = _auth.currentUser;
+
+      if (currentUser == null) {
+        emit(const UserAuthLoadFailure(error: 'User not authenticated'));
+        return;
+      }
+
+      final snapshot = await _firestore
           .collection('users')
-          .doc(user?.uid)
-          .collection("auths")
+          .doc(currentUser.uid)
+          .collection('auths')
           .get();
 
       _userAuths = snapshot.docs.map((doc) {
-        final data = doc.data();
-
-        return UserAuthModel.fromMap({
-          'username': data['username'] ?? '',
-          'password': data['password'] ?? '',
-          'note': data['note'] ?? '',
-          'authLink': data['authLink'] ?? '',
-          "accountNumber": data['accountNumber'] ?? '',
-          'authCategory':
-              data['authCategory'] ?? AuthCategory.others.toString(),
-          'userAuthFavicon': data['userAuthFavicon'] ?? '',
-          'authName': data['authName'] ?? '',
-          'transactionPassword': data['transactionPassword'] ?? '',
-          'hasTransactionPassword': data['hasTransactionPassword'] ?? false,
-          'createdAt': data['createdAt'],
-          'updatedAt': data['updatedAt'],
-          'lastAccessed': data['lastAccessed'],
-          'tags': (data['tags'] ?? []).cast<String>(),
-          'isFavorite': data['isFavorite'] ?? false,
-          'mfaOptions': data['mfaOptions'],
-        });
+        return UserAuthModel.fromMap(doc.data());
       }).toList();
 
       emit(UserAuthLoadSuccess(auths: _userAuths));
-    } catch (e) {
-      emit(UserAuthLoadFailure(error: e.toString()));
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(UserAuthLoadFailure(error: 'Failed to fetch user auths: $e'));
     }
   }
 
+  Future<void> submitUserAuth({
+    required UserAuthModel userAuthModel,
+    required bool popularAuth,
+  }) async {
+    try {
+      emit(UserAuthLoading());
+      final currentUser = _auth.currentUser;
+
+      if (currentUser == null) {
+        emit(const UserAuthSubmissionFailure(error: 'User not authenticated'));
+        return;
+      }
+
+      final cleanAuthName = userAuthModel.authName.replaceAll(' ', '');
+      final userAuthFavicon = await _getFaviconUrl(popularAuth, cleanAuthName);
+
+      await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('auths')
+          .doc(cleanAuthName)
+          .set(userAuthModel.toMap()..['userAuthFavicon'] = userAuthFavicon);
+
+      emit(UserAuthSubmissionSuccess());
+      await fetchUserAuths(); // Refresh the list
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(UserAuthSubmissionFailure(error: 'Failed to submit user auth: $e'));
+    }
+  }
+
+  Future<void> editAuth(UserAuthModel userAuthModel) async {
+    try {
+      emit(UserAuthLoading());
+      final currentUser = _auth.currentUser;
+
+      if (currentUser == null) {
+        emit(const UserAuthSubmissionFailure(error: 'User not authenticated'));
+        return;
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('auths')
+          .doc(userAuthModel.authName)
+          .update(userAuthModel.toMap());
+
+      emit(UserAuthSubmissionSuccess());
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(UserAuthSubmissionFailure(error: 'Failed to edit user auth: $e'));
+    }
+  }
+
+  Future<void> deleteProvider(String userAuthId) async {
+    try {
+      emit(UserAuthLoading());
+      final currentUser = _auth.currentUser;
+
+      if (currentUser == null) {
+        emit(const UserAuthDeletedFailure(error: 'User not authenticated'));
+        return;
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('auths')
+          .doc(userAuthId)
+          .delete();
+
+      emit(UserAuthDeletedSuccess());
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(UserAuthDeletedFailure(error: 'Failed to delete provider: $e'));
+    }
+  }
+
+  Future<void> updateAuthLastAccessed(
+      String authName, DateTime lastAccessed) async {
+    final currentUser = _auth.currentUser;
+
+    if (currentUser == null) return;
+
+    await _firestore
+        .collection('users')
+        .doc(currentUser.uid)
+        .collection('auths')
+        .doc(authName)
+        .update({'lastAccessed': lastAccessed.toIso8601String()});
+  }
+
   void searchUserAuth(String searchTerm) {
+    if (searchTerm.isEmpty) {
+      emit(UserAuthSearchEmpty());
+      return;
+    }
+
     final lowerCaseSearchTerm = searchTerm.toLowerCase();
     final matchingProviders = _userAuths
         .where((provider) =>
@@ -63,187 +155,68 @@ class UserAuthCubit extends Cubit<UserAuthState> {
         .toList();
 
     if (matchingProviders.isEmpty) {
-      // No exact or partial matches found
-      emit(const UserAuthSearchFailure(error: "Exact match not found"));
+      emit(const UserAuthSearchFailure(error: 'No matches found'));
     } else {
-      // Prioritize exact matches (if any)
       final exactMatch = matchingProviders.firstWhere(
-          (provider) => provider.authName.toLowerCase() == lowerCaseSearchTerm);
+        (provider) => provider.authName.toLowerCase() == lowerCaseSearchTerm,
+        orElse: () => matchingProviders.first,
+      );
 
-      // Emit UserProviderSearchSuccess only for exact match
       emit(UserAuthSearchSuccess(auth: exactMatch));
     }
   }
 
-  Future<void> submitUserAuth(
-      UserAuthModel userAuthModel, bool popularAuth) async {
-    try {
-      emit(UserAuthLoading());
-      final cleanAuthName = userAuthModel.authName.replaceAll(' ', '');
-
-      final userAuthFavicon = await getFaviconUrl(popularAuth, cleanAuthName);
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('auths')
-          .doc(cleanAuthName)
-          .set({
-        'authName': cleanAuthName,
-        'username': userAuthModel.username,
-        'password': userAuthModel.password,
-        "accountNumber": userAuthModel.accountNumber,
-
-        'note': userAuthModel.note, // Optional
-        'authLink': userAuthModel.authLink,
-        'authCategory': userAuthModel.authCategory.toString(),
-        'userAuthFavicon': userAuthFavicon,
-        'hasTransactionPassword': userAuthModel.hasTransactionPassword,
-        'transactionPassword': userAuthModel.transactionPassword, // Optional
-        'createdAt': userAuthModel.createdAt!.toIso8601String(),
-        'updatedAt': "", // Only date
-        'lastAccessed': "", // Only date, Optional
-        'tags': userAuthModel.tags ?? [],
-        'isFavorite': userAuthModel.isFavorite,
-        'mfaOptions': userAuthModel.mfaOptions?.toMap(), // Optional
-      });
-
-      emit(UserAuthSubmissionSuccess());
-      fetchUserAuths();
-    } catch (e) {
-      emit(UserAuthSubmissionFailure(error: e.toString()));
-    }
-  }
-
-  Future<void> editAuth(UserAuthModel userAuthModel) async {
-    try {
-      emit(UserAuthLoading());
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('auths')
-          .doc(userAuthModel.authName)
-          .update({
-        'authName': userAuthModel.authName,
-        'username': userAuthModel.username,
-        'password': userAuthModel.password,
-        "accountNumber":
-            userAuthModel.accountNumber ?? "", // Provide default if null
-        'note': userAuthModel.note ?? "", // Optional field
-        'authLink': userAuthModel.authLink, // Optional field
-        'authCategory': userAuthModel.authCategory.toString(),
-        'userAuthFavicon': userAuthModel.userAuthFavicon, // Optional field
-        'hasTransactionPassword':
-            userAuthModel.hasTransactionPassword, // Default to false if null
-        'transactionPassword':
-            userAuthModel.transactionPassword ?? "", // Optional field
-        'createdAt': userAuthModel.createdAt?.toIso8601String() ??
-            "", // Null check with default
-        'updatedAt': userAuthModel.updatedAt?.toIso8601String() ??
-            "", // Null check with default
-        'lastAccessed': userAuthModel.lastAccessed?.toIso8601String() ??
-            "", // Null check with default
-        'tags': userAuthModel.tags ?? [], // Default to empty list if null
-        'isFavorite': userAuthModel.isFavorite, // Default to false if null
-        'mfaOptions':
-            userAuthModel.mfaOptions?.toMap() ?? {}, // Handle null map case
-      });
-      emit(UserAuthSubmissionSuccess());
-    } catch (e) {
-      emit(UserAuthSubmissionFailure(error: e.toString()));
-    }
-  }
-
-  Future<void> updateAuthLastAccessed(
-      String authName, DateTime lastAccessed) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('auths')
-        .doc(authName)
-        .update({'lastAccessed': lastAccessed.toIso8601String()});
-  }
-
-  Future<void> deleteProvider(String userAuthId) async {
-    try {
-      emit(UserAuthLoading());
-
-      // Delete the provider document from Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('auths')
-          .doc(userAuthId)
-          .delete();
-
-      emit(UserAuthDeletedSuccess());
-    } catch (e) {
-      emit(UserAuthDeletedFailure(error: e.toString()));
-    }
-  }
-
   void clearUserData() {
-    emit(UserAuthInitial()); // Reset to initial state
+    _userAuths.clear();
+    emit(UserAuthInitial());
   }
-}
 
-Future<String?> getFaviconUrl(bool popularAuth, String authName) async {
-  try {
-    // Clean the authName by removing any spaces
-    final cleanAuthName = authName.replaceAll(' ', '');
+  Future<String?> _getFaviconUrl(bool popularAuth, String authName) async {
+    try {
+      final cleanAuthName = authName.replaceAll(' ', '');
 
-    if (popularAuth) {
-      // Check predefined popular providers in Firebase
-      final snapshot =
-          await FirebaseFirestore.instance.collection('popularAuths').get();
+      if (popularAuth) {
+        final snapshot = await _firestore.collection('popularAuths').get();
+        final auths = snapshot.docs
+            .map((doc) => PopularAuthModel.fromMap(doc.data()))
+            .toList();
 
-      final auth = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return PopularAuthModel.fromMap({
-          'authName': data['authName'] ?? '',
-          'authLink': data['authLink'] ?? '',
-          'authCategory':
-              data['authCategory'] ?? AuthCategory.others.toString(),
-          'authFavicon': data['authFavicon'],
-          'description': data['description'] ?? '',
-          'tags': data['tags'] ?? []
-        });
-      }).toList();
-
-      for (var auth in auth) {
-        if (auth.authName.toLowerCase().contains(cleanAuthName.toLowerCase())) {
-          return auth.authFavicon; // Return the favicon URL if found
+        for (final auth in auths) {
+          if (auth.authName
+              .toLowerCase()
+              .contains(cleanAuthName.toLowerCase())) {
+            return auth.authFavicon;
+          }
         }
       }
-    }
 
-    // Use Favicon API for fallback
-    String faviconLink =
-        "https://api.statvoo.com/favicon/${cleanAuthName.toLowerCase()}.com";
-    if (await _isValidUrl(faviconLink)) {
-      return faviconLink;
-    }
+      final faviconLinks = [
+        "https://api.statvoo.com/favicon/${cleanAuthName.toLowerCase()}.com",
+        "https://icons.duckduckgo.com/ip3/${cleanAuthName.toLowerCase()}.com.ico",
+      ];
 
-    // Try DuckDuckGo Favicon API as another fallback
-    faviconLink =
-        "https://icons.duckduckgo.com/ip3/${cleanAuthName.toLowerCase()}.com.ico";
-    if (await _isValidUrl(faviconLink)) {
-      return faviconLink;
-    }
+      for (final link in faviconLinks) {
+        if (await _isValidUrl(link)) return link;
+      }
 
-    // If no favicon is found
-    return null;
-  } catch (e) {
-    return null; // Return null in case of errors
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
-}
 
-/// Helper function to validate URL
-Future<bool> _isValidUrl(String url) async {
-  try {
-    final response = await http.head(Uri.parse(url));
-    return response.statusCode == 200;
-  } catch (e) {
-    return false;
+  Future<bool> _isValidUrl(String url) async {
+    try {
+      final response = await _httpClient.head(Uri.parse(url));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    // Log errors (e.g., using Crashlytics or Sentry)
+    super.onError(error, stackTrace);
   }
 }

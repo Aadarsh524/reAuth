@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
@@ -20,6 +22,21 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool verifiedEmail = false;
   List<String> allPasswords = [];
+  User? user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkEmailVerification();
+  }
+
+  Future<void> _checkEmailVerification() async {
+    bool verified = await BlocProvider.of<AuthenticationCubit>(context)
+        .checkEmailVerification(user!);
+    setState(() {
+      verifiedEmail = verified;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +44,13 @@ class _ProfilePageState extends State<ProfilePage> {
     BlocProvider.of<UserAuthCubit>(context).fetchUserAuths();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF212C3C), // A deep blue-grey background
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF212C3C),
         centerTitle: true,
         title: Text(
           "Profile",
           style: GoogleFonts.karla(
             color: Colors.white,
-            fontSize: 25,
+            fontSize: 24,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.75,
           ),
@@ -65,10 +79,22 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, profileState) {
+          if (profileState is ProfileLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (profileState is ProfileLoadingError) {
+            return Center(
+              child: Text(
+                "Error on Loading Profile",
+                style: GoogleFonts.karla(
+                  color: Colors.red,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            );
+          }
           if (profileState is ProfileLoaded) {
-            verifiedEmail = profileState.profile.isEmailVerified;
-            String profileImage = profileState.profile.profileImage;
-
             return BlocBuilder<UserAuthCubit, UserAuthState>(
               builder: (context, userProviderState) {
                 if (userProviderState is UserAuthLoadSuccess) {
@@ -84,206 +110,279 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   return SingleChildScrollView(
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Profile Picture with a gradient background
-                          profileImage != ''
-                              ? Container(
-                                  width: 100,
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.blue.shade400,
-                                        Colors.blue.shade600
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    image: DecorationImage(
-                                      image: CachedNetworkImageProvider(
-                                          profileImage),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                )
-                              : const CircleAvatar(
-                                  radius: 50,
-                                  backgroundImage:
-                                      AssetImage('assets/defaultAvatar.png'),
-                                ),
+                          _buildProfileHeader(profileState),
                           const SizedBox(height: 15),
-                          Text(
-                            profileState.profile.fullname,
-                            style: GoogleFonts.karla(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          _buildVerificationSection(),
+                          const SizedBox(height: 20),
+                          _buildSecurityOverview(
+                            totalPasswords,
+                            strongPasswordsCount,
+                            weakPasswordsCount,
                           ),
-                          const SizedBox(height: 5),
-
-                          Text(
-                            profileState.profile.email,
-                            style: GoogleFonts.karla(
-                              color: Colors.grey[400],
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          verifiedEmail
-                              ? Center(
-                                  child: _buildVerificationStatus(
-                                    status: "Verified",
-                                    color: Colors.green,
-                                    icon: Icons.check_circle,
-                                  ),
-                                )
-                              : Column(
-                                  children: [
-                                    Center(
-                                      child: _buildVerificationStatus(
-                                        status: "Not Verified",
-                                        color: Colors.red,
-                                        icon: Icons.cancel,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const EmailVerificationPage(),
-                                          ),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.email, size: 20),
-                                      label: const Text(
-                                        "Verify Now",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                          const SizedBox(height: 30),
-                          _buildProfileCard(
-                            totalPasswords.toString(),
-                            "Saved Passwords",
-                            Icons.lock,
-                          ),
-                          const SizedBox(height: 30),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildProfileCard(
-                                strongPasswordsCount.toString(),
-                                "Strong",
-                                Icons.security,
-                              ),
-                              _buildProfileCard(
-                                weakPasswordsCount.toString(),
-                                "Weak",
-                                Icons.warning,
-                              ),
-                            ],
-                          ),
+                          const SizedBox(height: 40),
                         ],
                       ),
                     ),
                   );
                 }
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFF6AABC0),
-                  ),
-                );
+                return const Center(child: CircularProgressIndicator());
               },
             );
           }
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF6AABC0),
-            ),
-          );
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );
   }
 
-  Widget _buildVerificationStatus({
-    required String status,
-    required Color color,
-    required IconData icon,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          status,
-          style: GoogleFonts.karla(
-            color: color,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+  Widget _buildProfileHeader(ProfileLoaded profileState) {
+    return Container(
+      padding: const EdgeInsets.only(top: 25),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 45,
+            backgroundImage: profileState.profile.profileImage.isNotEmpty
+                ? CachedNetworkImageProvider(profileState.profile.profileImage)
+                : const AssetImage('assets/defaultAvatar.png') as ImageProvider,
+            backgroundColor: Colors.transparent,
           ),
+          const SizedBox(height: 15),
+          Text(
+            profileState.profile.fullName,
+            style: GoogleFonts.karla(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            profileState.profile.email,
+            style: GoogleFonts.karla(
+              color: Colors.grey[400],
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerificationSection() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          colors: verifiedEmail
+              ? [
+                  Colors.green.withOpacity(0.1),
+                  Colors.grey.withOpacity(0.1),
+                  Colors.green.withOpacity(0.1),
+                ]
+              : [
+                  Colors.red.withOpacity(0.3),
+                  Colors.red.withOpacity(0.2),
+                  Colors.green.withOpacity(0.1)
+                ],
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+            vertical: verifiedEmail ? 12 : 8,
+            horizontal: verifiedEmail ? 0 : 16),
+        child: Row(
+          mainAxisAlignment: verifiedEmail
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  verifiedEmail ? Icons.verified : Icons.warning_rounded,
+                  color: verifiedEmail ? Colors.green : Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  verifiedEmail ? "Verified Account" : "Unverified Account",
+                  style: GoogleFonts.karla(
+                    color: verifiedEmail ? Colors.green : Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            if (!verifiedEmail) ...[
+              ElevatedButton.icon(
+                icon: const Icon(Icons.mail_outline, size: 16),
+                label: const Text("Verify", style: TextStyle(fontSize: 14)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EmailVerificationPage(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecurityOverview(int total, int strong, int weak) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Security Overview",
+          style: GoogleFonts.karla(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 15),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 1.05,
+          ),
+          itemCount: 4,
+          itemBuilder: (context, index) {
+            switch (index) {
+              case 0:
+                return _buildStatCard(
+                  title: "Total Passwords",
+                  value: total.toString(),
+                  icon: Icons.lock_outlined,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.blue.shade400,
+                      Colors.blue.shade600,
+                    ],
+                  ),
+                );
+              case 1:
+                return _buildStatCard(
+                  title: "Strong Passwords",
+                  value: strong.toString(),
+                  icon: Icons.security_rounded,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.green.shade400,
+                      Colors.green.shade600,
+                    ],
+                  ),
+                );
+              case 2:
+                return _buildStatCard(
+                  title: "Weak Passwords",
+                  value: weak.toString(),
+                  icon: Icons.warning_amber_rounded,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.orange.shade400,
+                      Colors.orange.shade600,
+                    ],
+                  ),
+                );
+              default:
+                return _buildStatCard(
+                  title: "Last Updated",
+                  value: "Today",
+                  icon: Icons.update_rounded,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.purple.shade300,
+                      Colors.purple.shade500,
+                    ],
+                  ),
+                );
+            }
+          },
         ),
       ],
     );
   }
 
-  Widget _buildProfileCard(String count, String label, IconData icon) {
-    return Card(
-      color: const Color(0xFF2A3241),
-      elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Gradient gradient,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: gradient,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          )
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: label == "Weak" ? Colors.red : const Color(0xFF6AABC0),
-              size: 30,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              count,
-              style: GoogleFonts.karla(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
               ),
+              child: Icon(icon, color: Colors.white, size: 24),
             ),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              style: GoogleFonts.karla(
-                color: Colors.grey[400],
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.karla(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: GoogleFonts.karla(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

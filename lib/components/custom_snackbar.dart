@@ -2,30 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CustomSnackbar {
-  final String message;
-  final bool isError; // Flag to indicate if the message is an error
+  static const _defaultDuration = Duration(milliseconds: 2500);
+  static const _backgroundColor = Color.fromARGB(255, 53, 64, 79);
+  static const _errorColor = Colors.red;
+  static const _defaultColor = Colors.white;
+  static const _padding = EdgeInsets.symmetric(vertical: 16, horizontal: 20);
+  static const _borderRadius = BorderRadius.zero; // Keep rectangular shape
+  static const _elevation = 4.0;
 
-  CustomSnackbar(this.message, {this.isError = false});
+  static TextStyle get _textStyle => GoogleFonts.karla(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      );
 
-  void showCustomSnackbar(BuildContext context) {
+  static void show(
+    BuildContext context, {
+    required String message,
+    bool isError = false,
+  }) {
+    final textColor = isError ? _errorColor : _defaultColor;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        backgroundColor: const Color.fromARGB(255, 53, 64, 79),
-        duration: const Duration(milliseconds: 2500),
-        elevation: 4, // Added elevation for a card-like appearance
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        padding: _padding,
+        backgroundColor: _backgroundColor,
+        duration: _defaultDuration,
+        elevation: _elevation,
+        shape: const RoundedRectangleBorder(borderRadius: _borderRadius),
         content: Text(
           message,
-          style: GoogleFonts.karla(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isError
-                ? Colors.red
-                : Colors.white, // Change color based on isError
-          ),
+          style: _textStyle.copyWith(color: textColor),
         ),
       ),
     );

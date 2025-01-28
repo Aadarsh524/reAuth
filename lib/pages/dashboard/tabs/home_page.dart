@@ -10,7 +10,7 @@ import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/auths_card.dart';
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/popularprovider_card.dart';
+import 'package:reauth/components/popular_auth_card.dart';
 import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
@@ -26,7 +26,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isSearchHasValue = false;
   TextEditingController searchController = TextEditingController();
-  CustomSnackbar customSnackbar = CustomSnackbar('');
+
   String profileImage = '';
 
   @override
@@ -203,14 +203,16 @@ class _HomePageState extends State<HomePage> {
                   child: BlocConsumer<UserAuthCubit, UserAuthState>(
                     listener: (context, state) {
                       if (state is UserAuthLoadFailure) {
-                        customSnackbar = CustomSnackbar(
-                            "Failed to load user providers: ${state.error}");
-                        customSnackbar.showCustomSnackbar(context);
+                        CustomSnackbar.show(
+                          context,
+                          message:
+                              "Failed to load user providers: ${state.error}",
+                          isError: true,
+                        );
                       }
                     },
                     builder: (context, state) {
-                      if (state is UserAuthLoading ||
-                          state is UserAuthSearching) {
+                      if (state is UserAuthLoading) {
                         return const Center(
                           child: CircularProgressIndicator(
                             color: Color.fromARGB(255, 106, 172, 191),
@@ -226,9 +228,12 @@ class _HomePageState extends State<HomePage> {
                               PopularAuthState>(
                             listener: (context, state) {
                               if (state is PopularAuthLoadFailure) {
-                                customSnackbar = CustomSnackbar(
-                                    "Failed to load popular providers: ${state.error}");
-                                customSnackbar.showCustomSnackbar(context);
+                                CustomSnackbar.show(
+                                  context,
+                                  message:
+                                      "Failed to load user providers: ${state.error}",
+                                  isError: true,
+                                );
                               }
                             },
                             builder: (context, state) {
@@ -354,7 +359,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPopularProviders(BuildContext context) {
-    CustomSnackbar customSnackbar = CustomSnackbar('');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -372,9 +376,11 @@ class _HomePageState extends State<HomePage> {
           child: BlocConsumer<PopularAuthCubit, PopularAuthState>(
             listener: (context, state) {
               if (state is PopularAuthLoadFailure) {
-                customSnackbar = CustomSnackbar(
-                    "Failed to load popular providers: ${state.error}");
-                customSnackbar.showCustomSnackbar(context);
+                CustomSnackbar.show(
+                  context,
+                  message: "Failed to load user providers: ${state.error}",
+                  isError: true,
+                );
               }
             },
             builder: (context, state) {

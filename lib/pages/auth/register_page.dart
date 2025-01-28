@@ -21,16 +21,21 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  bool isPasswordVisible = false; // Initially set to false
-  bool isConfirmPasswordVisible = false; // Initially set to false
-  CustomSnackbar customSnackbar = CustomSnackbar('');
+  bool isPasswordVisible = false;
+  bool isConfirmPasswordVisible = false;
+
+  // Constants for colors and styles
+  static const Color textColor = Color.fromARGB(255, 255, 255, 255);
+  static const Color primaryColor = Color.fromARGB(255, 106, 172, 191);
+  static const Color secondaryTextColor = Color.fromARGB(255, 125, 125, 125);
 
   @override
   Widget build(BuildContext context) {
     final authCubit = BlocProvider.of<AuthenticationCubit>(context);
+
     return Scaffold(
       backgroundColor:
-          Theme.of(context).scaffoldBackgroundColor, // Set background color
+          Theme.of(context).scaffoldBackgroundColor, // Change background color
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -43,8 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Text(
                     "ReAuth",
                     style: GoogleFonts.karla(
-                      color: const Color.fromARGB(
-                          255, 125, 125, 125), // Set text color
+                      color: secondaryTextColor,
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
                     ),
@@ -57,8 +61,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         "Create an Account",
                         style: GoogleFonts.karla(
-                          color: const Color.fromARGB(
-                              255, 255, 255, 255), // Set text color
+                          color: textColor,
                           fontSize: 20,
                           fontWeight: FontWeight.w500,
                         ),
@@ -80,13 +83,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       CustomTextField(
                         isRequired: true,
-
                         isFormTypePassword: true,
                         keyboardType: TextInputType.visiblePassword,
                         controller: passwordController,
                         hintText: 'Enter your password',
                         labelText: 'Password',
-                        obscureText: !isPasswordVisible, // Inverted value
+                        obscureText: !isPasswordVisible,
                         passwordVisibility: (e) {
                           setState(() {
                             isPasswordVisible = !isPasswordVisible;
@@ -95,14 +97,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       CustomTextField(
                         isRequired: true,
-
                         isFormTypePassword: true,
                         keyboardType: TextInputType.visiblePassword,
                         controller: confirmPasswordController,
                         hintText: 'Confirm your password',
                         labelText: 'Confirm Password',
-                        obscureText:
-                            !isConfirmPasswordVisible, // Inverted value
+                        obscureText: !isConfirmPasswordVisible,
                         passwordVisibility: (e) {
                           setState(() {
                             isConfirmPasswordVisible =
@@ -113,10 +113,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       const SizedBox(height: 40),
                       BlocConsumer<AuthenticationCubit, AuthenticationState>(
                         listener: (context, state) {
-                          if (state is RegisterSuccess) {
-                            customSnackbar =
-                                CustomSnackbar("Registration Success");
-                            customSnackbar.showCustomSnackbar(context);
+                          if (state is RegistrationSuccess) {
+                            CustomSnackbar.show(
+                              context,
+                              message: "Registration Success",
+                            );
 
                             Navigator.pushReplacement(
                               context,
@@ -124,49 +125,75 @@ class _RegisterPageState extends State<RegisterPage> {
                                 builder: (context) => const LoginPage(),
                               ),
                             );
-                          }
-                          if (state is RegisterSubmissionFailure) {
-                            customSnackbar = CustomSnackbar(state.error);
-                            customSnackbar.showCustomSnackbar(context);
-                          }
-                          if (state is RegisterFailure) {
-                            customSnackbar = CustomSnackbar(state.error);
-                            customSnackbar.showCustomSnackbar(context);
+                          } else if (state is AuthError) {
+                            String errorMessage = state.message;
+
+                            // Handle specific error types
+                            if (state.errorType == AuthErrorType.login) {
+                              CustomSnackbar.show(
+                                context,
+                                message: errorMessage,
+                                isError: true,
+                              );
+                            }
+                          } else if (state is ValidationError) {
+                            CustomSnackbar.show(
+                              context,
+                              message: state.error,
+                              isError: true,
+                            );
+                            // }
                           }
                         },
                         builder: (context, state) {
-                          if (state is AuthenticationLoading) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Color.fromARGB(
-                                    255, 106, 172, 191), // Set color
+                          if (state is LoginInProgress ||
+                              state is AuthenticationLoading) {
+                            return SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed:
+                                    null, // Disable button during loading
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
                             );
                           }
+
                           return SizedBox(
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                    255, 106, 172, 191), // Set button color
+                                backgroundColor: primaryColor,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                               onPressed: () {
-                                authCubit.initiateRegister(
-                                  fullNameController.text,
-                                  emailController.text,
-                                  passwordController.text,
-                                  confirmPasswordController.text,
+                                authCubit.register(
+                                  fullName: fullNameController.text.trim(),
+                                  email: emailController.text.trim(),
+                                  password: passwordController.text.trim(),
+                                  confirmPassword:
+                                      confirmPasswordController.text.trim(),
                                 );
                               },
-                              child: const Text(
+                              child: Text(
                                 'Register',
-                                style: TextStyle(
+                                style: GoogleFonts.karla(
                                   color: Colors.white,
                                   fontSize: 18,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -184,7 +211,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         "Already have an account? ",
                         style: GoogleFonts.karla(
-                          color: Colors.black, // Set text color
+                          color: secondaryTextColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
@@ -201,8 +228,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text(
                           "Login",
                           style: GoogleFonts.karla(
-                            color: const Color.fromARGB(
-                                255, 255, 255, 255), // Set text color
+                            color: textColor,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),

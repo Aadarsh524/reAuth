@@ -1,89 +1,116 @@
 import 'package:reauth/constants/auth_category.dart';
 
 class UserAuthModel {
-  String username;
-  String password;
-  String? note; // Made optional
-  String authLink;
-  AuthCategory authCategory; // Changed to enum
-  String userAuthFavicon; // Made optional for custom icons
-  String authName;
-  String? accountNumber;
+  // Required fields
+  final String username;
+  final String authName;
+  final String password;
+  final String authLink;
+  final AuthCategory authCategory;
 
-  String?
-      transactionPassword; // Optional for providers with transaction passwords
-  bool hasTransactionPassword;
-  DateTime? createdAt; // Nullable field for record creation timestamp
-  DateTime? updatedAt; // Nullable field for last update timestamp
-  DateTime? lastAccessed; // Nullable field for tracking last usage
-  List<String>? tags; // Optional tags for categorization
-  bool isFavorite; // Flag for marking favorite providers
-  MFAOptions? mfaOptions; // Optional multi-factor authentication configuration
+  // Optional fields
+  final String? note;
+  final String? accountNumber;
+  final String? transactionPassword;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  late final DateTime? lastAccessed;
+  final List<String>? tags;
+  final MFAOptions? mfaOptions;
+
+  // Flags and auxiliary fields
+  final bool hasTransactionPassword;
+  final bool isFavorite;
+  final String? userAuthFavicon;
 
   UserAuthModel({
     required this.username,
     required this.authName,
     required this.password,
-    this.note,
-    this.accountNumber,
     required this.authLink,
     required this.authCategory,
-    required this.userAuthFavicon,
+    this.note,
+    this.accountNumber,
     this.transactionPassword,
-    required this.hasTransactionPassword,
     this.createdAt,
     this.updatedAt,
     this.lastAccessed,
     this.tags,
-    required this.isFavorite,
     this.mfaOptions,
+    required this.hasTransactionPassword,
+    required this.isFavorite,
+    this.userAuthFavicon,
   });
 
+  /// Factory constructor to create an instance from a map
   factory UserAuthModel.fromMap(Map<String, dynamic> map) {
     return UserAuthModel(
       authName: map['authName'] ?? '',
       username: map['username'] ?? '',
       password: map['password'] ?? '',
-      note: map['note'],
       authLink: map['authLink'] ?? '',
-      accountNumber: map['accountNumber'],
       authCategory: AuthCategory.values.firstWhere(
         (e) => e.toString() == map['authCategory'],
         orElse: () => AuthCategory.others,
       ),
-      userAuthFavicon: map['userAuthFavicon'] ?? '',
+      note: map['note'],
+      accountNumber: map['accountNumber'],
       transactionPassword: map['transactionPassword'],
-      hasTransactionPassword: map['hasTransactionPassword'] ?? false,
-      createdAt: map['createdAt'] != null && map['createdAt'] != ''
-          ? DateTime.tryParse(map['createdAt'])
-          : null,
-      updatedAt: map['updatedAt'] != null && map['updatedAt'] != ''
-          ? DateTime.tryParse(map['updatedAt'])
-          : null,
-      lastAccessed: map['lastAccessed'] != null && map['lastAccessed'] != ''
+      createdAt:
+          map['createdAt'] != null ? DateTime.tryParse(map['createdAt']) : null,
+      updatedAt:
+          map['updatedAt'] != null ? DateTime.tryParse(map['updatedAt']) : null,
+      lastAccessed: map['lastAccessed'] != null
           ? DateTime.tryParse(map['lastAccessed'])
           : null,
-      tags: (map['tags'] ?? []).cast<String>(),
+      tags: (map['tags'] as List?)?.cast<String>(),
+      hasTransactionPassword: map['hasTransactionPassword'] ?? false,
       isFavorite: map['isFavorite'] ?? false,
+      userAuthFavicon: map['userAuthFavicon'],
       mfaOptions: map['mfaOptions'] != null
           ? MFAOptions.fromMap(map['mfaOptions'])
           : null,
     );
   }
+
+  /// Method to convert the instance into a map
+  Map<String, dynamic> toMap() {
+    return {
+      'authName': authName,
+      'username': username,
+      'password': password,
+      'authLink': authLink,
+      'authCategory': authCategory.toString(),
+      'note': note,
+      'accountNumber': accountNumber,
+      'transactionPassword': transactionPassword,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'lastAccessed': lastAccessed?.toIso8601String(),
+      'tags': tags,
+      'hasTransactionPassword': hasTransactionPassword,
+      'isFavorite': isFavorite,
+      'userAuthFavicon': userAuthFavicon,
+      'mfaOptions': mfaOptions?.toMap(),
+    };
+  }
 }
 
 class MFAOptions {
-  String? otpKey;
-  String? recoveryCodes; // Serialized format for recovery codes
+  final String? otpKey;
+  final List<String>? recoveryCodes;
+
   MFAOptions({this.otpKey, this.recoveryCodes});
 
+  /// Factory constructor to create an instance from a map
   factory MFAOptions.fromMap(Map<String, dynamic> map) {
     return MFAOptions(
       otpKey: map['otpKey'],
-      recoveryCodes: map['recoveryCodes'],
+      recoveryCodes: (map['recoveryCodes'] as List?)?.cast<String>(),
     );
   }
 
+  /// Method to convert the instance into a map
   Map<String, dynamic> toMap() {
     return {
       'otpKey': otpKey,

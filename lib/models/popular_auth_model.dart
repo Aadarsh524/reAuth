@@ -14,9 +14,10 @@ class PopularAuthModel {
     required this.authCategory,
     required this.authFavicon,
     this.authDescription,
-    this.tags, // Optional tags for categorization
+    this.tags,
   });
 
+  /// Factory constructor to create a PopularAuthModel instance from a map
   factory PopularAuthModel.fromMap(Map<String, dynamic> map) {
     return PopularAuthModel(
       authName: map['authName'] ?? '', // Default to empty string if null
@@ -25,9 +26,21 @@ class PopularAuthModel {
         (e) => e.toString() == map['authCategory'],
         orElse: () => AuthCategory.others, // Handle unknown categories
       ),
-      authFavicon: map['authFavicon'], // Handle optional field
-      authDescription: map['authDescription'], // Handle optional field
+      authFavicon: map['authFavicon'] ?? '', // Default to empty string if null
+      authDescription: map['authDescription'], // Optional field
       tags: map['tags']?.cast<String>(), // Cast to a list of strings
     );
+  }
+
+  /// Converts the PopularAuthModel instance to a map
+  Map<String, dynamic> toMap() {
+    return {
+      'authName': authName,
+      'authLink': authLink,
+      'authCategory': authCategory.toString(),
+      'authFavicon': authFavicon,
+      'authDescription': authDescription,
+      'tags': tags,
+    };
   }
 }

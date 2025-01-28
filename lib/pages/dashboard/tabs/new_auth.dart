@@ -1,11 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/cubit/popular_auth_cubit.dart';
 import 'package:reauth/bloc/states/popular_provider_state.dart';
 
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/popularprovider_card.dart';
+import 'package:reauth/components/popular_auth_card.dart';
 import 'package:reauth/pages/add_auth_page.dart';
 
 class NewAuthPage extends StatefulWidget {
@@ -18,7 +20,8 @@ class NewAuthPage extends StatefulWidget {
 class _NewProviderPageState extends State<NewAuthPage> {
   bool isSearchHasValue = false;
   TextEditingController searchController = TextEditingController();
-  CustomSnackbar customSnackbar = CustomSnackbar('');
+
+  User? user = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
@@ -84,12 +87,25 @@ class _NewProviderPageState extends State<NewAuthPage> {
                                     color: Color.fromARGB(255, 106, 172, 191)),
                                 backgroundColor:
                                     const Color.fromARGB(255, 106, 172, 191)),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const AddAuthPage(),
-                                ),
-                              );
+                            onPressed: () async {
+                              final authCubit =
+                                  context.read<AuthenticationCubit>();
+                              bool isUserVerified =
+                                  await authCubit.checkEmailVerification(
+                                      user!); // Dispatch verification check
+                              if (isUserVerified) {
+                                // ignore: use_build_context_synchronously
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const AddAuthPage(),
+                                  ),
+                                );
+                              } else {
+                                CustomSnackbar.show(context,
+                                    message:
+                                        "You need to verify your email first.",
+                                    isError: true);
+                              }
                             },
                             child: const Icon(
                               Icons.add_circle,
@@ -157,9 +173,10 @@ class _NewProviderPageState extends State<NewAuthPage> {
                     child: BlocConsumer<PopularAuthCubit, PopularAuthState>(
                       listener: (context, state) {
                         if (state is PopularAuthLoadFailure) {
-                          customSnackbar = CustomSnackbar(
-                              "Failed to load popular providers: ${state.error}");
-                          customSnackbar.showCustomSnackbar(context);
+                          CustomSnackbar.show(context,
+                              message:
+                                  "Failed to load popular providers: ${state.error}",
+                              isError: true);
                         }
                       },
                       builder: (context, state) {

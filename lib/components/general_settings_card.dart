@@ -2,106 +2,113 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
-  const GeneralSettingsCard({Key? key}) : super(key: key);
+  const GeneralSettingsCard({super.key});
 
   @override
   State<GeneralSettingsCard> createState() => _GeneralSettingsCardState();
 }
 
 class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
+  static const _panelBackgroundColor = Color.fromARGB(255, 50, 60, 75);
+  static const _textColor = Colors.white;
+  static const _iconSize = 20.0;
+  static const _animationDuration = Duration(milliseconds: 300);
+  static const _verticalPadding = EdgeInsets.symmetric(vertical: 5);
+  static const _contentPadding =
+      EdgeInsets.symmetric(horizontal: 20, vertical: 5);
+  static const _itemPadding = EdgeInsets.symmetric(vertical: 12);
+  static const _iconSpacing = SizedBox(width: 16);
+
+  static TextStyle get _headerStyle => GoogleFonts.karla(
+        color: _textColor,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+      );
+
+  static TextStyle get _itemStyle => GoogleFonts.karla(
+        color: _textColor,
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+      );
+
   bool _isGeneralExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+      padding: _verticalPadding,
       child: ExpansionPanelList(
         elevation: 0,
         expandedHeaderPadding: EdgeInsets.zero,
         dividerColor: Colors.transparent,
-        animationDuration: const Duration(milliseconds: 300),
-        expansionCallback: (int index, bool isExpanded) {
-          setState(() {
-            _isGeneralExpanded = !_isGeneralExpanded;
-          });
-        },
-        children: [
-          ExpansionPanel(
-            backgroundColor: const Color.fromARGB(255, 50, 60, 75),
-            headerBuilder: (BuildContext context, bool isExpanded) {
-              return ListTile(
-                title: Text(
-                  "General Settings",
-                  style: GoogleFonts.karla(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              );
-            },
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-              child: Column(
-                children: [
-                  const Divider(),
-                  _buildSettingItem(
-                    icon: Icons.info,
-                    title: 'Password Generator',
-                    onTap: () {
-                      // Implement About functionality
-                    },
-                  ),
-                  _buildSettingItem(
-                    icon: Icons.feedback,
-                    title: 'Appearance Settings',
-                    onTap: () {
-                      // Implement Send Feedback functionality
-                    },
-                  ),
-                  _buildSettingItem(
-                    icon: Icons.help,
-                    title: 'Notifications Settings',
-                    onTap: () {
-                      // Implement Help functionality
-                    },
-                  ),
-                ],
-              ),
-            ),
-            isExpanded: _isGeneralExpanded,
-          ),
-        ],
+        animationDuration: _animationDuration,
+        expansionCallback: (_, __) =>
+            setState(() => _isGeneralExpanded = !_isGeneralExpanded),
+        children: [_buildExpansionPanel()],
       ),
     );
   }
 
-  Widget _buildSettingItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
+  ExpansionPanel _buildExpansionPanel() {
+    return ExpansionPanel(
+      backgroundColor: _panelBackgroundColor,
+      headerBuilder: _buildHeader,
+      body: _buildPanelBody(),
+      isExpanded: _isGeneralExpanded,
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, bool isExpanded) {
+    return ListTile(title: Text("General Settings", style: _headerStyle));
+  }
+
+  Widget _buildPanelBody() {
+    return Padding(
+      padding: _contentPadding,
+      child: Column(
+        children: [
+          const Divider(),
+          SettingsItem(
+              icon: Icons.password, title: 'Password Generator', onTap: () {}),
+          SettingsItem(
+              icon: Icons.palette, title: 'Appearance Settings', onTap: () {}),
+          SettingsItem(
+              icon: Icons.notifications,
+              title: 'Notifications Settings',
+              onTap: () {}),
+        ],
+      ),
+    );
+  }
+}
+
+class SettingsItem extends StatelessWidget {
+  const SettingsItem({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        padding: _GeneralSettingsCardState._itemPadding,
         child: Row(
           children: [
             Icon(
               icon,
-              color: Colors.white,
-              size: 20,
+              color: _GeneralSettingsCardState._textColor,
+              size: _GeneralSettingsCardState._iconSize,
             ),
-            const SizedBox(width: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Karla',
-              ),
-            ),
+            _GeneralSettingsCardState._iconSpacing,
+            Text(title, style: _GeneralSettingsCardState._itemStyle),
           ],
         ),
       ),

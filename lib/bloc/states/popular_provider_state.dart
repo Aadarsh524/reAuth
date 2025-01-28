@@ -30,17 +30,6 @@ class PopularAuthLoadFailure extends PopularAuthState {
   List<Object?> get props => [error];
 }
 
-class PopularAuthSubmissionSuccess extends PopularAuthState {}
-
-class PopularAuthSubmissionFailure extends PopularAuthState {
-  final String error;
-
-  const PopularAuthSubmissionFailure({required this.error});
-
-  @override
-  List<Object?> get props => [error];
-}
-
 class PopularAuthSearching extends PopularAuthState {}
 
 class PopularAuthSearchSuccess extends PopularAuthState {

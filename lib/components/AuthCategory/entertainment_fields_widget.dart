@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:reauth/components/custom_tags_field.dart';
 import 'package:reauth/components/custom_textfield.dart';
 
-class EntertainmentFieldsWidget extends StatelessWidget {
+class EntertainmentFieldsWidget extends StatefulWidget {
   final TextEditingController authNameController;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
@@ -11,7 +11,7 @@ class EntertainmentFieldsWidget extends StatelessWidget {
   final List<String> availableTags;
   final List<String> selectedTags;
   final Function(List<String>) onTagsUpdated;
-  final bool isUpdating; // New field to check updating state
+  final bool isUpdating; // Field to check updating state
 
   const EntertainmentFieldsWidget({
     Key? key,
@@ -22,15 +22,23 @@ class EntertainmentFieldsWidget extends StatelessWidget {
     required this.availableTags,
     required this.selectedTags,
     required this.onTagsUpdated,
-    required this.isUpdating, // Initialize this field
+    required this.isUpdating,
   }) : super(key: key);
+
+  @override
+  _EntertainmentFieldsWidgetState createState() =>
+      _EntertainmentFieldsWidgetState();
+}
+
+class _EntertainmentFieldsWidgetState extends State<EntertainmentFieldsWidget> {
+  bool isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         CustomTextField(
-          controller: authNameController,
+          controller: widget.authNameController,
           labelText: "Auth Name",
           hintText: "Enter Auth Name",
           keyboardType: TextInputType.text,
@@ -38,11 +46,11 @@ class EntertainmentFieldsWidget extends StatelessWidget {
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
           ],
           isRequired: true,
-          enabled: !isUpdating, // Disable if updating
+          enabled: !widget.isUpdating, // Disable if updating
         ),
         CustomTextField(
           isRequired: true,
-          controller: usernameController,
+          controller: widget.usernameController,
           labelText: "User Name",
           hintText: "Enter User Name",
           keyboardType: TextInputType.text,
@@ -50,22 +58,27 @@ class EntertainmentFieldsWidget extends StatelessWidget {
         ),
         CustomTextField(
           isRequired: true,
-          controller: passwordController,
+          controller: widget.passwordController,
           labelText: "Password",
           hintText: "Enter Password",
-          obscureText: true,
+          obscureText: !isPasswordVisible,
+          passwordVisibility: (e) {
+            setState(() {
+              isPasswordVisible = !isPasswordVisible;
+            });
+          },
           textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
         ),
         CustomTagsField(
-          availableTags: availableTags,
-          selectedTags: selectedTags,
+          availableTags: widget.availableTags,
+          selectedTags: widget.selectedTags,
           hintText: "Enter Tags",
           labelText: "Tags",
           isRequired: false,
-          onTagsUpdated: onTagsUpdated,
+          onTagsUpdated: widget.onTagsUpdated,
         ),
         CustomTextField(
-          controller: noteController,
+          controller: widget.noteController,
           labelText: "Note",
           hintText: "Enter Note",
           keyboardType: TextInputType.text,

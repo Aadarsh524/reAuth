@@ -40,6 +40,7 @@ class FinancialFieldsWidget extends StatefulWidget {
 
 class _FinancialFieldsWidgetState extends State<FinancialFieldsWidget> {
   bool hasTransactionPassword = false;
+  bool isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +71,11 @@ class _FinancialFieldsWidgetState extends State<FinancialFieldsWidget> {
           labelText: "Password",
           hintText: "Enter Password",
           obscureText: true,
+          passwordVisibility: (e) {
+            setState(() {
+              isPasswordVisible = !isPasswordVisible;
+            });
+          },
           textInputFormatter: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
         ),
         Row(
