@@ -31,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _checkEmailVerification() async {
     bool verified = await BlocProvider.of<AuthenticationCubit>(context)
-        .checkEmailVerification(user!);
+        .checkEmailVerification();
     setState(() {
       verifiedEmail = verified;
     });

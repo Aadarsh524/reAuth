@@ -46,10 +46,8 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  Future<void> editProfile(
-    String text, {
+  Future<void> updateProfile({
     required String fullname,
-    required String email,
     String? profileImage,
   }) async {
     try {
@@ -60,12 +58,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         emit(const ProfileUpdateError(error: 'User not authenticated'));
         return;
       }
-
-      await _firestore.collection('profiles').doc(currentUser.uid).set({
-        'fullname': fullname,
-        'email': email,
-        if (profileImage != null) 'profileImage': profileImage,
-      }, SetOptions(merge: true));
+      await _firestore.collection('profiles').doc(currentUser.uid).update({
+        'fullName': fullname,
+      });
 
       emit(ProfileUpdated());
     } catch (e, stackTrace) {

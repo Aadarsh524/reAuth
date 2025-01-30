@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/models/user_auth_model.dart';
-import 'package:reauth/pages/auth_detail_page.dart';
+import 'package:reauth/pages/dashboard/auth_detail_page.dart';
 
 class AuthsCard extends StatelessWidget {
   static const _cardColor = Color.fromARGB(255, 53, 64, 79);

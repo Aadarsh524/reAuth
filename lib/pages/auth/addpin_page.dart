@@ -65,10 +65,9 @@ class _AddPinPageState extends State<AddPinPage> {
                         builder: (context) => const DashboardPage(),
                       ),
                     );
-                  } else if (state is AuthError &&
-                      state.errorType == AuthErrorType.pinOperation) {
+                  } else if (state is AuthenticationError) {
                     CustomSnackbar.show(context,
-                        message: state.message, isError: true);
+                        message: state.error, isError: true);
                   }
                 },
                 builder: (context, state) {

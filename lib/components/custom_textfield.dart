@@ -13,7 +13,8 @@ class CustomTextField extends StatelessWidget {
   final Function(bool)? passwordVisibility;
   final Function(String)? onChanged;
   final bool isRequired;
-  final bool enabled; // New parameter to enable/disable editing
+  final bool enabled;
+  final FocusNode? focusNode; // Added focus node parameter
 
   const CustomTextField({
     Key? key,
@@ -27,7 +28,8 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.onChanged,
     required this.isRequired,
-    this.enabled = true, // Default is true to enable editing
+    this.enabled = true,
+    this.focusNode, // Added to constructor
   }) : super(key: key);
 
   @override
@@ -63,13 +65,14 @@ class CustomTextField extends StatelessWidget {
           SizedBox(
             height: 50,
             child: TextFormField(
+              focusNode: focusNode, // Connect focus node to TextFormField
               inputFormatters: textInputFormatter,
               controller: controller,
               obscureText: obscureText,
               keyboardType: keyboardType,
               cursorColor: Colors.white,
               onChanged: onChanged,
-              enabled: enabled, // Use the new `enabled` property
+              enabled: enabled,
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: const TextStyle(

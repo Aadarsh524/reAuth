@@ -8,7 +8,6 @@ import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/custom_textfield.dart';
 
 import 'package:reauth/components/password_suggestion.dart';
-import 'package:reauth/constants/auth_category.dart';
 import 'package:reauth/models/user_auth_model.dart';
 
 import 'package:reauth/utils/strength_checker.dart';
@@ -54,15 +53,15 @@ class _SecurityPageState extends State<SecurityPage>
     });
   }
 
-  void classifyPasswords(List<UserAuthModel> providers) {
+  void classifyPasswords(List<UserAuthModel> auths) {
     strongPasswords.clear();
     weakPasswords.clear();
 
-    for (var provider in providers) {
-      if (checkPasswordStrength(provider.password) >= 3) {
-        strongPasswords.add(provider);
+    for (var auth in auths) {
+      if (checkPasswordStrength(auth.password) >= 3) {
+        strongPasswords.add(auth);
       } else {
-        weakPasswords.add(provider);
+        weakPasswords.add(auth);
       }
     }
   }
@@ -87,7 +86,7 @@ class _SecurityPageState extends State<SecurityPage>
                 );
               } else if (state is UserAuthLoadSuccess) {
                 allPasswords =
-                    state.auths.map((provider) => provider.password).toList();
+                    state.auths.map((auth) => auth.password).toList();
 
                 classifyPasswords(state.auths);
 
@@ -180,16 +179,22 @@ class _SecurityPageState extends State<SecurityPage>
                 return Center(
                   child: Text(
                     state.error,
-                    style: const TextStyle(color: Colors.red),
+                    style: GoogleFonts.karla(
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 );
               }
-              return Text("No Provider Added",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.karla(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ));
+              return Center(
+                child: Text("No auth Added",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.karla(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    )),
+              );
             },
           ),
         ),
@@ -197,7 +202,7 @@ class _SecurityPageState extends State<SecurityPage>
     );
   }
 
-  Widget _buildPasswordsList(List<UserAuthModel> providers, int passwordCount,
+  Widget _buildPasswordsList(List<UserAuthModel> auths, int passwordCount,
       {required bool isStrong}) {
     if (passwordCount == 0) {
       return Center(
@@ -224,9 +229,9 @@ class _SecurityPageState extends State<SecurityPage>
     return Padding(
       padding: const EdgeInsets.only(top: 20.0),
       child: ListView.builder(
-        itemCount: providers.length,
+        itemCount: auths.length,
         itemBuilder: (context, index) {
-          final provider = providers[index];
+          final auth = auths[index];
           final color = isStrong ? Colors.green : Colors.red;
           final strengthText = isStrong ? "Strong" : "Weak";
 
@@ -239,7 +244,7 @@ class _SecurityPageState extends State<SecurityPage>
             child: ListTile(
               trailing: IconButton(
                 onPressed: () {
-                  _showChangePasswordDialog(context, provider);
+                  _showChangePasswordDialog(context, auth);
                 },
                 icon: const Icon(
                   Icons.more_vert,
@@ -250,7 +255,7 @@ class _SecurityPageState extends State<SecurityPage>
                 width: 50,
                 height: 50,
                 child: CachedNetworkImage(
-                  imageUrl: provider.userAuthFavicon!,
+                  imageUrl: auth.userAuthFavicon!,
                   height: 60,
                   fit: BoxFit.contain,
                   errorWidget: (context, url, error) => Image.asset(
@@ -261,16 +266,19 @@ class _SecurityPageState extends State<SecurityPage>
                 ),
               ),
               title: Text(
-                provider.authName.toUpperCase(),
-                style: const TextStyle(color: Colors.white),
+                auth.authName.toUpperCase(),
+                style: GoogleFonts.karla(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               subtitle: Text(
                 "Strength: $strengthText",
-                style: TextStyle(
+                style: GoogleFonts.karla(
                   color: color,
                   fontSize: 14,
-                  letterSpacing: 0.75,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -282,8 +290,8 @@ class _SecurityPageState extends State<SecurityPage>
 }
 
 void _showChangePasswordDialog(
-    BuildContext context, UserAuthModel userProviderModel) {
-  final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
+    BuildContext context, UserAuthModel userauthModel) {
+  final userauthCubit = BlocProvider.of<UserAuthCubit>(context);
   final TextEditingController passwordController = TextEditingController();
 
   final List<Map<String, dynamic>> suggestions = [
@@ -318,12 +326,12 @@ void _showChangePasswordDialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            title: const Text(
+            title: Text(
               "Change Password",
-              style: TextStyle(
-                fontSize: 16, // Smaller font size
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.karla(
                 color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
             content: SingleChildScrollView(
@@ -336,7 +344,7 @@ void _showChangePasswordDialog(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: CachedNetworkImage(
-                        imageUrl: userProviderModel.userAuthFavicon!,
+                        imageUrl: userauthModel.userAuthFavicon!,
                         width: 40,
                         height: 40,
                         fit: BoxFit.contain,
@@ -388,11 +396,12 @@ void _showChangePasswordDialog(
                           Expanded(
                             child: Text(
                               suggestion['text'],
-                              style: TextStyle(
+                              style: GoogleFonts.karla(
                                 color: validations[index]
                                     ? Colors.green
                                     : Colors.red,
-                                fontSize: 10, // Smaller font size
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -405,52 +414,10 @@ void _showChangePasswordDialog(
             actions: [
               TextButton(
                 onPressed: () {
-                  userProviderCubit.editAuth(
-                    UserAuthModel(
-                      authName: userProviderModel.authName,
-                      username: userProviderModel.username,
-                      password: passwordController.text,
-                      note: userProviderModel.note,
-                      authLink: userProviderModel.authLink,
-                      userAuthFavicon: userProviderModel.userAuthFavicon,
-                      hasTransactionPassword:
-                          userProviderModel.hasTransactionPassword,
-                      transactionPassword:
-                          userProviderModel.transactionPassword,
-                      authCategory: AuthCategory.socialMedia,
-                      createdAt: DateTime.now(),
-                      updatedAt: DateTime.now(),
-                      isFavorite: false,
-                      lastAccessed: DateTime.now(),
-                    ),
-                  );
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(
-                      color: Color.fromARGB(255, 111, 163, 219),
-                    ),
-                  ),
-                ),
-                child: const Text(
-                  "Save",
-                  style: TextStyle(
-                    fontSize: 14, // Smaller font size
-                    color: Color.fromARGB(255, 111, 163, 219),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
                   Navigator.of(context).pop();
                 },
                 style: TextButton.styleFrom(
-                  backgroundColor: Colors.transparent,
+                  backgroundColor: Colors.red,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -459,11 +426,52 @@ void _showChangePasswordDialog(
                     ),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   "Cancel",
-                  style: TextStyle(
-                    fontSize: 14, // Smaller font size
-                    color: Color.fromARGB(255, 255, 255, 255),
+                  style: GoogleFonts.karla(
+                    color: const Color.fromARGB(255, 255, 255, 255),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  userauthCubit.editAuth(
+                    UserAuthModel(
+                      authName: userauthModel.authName,
+                      username: userauthModel.username,
+                      password: passwordController.text,
+                      note: userauthModel.note,
+                      authLink: userauthModel.authLink,
+                      userAuthFavicon: userauthModel.userAuthFavicon,
+                      hasTransactionPassword:
+                          userauthModel.hasTransactionPassword,
+                      transactionPassword: userauthModel.transactionPassword,
+                      authCategory: userauthModel.authCategory,
+                      createdAt: userauthModel.createdAt,
+                      updatedAt: DateTime.now(),
+                      isFavorite: false,
+                      lastAccessed: DateTime.now(),
+                    ),
+                  );
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 111, 163, 219),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(
+                      color: Color.fromARGB(255, 111, 163, 219),
+                    ),
+                  ),
+                ),
+                child: Text(
+                  "Save",
+                  style: GoogleFonts.karla(
+                    color: const Color.fromARGB(255, 255, 255, 255),
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

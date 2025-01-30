@@ -67,7 +67,7 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
               icon: const Icon(
                 Icons.delete,
                 size: 28,
-                color: Color(0xFF6FA3DB),
+                color: Color.fromRGBO(111, 163, 219, 1),
               ),
             ),
           ),
@@ -120,7 +120,6 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
                       ),
                       IconButton(
                         onPressed: () async {
-                          // Await the updated model from EditAuthPage
                           final updatedModel = await Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>

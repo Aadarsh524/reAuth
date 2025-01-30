@@ -85,7 +85,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
               hasTransactionPass = hasPassword; // Update the parent’s value
             });
           },
-          isUpdating: false,
+          isUpdating: popularAuth,
         );
 
       case AuthCategory.socialMedia:
@@ -97,7 +97,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
-          isUpdating: false,
+          isUpdating: popularAuth,
         );
       case AuthCategory.entertainment:
         return EntertainmentFieldsWidget(
@@ -108,7 +108,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
-          isUpdating: false,
+          isUpdating: popularAuth,
         );
       case AuthCategory.network:
         return NetworkFieldsWidget(
@@ -119,7 +119,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
           authNameController: authNameController,
-          isUpdating: false,
+          isUpdating: popularAuth,
         );
       case AuthCategory.others:
         return OtherFieldsWidget(
@@ -130,7 +130,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
           availableTags: availableTags,
           selectedTags: selectedTags,
           onTagsUpdated: (tags) => setState(() => selectedTags = tags),
-          isUpdating: false,
+          isUpdating: popularAuth,
         );
       default:
         return const SizedBox.shrink();
@@ -262,7 +262,7 @@ class _AddAuthPageState extends State<AddAuthPage> {
 
     if (isValid) {
       final userAuthModel = UserAuthModel(
-        authName: authNameController.text.trim(),
+        authName: authNameController.text.toLowerCase().trim(),
         username: usernameController.text.trim(),
         password: passwordController.text.trim(),
         note: noteController.text.trim(),

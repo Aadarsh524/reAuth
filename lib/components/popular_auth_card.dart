@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/models/popular_auth_model.dart';
-import 'package:reauth/pages/add_auth_page.dart';
+import 'package:reauth/pages/dashboard/add_auth_page.dart';
 
 class PopularAuthCard extends StatelessWidget {
   static const _cardColor = Color.fromARGB(255, 53, 64, 79);
@@ -29,7 +29,7 @@ class PopularAuthCard extends StatelessWidget {
     }
 
     final isVerified =
-        await context.read<AuthenticationCubit>().checkEmailVerification(user);
+        await context.read<AuthenticationCubit>().checkEmailVerification();
 
     if (!context.mounted) return;
 

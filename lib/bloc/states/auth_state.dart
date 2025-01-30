@@ -15,51 +15,21 @@ class AuthenticationInitial extends AuthenticationState {}
 class AuthenticationLoading extends AuthenticationState {}
 
 // Common Error State
-class AuthError extends AuthenticationState {
-  final String message;
-  final AuthErrorType errorType;
+class AuthenticationError extends AuthenticationState {
+  final String error;
 
-  const AuthError({
-    required this.message,
-    required this.errorType,
+  const AuthenticationError({
+    required this.error,
   });
 
   @override
-  List<Object?> get props => [message, errorType];
-}
-
-enum AuthErrorType {
-  login,
-  registration,
-  logout,
-  passwordReset,
-  emailVerification,
-  pinOperation,
-  accountDeletion,
-  generic
-}
-
-// Login States
-class LoginInProgress extends AuthenticationState {}
-
-class LoginSuccess extends AuthenticationState {
-  final User user;
-  const LoginSuccess({required this.user});
-
-  @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [error];
 }
 
 // Registration States
 class RegistrationInProgress extends AuthenticationState {}
 
-class RegistrationSuccess extends AuthenticationState {
-  final User user;
-  const RegistrationSuccess({required this.user});
-
-  @override
-  List<Object?> get props => [user];
-}
+class RegistrationSuccess extends AuthenticationState {}
 
 // PIN Operations
 class PinValidationInProgress extends AuthenticationState {}
@@ -102,17 +72,6 @@ class ValidationError extends AuthenticationState {
 
   @override
   List<Object?> get props => [error];
-}
-
-enum AuthField {
-  email,
-  password,
-  confirmPassword,
-  currentPassword,
-  newPassword,
-  pin,
-  confirmPin,
-  fullName
 }
 
 // User Presence

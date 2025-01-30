@@ -26,16 +26,24 @@ class _RegisterPageState extends State<RegisterPage> {
 
   // Constants for colors and styles
   static const Color textColor = Color.fromARGB(255, 255, 255, 255);
-  static const Color primaryColor = Color.fromARGB(255, 106, 172, 191);
   static const Color secondaryTextColor = Color.fromARGB(255, 125, 125, 125);
+
+  @override
+  void dispose() {
+    super.dispose();
+    emailController;
+    passwordController;
+    isPasswordVisible;
+    isConfirmPasswordVisible;
+    fullNameController;
+  }
 
   @override
   Widget build(BuildContext context) {
     final authCubit = BlocProvider.of<AuthenticationCubit>(context);
 
     return Scaffold(
-      backgroundColor:
-          Theme.of(context).scaffoldBackgroundColor, // Change background color
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -111,95 +119,80 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       const SizedBox(height: 40),
-                      BlocConsumer<AuthenticationCubit, AuthenticationState>(
+                      BlocListener<AuthenticationCubit, AuthenticationState>(
+                        listenWhen: (previous, current) =>
+                            current is RegistrationSuccess ||
+                            current is AuthenticationError ||
+                            current is ValidationError,
                         listener: (context, state) {
                           if (state is RegistrationSuccess) {
-                            CustomSnackbar.show(
-                              context,
-                              message: "Registration Success",
-                            );
-
-                            Navigator.pushReplacement(
+                            CustomSnackbar.show(context,
+                                message: "Registration Success");
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
+                                  builder: (_) => const LoginPage()),
+                              (route) => false,
                             );
-                          } else if (state is AuthError) {
-                            String errorMessage = state.message;
-
-                            // Handle specific error types
-                            if (state.errorType == AuthErrorType.login) {
-                              CustomSnackbar.show(
-                                context,
-                                message: errorMessage,
-                                isError: true,
-                              );
-                            }
+                          } else if (state is AuthenticationError) {
+                            CustomSnackbar.show(context,
+                                message: state.error, isError: true);
                           } else if (state is ValidationError) {
-                            CustomSnackbar.show(
-                              context,
-                              message: state.error,
-                              isError: true,
-                            );
-                            // }
+                            CustomSnackbar.show(context,
+                                message: state.error, isError: true);
                           }
                         },
-                        builder: (context, state) {
-                          if (state is LoginInProgress ||
-                              state is AuthenticationLoading) {
+                        child: BlocBuilder<AuthenticationCubit,
+                            AuthenticationState>(
+                          builder: (context, state) {
+                            bool isLoading = state is AuthenticationLoading;
                             return SizedBox(
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryColor,
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 106, 172, 191),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                onPressed:
-                                    null, // Disable button during loading
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                onPressed: isLoading
+                                    ? () {} // Keep button enabled but do nothing
+                                    : () {
+                                        authCubit.register(
+                                          fullName:
+                                              fullNameController.text.trim(),
+                                          email: emailController.text.trim(),
+                                          password:
+                                              passwordController.text.trim(),
+                                          confirmPassword:
+                                              confirmPasswordController.text
+                                                  .trim(),
+                                        );
+                                      },
+                                child: isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Register',
+                                        style: GoogleFonts.karla(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
                               ),
                             );
-                          }
-
-                          return SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () {
-                                authCubit.register(
-                                  fullName: fullNameController.text.trim(),
-                                  email: emailController.text.trim(),
-                                  password: passwordController.text.trim(),
-                                  confirmPassword:
-                                      confirmPasswordController.text.trim(),
-                                );
-                              },
-                              child: Text(
-                                'Register',
-                                style: GoogleFonts.karla(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                          },
+                        ),
+                      )
                     ],
                   ),
                 ),
@@ -218,11 +211,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushReplacement(
+                          Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const LoginPage(),
-                            ),
+                                builder: (_) => const LoginPage()),
+                            (route) => false,
                           );
                         },
                         child: Text(

@@ -144,7 +144,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
   }
 
   void handleUpdate() {
-    final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
+    final userAuthCubit = BlocProvider.of<UserAuthCubit>(context);
     final authLink = widget.userAuthModel.authLink.isNotEmpty
         ? widget.userAuthModel.authLink
         : "www.${authNameController.text.toLowerCase().replaceAll(' ', '')}.com";
@@ -213,7 +213,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
         mfaOptions: widget.userAuthModel.mfaOptions,
       );
 
-      userProviderCubit.editAuth(updatedModel).then((_) {
+      userAuthCubit.editAuth(updatedModel).then((_) {
         Navigator.of(context).pop(updatedModel);
       }).catchError((error) {
         CustomSnackbar.show(context,
@@ -230,7 +230,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text('Edit Provider'),
+        title: const Text('Edit Auth'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10.0),

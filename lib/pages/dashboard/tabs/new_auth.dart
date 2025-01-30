@@ -8,7 +8,7 @@ import 'package:reauth/bloc/states/popular_provider_state.dart';
 
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popular_auth_card.dart';
-import 'package:reauth/pages/add_auth_page.dart';
+import 'package:reauth/pages/dashboard/add_auth_page.dart';
 
 class NewAuthPage extends StatefulWidget {
   const NewAuthPage({Key? key}) : super(key: key);
@@ -90,9 +90,8 @@ class _NewProviderPageState extends State<NewAuthPage> {
                             onPressed: () async {
                               final authCubit =
                                   context.read<AuthenticationCubit>();
-                              bool isUserVerified =
-                                  await authCubit.checkEmailVerification(
-                                      user!); // Dispatch verification check
+                              bool isUserVerified = await authCubit
+                                  .checkEmailVerification(); // Dispatch verification check
                               if (isUserVerified) {
                                 // ignore: use_build_context_synchronously
                                 Navigator.of(context).push(

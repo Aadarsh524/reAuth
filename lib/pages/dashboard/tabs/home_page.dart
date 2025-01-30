@@ -74,6 +74,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header and Profile setup
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,6 +155,7 @@ class _HomePageState extends State<HomePage> {
                     )
                   ],
                 ),
+                // Search Bar setup
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 0.0, vertical: 12),
@@ -198,7 +200,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                // Data Content Section
                 Expanded(
                   child: BlocConsumer<UserAuthCubit, UserAuthState>(
                     listener: (context, state) {
@@ -220,41 +222,7 @@ class _HomePageState extends State<HomePage> {
                         );
                       } else if (state is UserAuthLoadSuccess &&
                           !isSearchHasValue) {
-                        if (state.auths.isNotEmpty) {
-                          return _buildUserProviders(context, state.auths);
-                        } else {
-                          // If user providers are empty, render popular providers
-                          return BlocConsumer<PopularAuthCubit,
-                              PopularAuthState>(
-                            listener: (context, state) {
-                              if (state is PopularAuthLoadFailure) {
-                                CustomSnackbar.show(
-                                  context,
-                                  message:
-                                      "Failed to load user providers: ${state.error}",
-                                  isError: true,
-                                );
-                              }
-                            },
-                            builder: (context, state) {
-                              if (state is PopularAuthLoadSuccess) {
-                                return _buildPopularProviders(context);
-                              } else if (state is PopularAuthSearchSuccess) {
-                                return _buildPopularSearchResults(
-                                    context, state.auth);
-                              } else if (state is PopularAuthSearchFailure) {
-                                return _buildSearchFailure(
-                                    context, state.error);
-                              } else {
-                                return const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Color.fromARGB(255, 106, 172, 191),
-                                  ),
-                                );
-                              }
-                            },
-                          );
-                        }
+                        return _buildUserProviders(context, state.auths);
                       } else if (state is UserAuthSearchSuccess) {
                         return _buildUserSearchResults(context, state.auth);
                       } else if (state is UserAuthSearchFailure) {
@@ -302,7 +270,7 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
         Expanded(
           child: ListView.builder(
             itemCount: categorizedAuths.keys.length,
