@@ -42,6 +42,45 @@ class UserAuthModel {
     this.userAuthFavicon,
   });
 
+  UserAuthModel copyWith({
+    String? username,
+    String? authName,
+    String? password,
+    String? authLink,
+    AuthCategory? authCategory,
+    String? note,
+    String? accountNumber,
+    String? transactionPassword,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? lastAccessed,
+    List<String>? tags,
+    MFAOptions? mfaOptions,
+    bool? hasTransactionPassword,
+    bool? isFavorite,
+    String? userAuthFavicon,
+  }) {
+    return UserAuthModel(
+      username: username ?? this.username,
+      authName: authName ?? this.authName,
+      password: password ?? this.password,
+      authLink: authLink ?? this.authLink,
+      authCategory: authCategory ?? this.authCategory,
+      note: note ?? this.note,
+      accountNumber: accountNumber ?? this.accountNumber,
+      transactionPassword: transactionPassword ?? this.transactionPassword,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastAccessed: lastAccessed ?? this.lastAccessed,
+      tags: tags ?? this.tags,
+      mfaOptions: mfaOptions ?? this.mfaOptions,
+      hasTransactionPassword:
+          hasTransactionPassword ?? this.hasTransactionPassword,
+      isFavorite: isFavorite ?? this.isFavorite,
+      userAuthFavicon: userAuthFavicon ?? this.userAuthFavicon,
+    );
+  }
+
   /// Factory constructor to create an instance from a map
   factory UserAuthModel.fromMap(Map<String, dynamic> map) {
     return UserAuthModel(

@@ -274,8 +274,8 @@ class _AddAuthPageState extends State<AddAuthPage> {
         accountNumber: accountNumberController.text.trim(),
         tags: selectedTags,
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        lastAccessed: DateTime.now(),
+        updatedAt: null,
+        lastAccessed: null,
         isFavorite: false,
       );
       userProviderCubit.submitUserAuth(

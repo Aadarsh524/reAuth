@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:reauth/bloc/states/auth_state.dart';
+import 'package:reauth/validator/authentication_validator/authentication_field_validator.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   final FirebaseAuth _auth;
@@ -48,14 +49,6 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     });
   }
 
-  Future<bool> checkEmailVerification() async {
-    final user = _auth.currentUser;
-    if (user == null) return false;
-
-    await user.reload();
-    return _auth.currentUser?.emailVerified ?? false;
-  }
-
   Future<void> initialize() async {
     emit(AuthenticationLoading());
     try {
@@ -70,7 +63,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   }
 
   Future<void> login(String email, String password) async {
-    final validationError = _validateLoginFields(email, password);
+    final validationError = validateLoginFields(email, password);
     if (validationError != null) {
       // Emit ValidationError state only once
       emit(ValidationError(validationError));
@@ -98,7 +91,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     // Reset last emitted state when starting new operation
     _lastEmittedState = null;
 
-    final validationError = _validateRegisterFields(
+    final validationError = validateRegisterFields(
       fullName,
       email,
       password,
@@ -138,6 +131,14 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     }
   }
 
+  Future<bool> checkEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    await user.reload();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
   Future<void> verifyEmail() async {
     try {
       emit(AuthenticationLoading());
@@ -150,14 +151,55 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     }
   }
 
-  Future<void> resetPassword(String email) async {
-    try {
-      emit(AuthenticationLoading());
-      await _auth.sendPasswordResetEmail(email: email.trim());
-      emit(PasswordResetSent());
-    } catch (e) {
-      emit(AuthenticationError(
-        error: _parseError(e),
+  Future<void> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    emit(AccountUpdateInProgress());
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null && user.email != null) {
+      try {
+        // Create a credential using the user's email and current (old) password.
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: oldPassword,
+        );
+
+        // Re-authenticate the user with the credential.
+        await user.reauthenticateWithCredential(credential);
+
+        // If re-authentication succeeds, update the password.
+        await user.updatePassword(newPassword);
+
+        // Emit a success state (you might want to use a dedicated state, e.g., AccountUpdateSuccess).
+        emit(AccountUpdateSuccess());
+      } on FirebaseAuthException catch (e) {
+        emit(AuthenticationError(
+          error: _parseError(e),
+        ));
+      }
+    } else {
+      emit(const AuthenticationError(
+        error: "No user signed in",
+      ));
+    }
+  }
+
+  Future<void> resetPassword(String newPassword) async {
+    emit(AccountUpdateInProgress());
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await user.updatePassword(newPassword);
+        emit(AccountDeletionInProgress());
+      } on FirebaseAuthException catch (e) {
+        emit(AuthenticationError(
+          error: _parseError(e),
+        ));
+      }
+    } else {
+      emit(const AuthenticationError(
+        error: "No user signed in",
       ));
     }
   }
@@ -188,40 +230,6 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     }
   }
 
-  String? _validateLoginFields(String email, String password) {
-    if (email.isEmpty && password.isEmpty) return 'Multiple empty fields';
-    if (email.isEmpty) return 'Email cannot be empty';
-    if (password.isEmpty) return 'Password cannot be empty';
-    if (!email.isValidEmail) return 'Invalid email address';
-    return null;
-  }
-
-  String? _validateRegisterFields(
-    String fullName,
-    String email,
-    String password,
-    String confirmPassword,
-  ) {
-    final missingFields = [
-      if (fullName.isEmpty) 'Full Name',
-      if (email.isEmpty) 'Email',
-      if (password.isEmpty) 'Password',
-      if (confirmPassword.isEmpty) 'Confirm Password',
-    ];
-
-    if (missingFields.length > 1) return 'Multiple empty fields';
-    if (missingFields.isNotEmpty) {
-      return '${missingFields.first} cannot be empty';
-    }
-    if (!email.isValidEmail) return 'Invalid email address';
-    if (!password.isValidPassword) {
-      return 'Password must be at least 6 characters';
-    }
-    if (password != confirmPassword) return 'Passwords do not match';
-    if (!fullName.isValidName) return 'Invalid full name';
-    return null;
-  }
-
   String _parseError(dynamic error) {
     if (error is FirebaseAuthException) {
       switch (error.code) {
@@ -247,11 +255,4 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     }
     return error.toString();
   }
-}
-
-extension _ValidationExtensions on String {
-  bool get isValidEmail =>
-      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(this);
-  bool get isValidPassword => length >= 6;
-  bool get isValidName => length >= 3;
 }

@@ -26,12 +26,6 @@ int checkPasswordStrength(String password) {
     score++;
   }
 
-  // Check for common words
-  final commonWords = ["password", "123456", "qwerty"];
-  if (!commonWords.contains(password.toLowerCase())) {
-    score++;
-  }
-
   return score;
 }
 

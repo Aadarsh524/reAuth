@@ -41,6 +41,19 @@ class UserAuthSubmissionFailure extends UserAuthState {
   List<Object?> get props => [error];
 }
 
+class UserAuthUpdateInProgress extends UserAuthState {}
+
+class UserAuthUpdateSuccess extends UserAuthState {}
+
+class UserAuthUpdateFailure extends UserAuthState {
+  final String error;
+
+  const UserAuthUpdateFailure({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}
+
 class UserAuthSearchSuccess extends UserAuthState {
   final UserAuthModel auth;
 

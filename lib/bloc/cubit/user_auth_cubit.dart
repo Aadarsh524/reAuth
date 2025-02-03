@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
+import 'package:reauth/services/encryption_service.dart';
 
 class UserAuthCubit extends Cubit<UserAuthState> {
   final FirebaseAuth _auth;
@@ -42,6 +43,27 @@ class UserAuthCubit extends Cubit<UserAuthState> {
         return UserAuthModel.fromMap(doc.data());
       }).toList();
 
+      List<UserAuthModel> decryptedAuths = [];
+      for (var auth in _userAuths) {
+        try {
+          final decryptedPassword =
+              await EncryptionService.decryptData(auth.password);
+          String? decryptedTransactionPassword;
+          if (auth.transactionPassword != null) {
+            decryptedTransactionPassword =
+                await EncryptionService.decryptData(auth.transactionPassword!);
+          }
+          decryptedAuths.add(auth.copyWith(
+            password: decryptedPassword,
+            transactionPassword: decryptedTransactionPassword,
+          ));
+        } catch (e) {
+          // Handle decryption errors
+          print('Decryption error: $e');
+        }
+      }
+
+      _userAuths = decryptedAuths;
       emit(UserAuthLoadSuccess(auths: _userAuths));
     } catch (e, stackTrace) {
       addError(e, stackTrace);
@@ -62,15 +84,31 @@ class UserAuthCubit extends Cubit<UserAuthState> {
         return;
       }
 
-      final cleanAuthName = userAuthModel.authName.replaceAll(' ', '');
-      final userAuthFavicon = await _getFaviconUrl(popularAuth, cleanAuthName);
+      final userAuthFavicon =
+          await _getFaviconUrl(popularAuth, userAuthModel.authName);
+
+      // Encrypt passwords before saving
+      final encryptedPassword = userAuthModel.password.isNotEmpty
+          ? await EncryptionService.encryptData(userAuthModel.password)
+          : '';
+      String? encryptedTransactionPassword =
+          userAuthModel.transactionPassword != null &&
+                  userAuthModel.transactionPassword!.isNotEmpty
+              ? await EncryptionService.encryptData(
+                  userAuthModel.transactionPassword!)
+              : null;
+
+      final encryptedModel = userAuthModel.copyWith(
+        password: encryptedPassword,
+        transactionPassword: encryptedTransactionPassword,
+      );
 
       await _firestore
           .collection('users')
           .doc(currentUser.uid)
           .collection('auths')
-          .doc(cleanAuthName)
-          .set(userAuthModel.toMap()..['userAuthFavicon'] = userAuthFavicon);
+          .doc(encryptedModel.authName)
+          .set(encryptedModel.toMap()..['userAuthFavicon'] = userAuthFavicon);
 
       emit(UserAuthSubmissionSuccess());
       await fetchUserAuths(); // Refresh the list
@@ -82,7 +120,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
 
   Future<void> editAuth(UserAuthModel userAuthModel) async {
     try {
-      emit(UserAuthLoading());
+      emit(UserAuthUpdateInProgress());
       final currentUser = _auth.currentUser;
 
       if (currentUser == null) {
@@ -90,17 +128,30 @@ class UserAuthCubit extends Cubit<UserAuthState> {
         return;
       }
 
+      final encryptedPassword =
+          await EncryptionService.encryptData(userAuthModel.password);
+      String? encryptedTransactionPassword =
+          userAuthModel.transactionPassword != null
+              ? await EncryptionService.encryptData(
+                  userAuthModel.transactionPassword!)
+              : null;
+
+      final encryptedModel = userAuthModel.copyWith(
+        password: encryptedPassword,
+        transactionPassword: encryptedTransactionPassword,
+      );
+
       await _firestore
           .collection('users')
           .doc(currentUser.uid)
           .collection('auths')
           .doc(userAuthModel.authName)
-          .update(userAuthModel.toMap());
+          .update(encryptedModel.toMap());
 
-      emit(UserAuthSubmissionSuccess());
+      emit(UserAuthUpdateSuccess());
     } catch (e, stackTrace) {
       addError(e, stackTrace);
-      emit(UserAuthSubmissionFailure(error: 'Failed to edit user auth: $e'));
+      emit(UserAuthUpdateFailure(error: 'Failed to edit user auth: $e'));
     }
   }
 
@@ -128,8 +179,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
     }
   }
 
-  Future<void> updateAuthLastAccessed(
-      String authName, DateTime lastAccessed) async {
+  Future<void> updateAuthLastAccessed(UserAuthModel userAuthModel) async {
     final currentUser = _auth.currentUser;
 
     if (currentUser == null) return;
@@ -138,8 +188,9 @@ class UserAuthCubit extends Cubit<UserAuthState> {
         .collection('users')
         .doc(currentUser.uid)
         .collection('auths')
-        .doc(authName)
-        .update({'lastAccessed': lastAccessed.toIso8601String()});
+        .doc(userAuthModel.authName)
+        .update(
+            {'lastAccessed': userAuthModel.lastAccessed!.toIso8601String()});
   }
 
   void searchUserAuth(String searchTerm) {

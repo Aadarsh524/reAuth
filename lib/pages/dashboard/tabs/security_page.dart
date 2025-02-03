@@ -58,7 +58,7 @@ class _SecurityPageState extends State<SecurityPage>
     weakPasswords.clear();
 
     for (var auth in auths) {
-      if (checkPasswordStrength(auth.password) >= 3) {
+      if (checkPasswordStrength(auth.password) > 3) {
         strongPasswords.add(auth);
       } else {
         weakPasswords.add(auth);
@@ -244,7 +244,7 @@ class _SecurityPageState extends State<SecurityPage>
             child: ListTile(
               trailing: IconButton(
                 onPressed: () {
-                  _showChangePasswordDialog(context, auth);
+                  showChangePasswordDialog(context, auth);
                 },
                 icon: const Icon(
                   Icons.more_vert,
@@ -289,11 +289,12 @@ class _SecurityPageState extends State<SecurityPage>
   }
 }
 
-void _showChangePasswordDialog(
+void showChangePasswordDialog(
     BuildContext context, UserAuthModel userauthModel) {
   final userauthCubit = BlocProvider.of<UserAuthCubit>(context);
   final TextEditingController passwordController = TextEditingController();
 
+  // List of password suggestions
   final List<Map<String, dynamic>> suggestions = [
     {"text": "Use at least 8 characters.", "icon": Icons.security},
     {
@@ -304,9 +305,11 @@ void _showChangePasswordDialog(
     {"text": "Include at least one special character.", "icon": Icons.star},
   ];
 
+  // Create a boolean list for each suggestion's validation state.
   final List<bool> validations =
       List.generate(suggestions.length, (_) => false);
 
+  // Checks if the entered password meets all criteria.
   bool isPasswordValid(String password) {
     validations[0] = password.length >= 8;
     validations[1] = password.contains(RegExp(r'[A-Z]')) &&
@@ -316,167 +319,199 @@ void _showChangePasswordDialog(
     return validations.every((element) => element);
   }
 
+  String? error;
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 72, 80, 93),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              "Change Password",
-              style: GoogleFonts.karla(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        imageUrl: userauthModel.userAuthFavicon!,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) => Container(
-                          width: 40,
-                          height: 40,
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Image.asset(
-                          'assets/error.png',
-                          height: 60,
-                          fit: BoxFit.contain,
-                        ),
+          // Local error message variable to show error when the field is empty or invalid.
+
+          return BlocConsumer<UserAuthCubit, UserAuthState>(
+            listener: (context, state) {
+              if (state is UserAuthUpdateSuccess) {
+                Navigator.of(context).pop();
+                userauthCubit.fetchUserAuths();
+              }
+              if (state is UserAuthUpdateFailure) {
+                setState(() {
+                  error = state.error.toString();
+                });
+              }
+            },
+            builder: (context, state) {
+              final isSubmitting = state is UserAuthUpdateInProgress;
+
+              return AlertDialog(
+                backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: Text(
+                  "Change Password",
+                  style: GoogleFonts.karla(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CustomTextField(
+                        isRequired: true,
+                        keyboardType: TextInputType.text,
+                        controller: passwordController,
+                        hintText: 'Enter New Password',
+                        labelText: 'New Password',
+                        onChanged: (password) {
+                          setState(() {
+                            // If the password is empty, set error; otherwise, clear it.
+                            if (password.isEmpty) {
+                              error =
+                                  "Please fulfill all password requirements";
+                            } else {
+                              error = null;
+                            }
+                            // Update the validations.
+                            isPasswordValid(password);
+                          });
+                        },
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  CustomTextField(
-                    isRequired: true,
-                    keyboardType: TextInputType.text,
-                    controller: passwordController,
-                    hintText: 'Enter New Password',
-                    labelText: 'New Password',
-                    onChanged: (password) {
-                      setState(() {
-                        isPasswordValid(password);
-                      });
-                    },
-                  ),
-                  if (passwordController.text.isNotEmpty)
-                    ...suggestions.map((suggestion) {
-                      int index = suggestions.indexOf(suggestion);
-                      return Row(
-                        children: [
-                          Icon(
-                            validations[index]
-                                ? Icons.check_circle
-                                : Icons.cancel,
-                            color:
-                                validations[index] ? Colors.green : Colors.red,
-                            size: 16, // Smaller icon size
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              suggestion['text'],
-                              style: GoogleFonts.karla(
+                      // Display the suggestions only if there is input.
+                      if (passwordController.text.isNotEmpty)
+                        ...suggestions.map((suggestion) {
+                          final index = suggestions.indexOf(suggestion);
+                          return Row(
+                            children: [
+                              Icon(
+                                validations[index]
+                                    ? Icons.check_circle
+                                    : Icons.cancel,
                                 color: validations[index]
                                     ? Colors.green
                                     : Colors.red,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  suggestion['text'],
+                                  style: GoogleFonts.karla(
+                                    color: validations[index]
+                                        ? Colors.green
+                                        : Colors.red,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      // Show error message if localError is set.
+                      if (error != null)
+                        SizedBox(
+                          width: double.infinity,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              error!,
+                              style: GoogleFonts.karla(
+                                color: Colors.red,
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                        ],
-                      );
-                    }).toList(),
+                        ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed:
+                        isSubmitting ? null : () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(color: Colors.red),
+                      ),
+                    ),
+                    child: Text(
+                      "Cancel",
+                      style: GoogleFonts.karla(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            if (passwordController.text.isEmpty) {
+                              setState(() {
+                                error = "Please enter new password to save.";
+                              });
+                              return;
+                            }
+
+                            userauthCubit.editAuth(
+                              UserAuthModel(
+                                authName: userauthModel.authName,
+                                username: userauthModel.username,
+                                password: passwordController.text,
+                                note: userauthModel.note,
+                                authLink: userauthModel.authLink,
+                                userAuthFavicon: userauthModel.userAuthFavicon,
+                                hasTransactionPassword:
+                                    userauthModel.hasTransactionPassword,
+                                transactionPassword:
+                                    userauthModel.transactionPassword,
+                                authCategory: userauthModel.authCategory,
+                                createdAt: userauthModel.createdAt,
+                                updatedAt: DateTime.now(),
+                                isFavorite: false,
+                                lastAccessed: userauthModel.createdAt,
+                              ),
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 111, 163, 219),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(
+                          color: Color.fromARGB(255, 111, 163, 219),
+                        ),
+                      ),
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              backgroundColor: Colors.transparent,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            "Save",
+                            style: GoogleFonts.karla(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
                 ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
-                child: Text(
-                  "Cancel",
-                  style: GoogleFonts.karla(
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  userauthCubit.editAuth(
-                    UserAuthModel(
-                      authName: userauthModel.authName,
-                      username: userauthModel.username,
-                      password: passwordController.text,
-                      note: userauthModel.note,
-                      authLink: userauthModel.authLink,
-                      userAuthFavicon: userauthModel.userAuthFavicon,
-                      hasTransactionPassword:
-                          userauthModel.hasTransactionPassword,
-                      transactionPassword: userauthModel.transactionPassword,
-                      authCategory: userauthModel.authCategory,
-                      createdAt: userauthModel.createdAt,
-                      updatedAt: DateTime.now(),
-                      isFavorite: false,
-                      lastAccessed: DateTime.now(),
-                    ),
-                  );
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 111, 163, 219),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(
-                      color: Color.fromARGB(255, 111, 163, 219),
-                    ),
-                  ),
-                ),
-                child: Text(
-                  "Save",
-                  style: GoogleFonts.karla(
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+              );
+            },
           );
         },
       );

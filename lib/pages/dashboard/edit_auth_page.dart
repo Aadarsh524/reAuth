@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
+import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/AuthCategory/entertainment_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/financial_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/network_fields_widget.dart';
@@ -214,6 +215,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
       );
 
       userAuthCubit.editAuth(updatedModel).then((_) {
+        CustomSnackbar.show(context, message: "Update Success");
         Navigator.of(context).pop(updatedModel);
       }).catchError((error) {
         CustomSnackbar.show(context,
@@ -232,29 +234,44 @@ class _EditAuthPageState extends State<EditAuthPage> {
         centerTitle: true,
         title: const Text('Edit Auth'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10.0),
-            child: TextButton(
-              onPressed: handleUpdate,
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: const BorderSide(
-                    color: Color.fromARGB(255, 111, 163, 219),
+          BlocBuilder<UserAuthCubit, UserAuthState>(
+            builder: (context, state) {
+              final isSubmitting = state is UserAuthUpdateInProgress;
+              return Padding(
+                padding: const EdgeInsets.only(right: 10.0),
+                child: TextButton(
+                  onPressed: handleUpdate,
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(
+                        color: Color.fromARGB(255, 111, 163, 219),
+                      ),
+                    ),
                   ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            backgroundColor: Colors.transparent,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          "Update",
+                          style: GoogleFonts.karla(
+                            color: const Color.fromARGB(255, 111, 163, 219),
+                            fontSize: 16,
+                            letterSpacing: .75,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
-              ),
-              child: Text(
-                "Update",
-                style: GoogleFonts.karla(
-                  color: const Color.fromARGB(255, 111, 163, 219),
-                  fontSize: 16,
-                  letterSpacing: .75,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),

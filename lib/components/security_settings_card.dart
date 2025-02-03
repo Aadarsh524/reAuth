@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/states/auth_state.dart';
@@ -33,20 +32,26 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
               builder: (context) =>
                   const Center(child: CircularProgressIndicator()),
             );
-          } else if (state is RegistrationSuccess) {
-            final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-            GoogleSignIn googleSignIn = GoogleSignIn();
-            googleSignIn.signOut();
-            firebaseAuth.signOut().then((value) => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
-                  ),
-                ));
+          } else if (state is AccountUpdateSuccess) {
+            BlocProvider.of<AuthenticationCubit>(context).logout();
+            Navigator.popUntil(context, (route) => route.isFirst);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LoginPage(),
+              ),
+            );
             CustomSnackbar.show(
               context,
               message: "Password change success",
             );
           } else if (state is ValidationError) {
+            Navigator.of(context).pop(); // Pop the loading dialog
+            CustomSnackbar.show(
+              context,
+              message: state.error.toString(),
+            );
+          } else if (state is AuthenticationError) {
             Navigator.of(context).pop(); // Pop the loading dialog
             CustomSnackbar.show(
               context,
@@ -91,19 +96,19 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                       onTap: () => _changePassword(context),
                     ),
                     _buildSettingItem(
-                      icon: Icons.security,
-                      title: 'Set up Two-Factor Authentication',
-                      onTap: () => _setup2FA(context),
+                      icon: Icons.email_outlined,
+                      title: 'Change Email',
+                      onTap: () => _showAccountActivity(context),
                     ),
+                    // _buildSettingItem(
+                    //   icon: Icons.security,
+                    //   title: 'Set up Two-Factor Authentication',
+                    //   onTap: () => _setup2FA(context),
+                    // ),
                     _buildSettingItem(
                       icon: Icons.fingerprint,
                       title: 'Set up Biometric Authentication',
                       onTap: () => _setupBiometricAuth(context),
-                    ),
-                    _buildSettingItem(
-                      icon: Icons.history,
-                      title: 'Account Activity',
-                      onTap: () => _showAccountActivity(context),
                     ),
                     _buildSettingItem(
                       icon: Icons.delete_forever,
@@ -153,111 +158,142 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
     );
   }
 
-  void _setup2FA(BuildContext context) {
-    // Implement 2FA setup functionality
-    // Example: Navigate to 2FA setup page or show dialog
-  }
-
   void _changePassword(BuildContext context) {
     final TextEditingController oldPasswordController = TextEditingController();
     final TextEditingController newPasswordController = TextEditingController();
+    bool isOldPasswordVisible = false;
+    bool isNewPasswordVisible = false;
 
-    showDialog(
+    showGeneralDialog(
       context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: const Color.fromARGB(255, 72, 80, 93),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: const Text(
-                "Change Password",
-                style: TextStyle(
-                  fontSize: 16, // Smaller font size
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black54, // Dark overlay color
+      transitionDuration:
+          const Duration(milliseconds: 300), // Opening animation duration
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Center(
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CustomTextField(
-                      isRequired: true,
-                      keyboardType: TextInputType.text,
-                      controller: oldPasswordController,
-                      hintText: 'Enter Old Password',
-                      labelText: 'Old Password',
-                    ),
-                    CustomTextField(
-                      isRequired: true,
-                      keyboardType: TextInputType.text,
-                      controller: newPasswordController,
-                      hintText: 'Enter New Password',
-                      labelText: 'New Password',
-                    ),
-                  ],
+                title: const Text(
+                  "Change Password",
+                  style: TextStyle(
+                    fontSize: 16, // Smaller font size
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(
-                        color: Colors.red,
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CustomTextField(
+                        isRequired: true,
+                        keyboardType: TextInputType.text,
+                        controller: oldPasswordController,
+                        hintText: 'Enter Old Password',
+                        labelText: 'Old Password',
+                        passwordVisibility: (e) {
+                          setState(() {
+                            isOldPasswordVisible = !isOldPasswordVisible;
+                          });
+                        },
+                      ),
+                      CustomTextField(
+                        isRequired: true,
+                        keyboardType: TextInputType.text,
+                        controller: newPasswordController,
+                        hintText: 'Enter New Password',
+                        labelText: 'New Password',
+                        passwordVisibility: (e) {
+                          setState(() {
+                            isNewPasswordVisible = !isNewPasswordVisible;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close instantly
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "Cancel",
+                      style: GoogleFonts.karla(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  child: const Text(
-                    "Cancel",
-                    style: TextStyle(
-                      fontSize: 14, // Smaller font size
-                      color: Color.fromARGB(255, 255, 255, 255),
-                      fontWeight: FontWeight.bold,
+                  TextButton(
+                    onPressed: () {
+                      BlocProvider.of<AuthenticationCubit>(context)
+                          .updatePassword(
+                              oldPassword: oldPasswordController.text.trim(),
+                              newPassword: newPasswordController.text.trim());
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 111, 163, 219),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(
+                          color: Color.fromARGB(255, 111, 163, 219),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    User? user = FirebaseAuth.instance.currentUser;
-                    final String? email = user!.email;
-                    BlocProvider.of<AuthenticationCubit>(context)
-                        .resetPassword(email!);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(
-                        color: Color.fromARGB(255, 111, 163, 219),
+                    child: Text(
+                      "Save",
+                      style: GoogleFonts.karla(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  child: const Text(
-                    "Save",
-                    style: TextStyle(
-                      fontSize: 14, // Smaller font size
-                      color: Color.fromARGB(255, 111, 163, 219),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        if (animation.status == AnimationStatus.reverse) {
+          return child; // Close instantly
+        }
+        return ScaleTransition(
+          scale: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutBack, // Nice bounce effect on open
+          ),
+          child: child,
         );
       },
     );
+  }
+
+  void _setup2FA(BuildContext context) {
+    // Implement 2FA setup functionality
+    // Example: Navigate to 2FA setup page or show dialog
   }
 
   void _setupBiometricAuth(BuildContext context) async {

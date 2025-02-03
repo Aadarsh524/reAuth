@@ -33,18 +33,21 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
 
   void copyToClipboard(BuildContext context, String value) {
     Clipboard.setData(ClipboardData(text: value)).then((_) {
-      // Show the snackbar after copying
+      DateTime now = DateTime.now();
+
+      // Update the local authModel and trigger a rebuild
+      setState(() {
+        authModel = authModel.copyWith(lastAccessed: now);
+      });
+
+      // Update Firestore using the Cubit
+      BlocProvider.of<UserAuthCubit>(context).updateAuthLastAccessed(authModel);
+
+      // Show a snackbar after copying
       CustomSnackbar.show(
         context,
         message: "Copied",
       );
-      final userProviderCubit = BlocProvider.of<UserAuthCubit>(context);
-
-      DateTime lastAccessed = DateTime.now();
-      authModel.lastAccessed = lastAccessed;
-      // Call the update function and handle success/error
-      userProviderCubit.updateAuthLastAccessed(
-          authModel.authName, lastAccessed);
     });
   }
 
@@ -209,8 +212,8 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
 
     final Map<String, DateTime?> dateDetails = {
       "Created At": authModel.createdAt,
-      "Last Accessed": authModel.lastAccessed,
       "Updated At": authModel.updatedAt,
+      "Last Accessed": authModel.lastAccessed,
     };
 
     return Column(

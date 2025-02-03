@@ -64,6 +64,11 @@ class AccountDeletionInProgress extends AuthenticationState {}
 
 class AccountDeletionSuccess extends AuthenticationState {}
 
+//Account Update
+class AccountUpdateInProgress extends AuthenticationState {}
+
+class AccountUpdateSuccess extends AuthenticationState {}
+
 // Validation Error
 class ValidationError extends AuthenticationState {
   final String error;
