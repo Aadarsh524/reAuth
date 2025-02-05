@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                       GestureDetector(
                         onTap: () {
                           BlocProvider.of<AuthenticationCubit>(context)
-                              .resetPassword(emailController.text);
+                              .resetPassword(email: emailController.text);
                         },
                         child: Text(
                           "Forgot Password?",

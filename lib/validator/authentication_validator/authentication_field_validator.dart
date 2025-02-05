@@ -6,6 +6,15 @@ String? validateLoginFields(String email, String password) {
   return null;
 }
 
+String? validateUpdatePassword(String oldPassword, String newPassword) {
+  if (oldPassword.isEmpty && newPassword.isEmpty) {
+    return 'Multiple empty fields';
+  }
+  if (oldPassword.isEmpty) return 'Old Password cannot be empty';
+  if (newPassword.isEmpty) return 'New Password cannot be empty';
+  return null;
+}
+
 String? validateRegisterFields(
   String fullName,
   String email,

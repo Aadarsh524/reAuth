@@ -23,105 +23,67 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-      child: BlocListener<AuthenticationCubit, AuthenticationState>(
-        listener: (context, state) {
-          if (state is AuthenticationLoading) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) =>
-                  const Center(child: CircularProgressIndicator()),
-            );
-          } else if (state is AccountUpdateSuccess) {
-            BlocProvider.of<AuthenticationCubit>(context).logout();
-            Navigator.popUntil(context, (route) => route.isFirst);
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const LoginPage(),
-              ),
-            );
-            CustomSnackbar.show(
-              context,
-              message: "Password change success",
-            );
-          } else if (state is ValidationError) {
-            Navigator.of(context).pop(); // Pop the loading dialog
-            CustomSnackbar.show(
-              context,
-              message: state.error.toString(),
-            );
-          } else if (state is AuthenticationError) {
-            Navigator.of(context).pop(); // Pop the loading dialog
-            CustomSnackbar.show(
-              context,
-              message: state.error.toString(),
-            );
-          }
+      child: ExpansionPanelList(
+        elevation: 0,
+        expandedHeaderPadding: EdgeInsets.zero,
+        dividerColor: Colors.transparent,
+        animationDuration: const Duration(milliseconds: 300),
+        expansionCallback: (int index, bool isExpanded) {
+          setState(() {
+            _isSecurityExpanded = !_isSecurityExpanded;
+          });
         },
-        child: ExpansionPanelList(
-          elevation: 0,
-          expandedHeaderPadding: EdgeInsets.zero,
-          dividerColor: Colors.transparent,
-          animationDuration: const Duration(milliseconds: 300),
-          expansionCallback: (int index, bool isExpanded) {
-            setState(() {
-              _isSecurityExpanded = !_isSecurityExpanded;
-            });
-          },
-          children: [
-            ExpansionPanel(
-              backgroundColor: const Color.fromARGB(255, 50, 60, 75),
-              headerBuilder: (BuildContext context, bool isExpanded) {
-                return ListTile(
-                  title: Text(
-                    "Security Settings",
-                    style: GoogleFonts.karla(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+        children: [
+          ExpansionPanel(
+            backgroundColor: const Color.fromARGB(255, 50, 60, 75),
+            headerBuilder: (BuildContext context, bool isExpanded) {
+              return ListTile(
+                title: Text(
+                  "Security Settings",
+                  style: GoogleFonts.karla(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
                   ),
-                );
-              },
-              body: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                child: Column(
-                  children: [
-                    const Divider(),
-                    _buildSettingItem(
-                      icon: Icons.lock,
-                      title: 'Change Password',
-                      onTap: () => _changePassword(context),
-                    ),
-                    _buildSettingItem(
-                      icon: Icons.email_outlined,
-                      title: 'Change Email',
-                      onTap: () => _showAccountActivity(context),
-                    ),
-                    // _buildSettingItem(
-                    //   icon: Icons.security,
-                    //   title: 'Set up Two-Factor Authentication',
-                    //   onTap: () => _setup2FA(context),
-                    // ),
-                    _buildSettingItem(
-                      icon: Icons.fingerprint,
-                      title: 'Set up Biometric Authentication',
-                      onTap: () => _setupBiometricAuth(context),
-                    ),
-                    _buildSettingItem(
-                      icon: Icons.delete_forever,
-                      title: 'Delete Account',
-                      onTap: () => _deleteAccount(context),
-                    ),
-                  ],
                 ),
+              );
+            },
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              child: Column(
+                children: [
+                  const Divider(),
+                  _buildSettingItem(
+                    icon: Icons.lock,
+                    title: 'Change Password',
+                    onTap: () => _changePassword(context),
+                  ),
+                  _buildSettingItem(
+                    icon: Icons.email_outlined,
+                    title: 'Change Email',
+                    onTap: () => _showAccountActivity(context),
+                  ),
+                  // _buildSettingItem(
+                  //   icon: Icons.security,
+                  //   title: 'Set up Two-Factor Authentication',
+                  //   onTap: () => _setup2FA(context),
+                  // ),
+                  _buildSettingItem(
+                    icon: Icons.fingerprint,
+                    title: 'Set up Biometric Authentication',
+                    onTap: () => _setupBiometricAuth(context),
+                  ),
+                  _buildSettingItem(
+                    icon: Icons.delete_forever,
+                    title: 'Delete Account',
+                    onTap: () => _deleteAccount(context),
+                  ),
+                ],
               ),
-              isExpanded: _isSecurityExpanded,
             ),
-          ],
-        ),
+            isExpanded: _isSecurityExpanded,
+          ),
+        ],
       ),
     );
   }
@@ -164,113 +126,190 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
     bool isOldPasswordVisible = false;
     bool isNewPasswordVisible = false;
 
+    String errorMessage = '';
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black54, // Dark overlay color
-      transitionDuration:
-          const Duration(milliseconds: 300), // Opening animation duration
+      transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Center(
           child: StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
-                backgroundColor: const Color.fromARGB(255, 72, 80, 93),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: const Text(
-                  "Change Password",
-                  style: TextStyle(
-                    fontSize: 16, // Smaller font size
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                content: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CustomTextField(
-                        isRequired: true,
-                        keyboardType: TextInputType.text,
-                        controller: oldPasswordController,
-                        hintText: 'Enter Old Password',
-                        labelText: 'Old Password',
-                        passwordVisibility: (e) {
-                          setState(() {
-                            isOldPasswordVisible = !isOldPasswordVisible;
-                          });
-                        },
+            builder: (context, setDialogState) {
+              return BlocConsumer<AuthenticationCubit, AuthenticationState>(
+                listener: (context, state) {
+                  if (state is AccountUpdateSuccess) {
+                    BlocProvider.of<AuthenticationCubit>(context).logout();
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
                       ),
-                      CustomTextField(
-                        isRequired: true,
-                        keyboardType: TextInputType.text,
-                        controller: newPasswordController,
-                        hintText: 'Enter New Password',
-                        labelText: 'New Password',
-                        passwordVisibility: (e) {
-                          setState(() {
-                            isNewPasswordVisible = !isNewPasswordVisible;
-                          });
-                        },
+                    );
+                    CustomSnackbar.show(
+                      context,
+                      message: "Password change success",
+                    );
+                  }
+                  if (state is AccountUpdateError) {
+                    // Update the error message in the dialog and clear it after 4 seconds
+                    setDialogState(() {
+                      errorMessage = state.error.toString();
+                    });
+                    Future.delayed(const Duration(seconds: 4), () {
+                      if (mounted) {
+                        setDialogState(() {
+                          errorMessage = '';
+                        });
+                      }
+                    });
+                  }
+                  if (state is ValidationError) {
+                    // Update the error message in the dialog and clear it after 4 seconds
+                    setDialogState(() {
+                      errorMessage = state.error.toString();
+                    });
+                    Future.delayed(const Duration(seconds: 4), () {
+                      if (mounted) {
+                        setDialogState(() {
+                          errorMessage = '';
+                        });
+                      }
+                    });
+                  }
+                },
+                builder: (context, state) {
+                  final isSubmitting = state is AccountUpdateInProgress;
+
+                  return AlertDialog(
+                    backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    title: const Text(
+                      "Change Password",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomTextField(
+                            isRequired: true,
+                            keyboardType: TextInputType.text,
+                            controller: oldPasswordController,
+                            hintText: 'Enter Old Password',
+                            labelText: 'Old Password',
+                            passwordVisibility: (e) {
+                              setDialogState(() {
+                                isOldPasswordVisible = !isOldPasswordVisible;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          CustomTextField(
+                            isRequired: true,
+                            keyboardType: TextInputType.text,
+                            controller: newPasswordController,
+                            hintText: 'Enter New Password',
+                            labelText: 'New Password',
+                            passwordVisibility: (e) {
+                              setDialogState(() {
+                                isNewPasswordVisible = !isNewPasswordVisible;
+                              });
+                            },
+                          ),
+                          // Display error message if it exists
+                          if (errorMessage.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 12.0),
+                              child: Text(
+                                errorMessage,
+                                style: GoogleFonts.karla(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: isSubmitting
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                        ),
+                        child: Text(
+                          "Cancel",
+                          style: GoogleFonts.karla(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: isSubmitting
+                            ? null
+                            : () {
+                                // Validate input fields before dispatching the event.
+                                final oldPassword =
+                                    oldPasswordController.text.trim();
+                                final newPassword =
+                                    newPasswordController.text.trim();
+
+                                // Dispatch the update password event.
+                                BlocProvider.of<AuthenticationCubit>(context)
+                                    .updatePassword(
+                                  oldPassword: oldPassword,
+                                  newPassword: newPassword,
+                                );
+                              },
+                        style: TextButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 111, 163, 219),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  backgroundColor: Colors.transparent,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                "Save",
+                                style: GoogleFonts.karla(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ],
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close instantly
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      "Cancel",
-                      style: GoogleFonts.karla(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      BlocProvider.of<AuthenticationCubit>(context)
-                          .updatePassword(
-                              oldPassword: oldPasswordController.text.trim(),
-                              newPassword: newPasswordController.text.trim());
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 111, 163, 219),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(
-                          color: Color.fromARGB(255, 111, 163, 219),
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      "Save",
-                      style: GoogleFonts.karla(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                },
               );
             },
           ),
@@ -278,12 +317,12 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         if (animation.status == AnimationStatus.reverse) {
-          return child; // Close instantly
+          return child;
         }
         return ScaleTransition(
           scale: CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutBack, // Nice bounce effect on open
+            curve: Curves.easeOutBack,
           ),
           child: child,
         );

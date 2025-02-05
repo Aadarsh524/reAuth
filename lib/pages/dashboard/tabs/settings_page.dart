@@ -289,7 +289,7 @@ class PersonalInfoCard extends StatelessWidget {
                             color: verifiedEmail
                                 ? Colors.greenAccent
                                 : Colors.redAccent,
-                            size: 28,
+                            size: 24,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -298,7 +298,7 @@ class PersonalInfoCard extends StatelessWidget {
                               color: verifiedEmail
                                   ? Colors.greenAccent
                                   : Colors.redAccent,
-                              fontSize: 14,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

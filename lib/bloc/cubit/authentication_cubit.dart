@@ -155,51 +155,71 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     required String oldPassword,
     required String newPassword,
   }) async {
-    emit(AccountUpdateInProgress());
-    final User? user = FirebaseAuth.instance.currentUser;
+    final validationError = validateUpdatePassword(oldPassword, newPassword);
+    if (validationError != null) {
+      emit(ValidationError(validationError));
+      return;
+    }
+
+    final User? user = _auth.currentUser;
     if (user != null && user.email != null) {
       try {
-        // Create a credential using the user's email and current (old) password.
+        emit(AccountUpdateInProgress());
         final credential = EmailAuthProvider.credential(
           email: user.email!,
           password: oldPassword,
         );
 
-        // Re-authenticate the user with the credential.
         await user.reauthenticateWithCredential(credential);
-
-        // If re-authentication succeeds, update the password.
         await user.updatePassword(newPassword);
-
-        // Emit a success state (you might want to use a dedicated state, e.g., AccountUpdateSuccess).
         emit(AccountUpdateSuccess());
-      } on FirebaseAuthException catch (e) {
-        emit(AuthenticationError(
+      } catch (e) {
+        emit(AccountUpdateError(
           error: _parseError(e),
         ));
       }
     } else {
       emit(const AuthenticationError(
-        error: "No user signed in",
+        error: 'No user Signed In',
       ));
     }
   }
 
-  Future<void> resetPassword(String newPassword) async {
-    emit(AccountUpdateInProgress());
-    final User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+  Future<void> changeEmail({
+    required String newEmail,
+    required String password,
+  }) async {
+    final User? user = _auth.currentUser;
+    if (user != null && user.email != null) {
       try {
-        await user.updatePassword(newPassword);
-        emit(AccountDeletionInProgress());
-      } on FirebaseAuthException catch (e) {
-        emit(AuthenticationError(
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+
+        await user.reauthenticateWithCredential(credential);
+        await user.updateEmail(newEmail);
+        emit(AccountUpdateSuccess());
+      } catch (e) {
+        emit(AccountUpdateError(
           error: _parseError(e),
         ));
       }
     } else {
       emit(const AuthenticationError(
-        error: "No user signed in",
+        error: 'No user Signed In',
+      ));
+    }
+  }
+
+  Future<void> resetPassword({required String email}) async {
+    try {
+      emit(AccountUpdateInProgress());
+      await _auth.sendPasswordResetEmail(email: email);
+      emit(AccountUpdateSuccess());
+    } on FirebaseAuthException catch (e) {
+      emit(AccountUpdateError(
+        error: _parseError(e),
       ));
     }
   }

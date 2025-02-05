@@ -69,6 +69,17 @@ class AccountUpdateInProgress extends AuthenticationState {}
 
 class AccountUpdateSuccess extends AuthenticationState {}
 
+class AccountUpdateError extends AuthenticationState {
+  final String error;
+
+  const AccountUpdateError({
+    required this.error,
+  });
+
+  @override
+  List<Object?> get props => [error];
+}
+
 // Validation Error
 class ValidationError extends AuthenticationState {
   final String error;
