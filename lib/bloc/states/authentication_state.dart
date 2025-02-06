@@ -9,10 +9,22 @@ abstract class AuthenticationState extends Equatable {
   List<Object?> get props => [];
 }
 
-// Base states
+// General States
 class AuthenticationInitial extends AuthenticationState {}
 
 class AuthenticationLoading extends AuthenticationState {}
+
+// Login Session Management
+class LogoutInProgress extends AuthenticationState {}
+
+class LogoutSuccess extends AuthenticationState {}
+
+class LoginSessionExpired extends AuthenticationState {}
+
+// Registration States
+class RegistrationInProgress extends AuthenticationState {}
+
+class RegistrationSuccess extends AuthenticationState {}
 
 // Common Error State
 class AuthenticationError extends AuthenticationState {
@@ -25,11 +37,6 @@ class AuthenticationError extends AuthenticationState {
   @override
   List<Object?> get props => [error];
 }
-
-// Registration States
-class RegistrationInProgress extends AuthenticationState {}
-
-class RegistrationSuccess extends AuthenticationState {}
 
 // PIN Operations
 class PinValidationInProgress extends AuthenticationState {}
@@ -51,13 +58,6 @@ class PasswordResetSent extends AuthenticationState {}
 class PasswordResetSuccess extends AuthenticationState {}
 
 class PasswordUpdateInProgress extends AuthenticationState {}
-
-// Session Management
-class LogoutInProgress extends AuthenticationState {}
-
-class LogoutSuccess extends AuthenticationState {}
-
-class SessionExpired extends AuthenticationState {}
 
 // Account Management
 class AccountDeletionInProgress extends AuthenticationState {}

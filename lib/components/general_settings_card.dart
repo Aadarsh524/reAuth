@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reauth/pages/notification_settings_page.dart';
+import 'package:reauth/pages/password_generator_page.dart';
+import 'package:reauth/pages/appearance_settings_page.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
   const GeneralSettingsCard({super.key});
@@ -69,13 +72,35 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
         children: [
           const Divider(),
           SettingsItem(
-              icon: Icons.password, title: 'Password Generator', onTap: () {}),
+              icon: Icons.password,
+              title: 'Password Generator',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PasswordGeneratorPage()),
+                );
+              }),
           SettingsItem(
-              icon: Icons.palette, title: 'Appearance Settings', onTap: () {}),
+              icon: Icons.palette,
+              title: 'Appearance Settings',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AppearanceSettingsPage()),
+                );
+              }),
           SettingsItem(
               icon: Icons.notifications,
               title: 'Notifications Settings',
-              onTap: () {}),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => NotificationsSettingsPage()),
+                );
+              }),
         ],
       ),
     );

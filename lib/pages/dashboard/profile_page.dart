@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/bloc/states/auth_state.dart';
+import 'package:reauth/bloc/states/authentication_state.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/models/profile_model.dart';

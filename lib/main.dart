@@ -6,7 +6,7 @@ import 'package:reauth/bloc/cubit/popular_auth_cubit.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/cubit/recent_auth_cubit.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/bloc/states/auth_state.dart';
+import 'package:reauth/bloc/states/authentication_state.dart';
 
 import 'package:reauth/firebase_options.dart';
 import 'package:reauth/pages/auth/login_page.dart';

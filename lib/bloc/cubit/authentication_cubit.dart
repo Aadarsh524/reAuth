@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:reauth/bloc/states/auth_state.dart';
+import 'package:reauth/bloc/states/authentication_state.dart';
 import 'package:reauth/validator/authentication_validator/authentication_field_validator.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
@@ -189,9 +189,15 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     required String newEmail,
     required String password,
   }) async {
+    final validationError = validateUpdateEmail(newEmail, password);
+    if (validationError != null) {
+      emit(ValidationError(validationError));
+      return;
+    }
     final User? user = _auth.currentUser;
     if (user != null && user.email != null) {
       try {
+        emit(AccountUpdateInProgress());
         final credential = EmailAuthProvider.credential(
           email: user.email!,
           password: password,
@@ -199,6 +205,34 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
 
         await user.reauthenticateWithCredential(credential);
         await user.updateEmail(newEmail);
+        emit(AccountUpdateSuccess());
+      } catch (e) {
+        emit(AccountUpdateError(
+          error: _parseError(e),
+        ));
+      }
+    } else {
+      emit(const AuthenticationError(
+        error: 'No user Signed In',
+      ));
+    }
+  }
+
+  Future<void> updateMasterPin({
+    required String oldPin,
+    required String newPin,
+  }) async {
+    final validationError = validateUpdatePassword(oldPin, newPin);
+    if (validationError != null) {
+      emit(ValidationError(validationError));
+      return;
+    }
+
+    final User? user = _auth.currentUser;
+    if (user != null && user.email != null) {
+      try {
+        emit(AccountUpdateInProgress());
+
         emit(AccountUpdateSuccess());
       } catch (e) {
         emit(AccountUpdateError(
@@ -238,7 +272,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
 
   Future<void> deleteAccount() async {
     try {
-      emit(AuthenticationLoading());
+      emit(AccountDeletionInProgress());
       final user = _auth.currentUser!;
       await _firestore.collection('profiles').doc(user.uid).delete();
       await user.delete();

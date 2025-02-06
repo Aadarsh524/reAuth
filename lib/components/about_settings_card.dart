@@ -11,25 +11,16 @@ class AboutSettingsCard extends StatefulWidget {
 class _AboutSettingsCardState extends State<AboutSettingsCard> {
   static const _panelBackgroundColor = Color.fromARGB(255, 50, 60, 75);
   static const _textColor = Colors.white;
-  static const _iconSize = 20.0;
   static const _animationDuration = Duration(milliseconds: 300);
   static const _verticalPadding = EdgeInsets.symmetric(vertical: 5);
   static const _contentPadding =
       EdgeInsets.symmetric(horizontal: 20, vertical: 5);
-  static const _itemPadding = EdgeInsets.symmetric(vertical: 12);
-  static const _iconSpacing = SizedBox(width: 16);
 
   // Made styles static
   static TextStyle get _headerStyle => GoogleFonts.karla(
         color: _textColor,
         fontSize: 16,
         fontWeight: FontWeight.w700,
-      );
-
-  static TextStyle get _itemStyle => GoogleFonts.karla(
-        color: _textColor,
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
       );
 
   bool _isAboutExpanded = false;
@@ -69,45 +60,172 @@ class _AboutSettingsCardState extends State<AboutSettingsCard> {
       child: Column(
         children: [
           const Divider(),
-          SettingsItem(icon: Icons.info, title: 'About', onTap: () {}),
-          SettingsItem(
-              icon: Icons.feedback, title: 'Send Feedback', onTap: () {}),
-          SettingsItem(icon: Icons.help, title: 'Help', onTap: () {}),
-          SettingsItem(icon: Icons.star, title: 'Rate this App', onTap: () {}),
+          _buildSettingsItem(context, Icons.info, "About", () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const AboutPage()));
+          }),
+          _buildSettingsItem(context, Icons.feedback, "Send Feedback", () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const FeedbackPage()));
+          }),
+          _buildSettingsItem(context, Icons.help, "Help", () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const HelpPage()));
+          }),
+          _buildSettingsItem(context, Icons.star, "Rate this App", () {
+            showRateDialog(context);
+          }),
         ],
       ),
     );
   }
 }
 
-class SettingsItem extends StatelessWidget {
-  const SettingsItem({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
+Widget _buildSettingsItem(
+    BuildContext context, IconData icon, String title, VoidCallback onTap) {
+  return InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 20),
+          const SizedBox(width: 16),
+          Text(title,
+              style: GoogleFonts.karla(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold)),
+        ],
+      ),
+    ),
+  );
+}
 
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: _AboutSettingsCardState._itemPadding,
-        child: Row(
+    return Scaffold(
+      appBar: AppBar(title: const Text("About")),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            "This is an app to manage your settings efficiently.",
+            style: GoogleFonts.karla(fontSize: 16),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class FeedbackPage extends StatelessWidget {
+  const FeedbackPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    TextEditingController feedbackController = TextEditingController();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text("Send Feedback")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon,
-                color: _AboutSettingsCardState._textColor,
-                size: _AboutSettingsCardState._iconSize),
-            _AboutSettingsCardState._iconSpacing,
-            Text(title, style: _AboutSettingsCardState._itemStyle),
+            Text("Your Feedback", style: GoogleFonts.karla(fontSize: 18)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: feedbackController,
+              maxLines: 5,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: "Enter your feedback here...",
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Feedback Submitted")),
+                );
+              },
+              child: const Text("Submit"),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+class HelpPage extends StatelessWidget {
+  const HelpPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Help")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("FAQs",
+                style: GoogleFonts.karla(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text(
+                "Q: How to use this app?\nA: Simply navigate through the settings and configure as needed.",
+                style: GoogleFonts.karla(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void showRateDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Rate this App"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Please rate this app"),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: const Icon(Icons.star_border),
+                  onPressed: () {},
+                );
+              }),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Thank you for rating!")),
+              );
+            },
+            child: const Text("Submit"),
+          ),
+        ],
+      );
+    },
+  );
 }

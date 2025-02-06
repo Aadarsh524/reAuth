@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/bloc/states/auth_state.dart';
+import 'package:reauth/bloc/states/authentication_state.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/components/about_settings_card.dart';
 import 'package:reauth/components/general_settings_card.dart';
