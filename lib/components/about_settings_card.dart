@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reauth/components/custom_snackbar.dart';
+import 'package:reauth/pages/about_page.dart';
+import 'package:reauth/pages/feedback_page.dart';
+import 'package:reauth/pages/help_page.dart';
+import 'package:reauth/services/rating_services.dart';
 
 class AboutSettingsCard extends StatefulWidget {
   const AboutSettingsCard({super.key});
@@ -102,129 +107,124 @@ Widget _buildSettingsItem(
   );
 }
 
-class AboutPage extends StatelessWidget {
-  const AboutPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("About")),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            "This is an app to manage your settings efficiently.",
-            style: GoogleFonts.karla(fontSize: 16),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class FeedbackPage extends StatelessWidget {
-  const FeedbackPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    TextEditingController feedbackController = TextEditingController();
-
-    return Scaffold(
-      appBar: AppBar(title: const Text("Send Feedback")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Your Feedback", style: GoogleFonts.karla(fontSize: 18)),
-            const SizedBox(height: 10),
-            TextField(
-              controller: feedbackController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Enter your feedback here...",
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Feedback Submitted")),
+void showRateDialog(BuildContext context) {
+  int selectedStars = 0;
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return Center(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return StatefulBuilder(
+              builder: (context, setDialogState) {
+                return AlertDialog(
+                  backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  title: Text(
+                    "Rate this App",
+                    style: GoogleFonts.karla(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(5, (index) {
+                          return IconButton(
+                            // Reduce spacing between icons:
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            constraints: const BoxConstraints(),
+                            icon: Icon(
+                              index < selectedStars
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: Colors.amber,
+                              size: 28, // Adjust star size as needed
+                            ),
+                            onPressed: () {
+                              setDialogState(() {
+                                selectedStars = index + 1;
+                              });
+                            },
+                          );
+                        }),
+                      ),
+                      if (selectedStars > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "$selectedStars Star${selectedStars > 1 ? 's' : ''}",
+                            style: GoogleFonts.karla(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        "Cancel",
+                        style: GoogleFonts.karla(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: selectedStars > 0
+                          ? () {
+                              submitRating(selectedStars);
+                              Navigator.pop(context);
+                              CustomSnackbar.show(
+                                context,
+                                message: "Thank you for rating!",
+                              );
+                            }
+                          : null,
+                      child: Text(
+                        "Submit",
+                        style: GoogleFonts.karla(
+                          color: selectedStars > 0 ? Colors.amber : Colors.grey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
-              child: const Text("Submit"),
-            ),
-          ],
+            );
+          },
         ),
-      ),
-    );
-  }
-}
-
-class HelpPage extends StatelessWidget {
-  const HelpPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Help")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("FAQs",
-                style: GoogleFonts.karla(
-                    fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text(
-                "Q: How to use this app?\nA: Simply navigate through the settings and configure as needed.",
-                style: GoogleFonts.karla(fontSize: 16)),
-          ],
+      );
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return ScaleTransition(
+        scale: CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutBack,
         ),
-      ),
-    );
-  }
-}
-
-void showRateDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text("Rate this App"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Please rate this app"),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: const Icon(Icons.star_border),
-                  onPressed: () {},
-                );
-              }),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Thank you for rating!")),
-              );
-            },
-            child: const Text("Submit"),
-          ),
-        ],
+        child: child,
       );
     },
   );

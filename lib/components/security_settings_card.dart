@@ -740,92 +740,136 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
   }
 
   void _setupBiometricAuth(BuildContext context) async {
-    final biometricService = BiometricService();
-    bool isAvailable = await biometricService.isBiometricAvailable();
+    void _setupBiometricAuth(BuildContext context) async {
+      final biometricService = BiometricService();
+      bool isAvailable = await biometricService.isBiometricAvailable();
 
-    if (!isAvailable) {
-      CustomSnackbar.show(
-        context,
-        message: "Biometric authentication is not available.",
-      );
-
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text(
-            "Enable Biometric Login",
-            style: GoogleFonts.karla(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            "Do you want to enable fingerprint login for faster access?",
-            style: GoogleFonts.karla(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(
-                "Cancel",
-                style: GoogleFonts.karla(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(dialogContext); // Close dialog
-                bool isAuthenticated = await biometricService.authenticate();
-
-                if (isAuthenticated) {
-                  // Save biometric preference
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  await prefs.setBool("biometricEnabled", true);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                      "Biometric login enabled!",
-                      style: GoogleFonts.karla(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )),
-                  );
-                } else {
-                  CustomSnackbar.show(
-                    context,
-                    message: "Authentication failed.",
-                  );
-                }
-              },
-              child: Text(
-                "Enable",
-                style: GoogleFonts.karla(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
+      if (!isAvailable) {
+        CustomSnackbar.show(
+          context,
+          message: "Biometric authentication is not available.",
         );
-      },
-    );
+        return;
+      }
+
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Center(
+            child: StatefulBuilder(
+              builder: (context, setDialogState) {
+                return AlertDialog(
+                  backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  title: Text(
+                    "Enable Biometric Login",
+                    style: GoogleFonts.karla(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  content: Text(
+                    "Do you want to enable fingerprint login for faster access?",
+                    style: GoogleFonts.karla(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: const BorderSide(color: Colors.red),
+                        ),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: GoogleFonts.karla(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.pop(context); // Close the dialog
+                        bool isAuthenticated =
+                            await biometricService.authenticate();
+
+                        if (isAuthenticated) {
+                          // Save biometric preference
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          await prefs.setBool("biometricEnabled", true);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Biometric login enabled!",
+                                style: GoogleFonts.karla(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        } else {
+                          CustomSnackbar.show(
+                            context,
+                            message: "Authentication failed.",
+                          );
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        "Enable",
+                        style: GoogleFonts.karla(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          if (animation.status == AnimationStatus.reverse) {
+            return child;
+          }
+          return ScaleTransition(
+            scale: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            ),
+            child: child,
+          );
+        },
+      );
+    }
   }
 
   void _deleteAccount(BuildContext context) {

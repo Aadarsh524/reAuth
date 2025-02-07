@@ -14,7 +14,8 @@ class CustomTextField extends StatelessWidget {
   final Function(String)? onChanged;
   final bool isRequired;
   final bool enabled;
-  final FocusNode? focusNode; // Added focus node parameter
+  final FocusNode? focusNode;
+  final int maxLines; // Added maxLines parameter
 
   const CustomTextField({
     Key? key,
@@ -29,7 +30,8 @@ class CustomTextField extends StatelessWidget {
     this.onChanged,
     required this.isRequired,
     this.enabled = true,
-    this.focusNode, // Added to constructor
+    this.focusNode,
+    this.maxLines = 1, // Default value set to 1
   }) : super(key: key);
 
   @override
@@ -63,9 +65,9 @@ class CustomTextField extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 50,
+            height: maxLines > 1 ? null : 50, // Adjust height dynamically
             child: TextFormField(
-              focusNode: focusNode, // Connect focus node to TextFormField
+              focusNode: focusNode,
               inputFormatters: textInputFormatter,
               controller: controller,
               obscureText: obscureText,
@@ -73,6 +75,7 @@ class CustomTextField extends StatelessWidget {
               cursorColor: Colors.white,
               onChanged: onChanged,
               enabled: enabled,
+              maxLines: maxLines, // Set maxLines property
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: const TextStyle(
