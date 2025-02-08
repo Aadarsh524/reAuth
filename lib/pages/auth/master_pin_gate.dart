@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
-import 'package:reauth/pages/auth/addpin_page.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
 import 'package:reauth/services/encryption_service.dart';
 
@@ -31,7 +29,7 @@ class _MasterPinGateState extends State<MasterPinGate> {
     final profileState = context.read<ProfileCubit>().state;
 
     if (profileState is ProfileLoaded) {
-      if (profileState.profile.isMasterPinSet) {
+      if (profileState.profile.isMasterPinSet == true) {
         // Retrieve the stored (encrypted/hashed) PIN from the profile.
         final storedEncryptedPin = profileState.profile.masterPin;
 
@@ -52,100 +50,105 @@ class _MasterPinGateState extends State<MasterPinGate> {
             errorMessage = 'Incorrect PIN. Please try again.';
           });
         }
-      } else {
-        // The profile is loaded but no master PIN is set.
-        showGeneralDialog(
-          context: context,
-          barrierDismissible: true,
-          barrierLabel:
-              MaterialLocalizations.of(context).modalBarrierDismissLabel,
-          barrierColor: Colors.black54,
-          transitionDuration: const Duration(milliseconds: 300),
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return Center(
-              child: AlertDialog(
-                backgroundColor: const Color.fromARGB(255, 72, 80, 93),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: Text(
-                  "Set Master PIN",
-                  style: GoogleFonts.karla(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                content: Text(
-                  "You haven't set a master PIN yet. Would you like to set one now for faster and secure access?",
-                  style: GoogleFonts.karla(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(color: Colors.red),
-                      ),
-                    ),
-                    child: Text(
-                      "Skip",
-                      style: GoogleFonts.karla(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close the dialog
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddPinPage(),
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      "Set PIN",
-                      style: GoogleFonts.karla(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          transitionBuilder: (context, animation, secondaryAnimation, child) {
-            if (animation.status == AnimationStatus.reverse) {
-              return child;
-            }
-            return ScaleTransition(
-              scale: CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutBack,
-              ),
-              child: child,
-            );
-          },
+      }
+      if (profileState.profile.isMasterPinSet == true) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardPage()),
         );
+        // The profile is loaded but no master PIN is set.
+        // showGeneralDialog(
+        //   context: context,
+        //   barrierDismissible: true,
+        //   barrierLabel:
+        //       MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        //   barrierColor: Colors.black54,
+        //   transitionDuration: const Duration(milliseconds: 300),
+        //   pageBuilder: (context, animation, secondaryAnimation) {
+        //     return Center(
+        //       child: AlertDialog(
+        //         backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+        //         shape: RoundedRectangleBorder(
+        //           borderRadius: BorderRadius.circular(20),
+        //         ),
+        //         title: Text(
+        //           "Set Master PIN",
+        //           style: GoogleFonts.karla(
+        //             color: Colors.white,
+        //             fontSize: 16,
+        //             fontWeight: FontWeight.bold,
+        //           ),
+        //         ),
+        //         content: Text(
+        //           "You haven't set a master PIN yet. Would you like to set one now for faster and secure access?",
+        //           style: GoogleFonts.karla(
+        //             color: Colors.white,
+        //             fontSize: 14,
+        //             fontWeight: FontWeight.bold,
+        //           ),
+        //           textAlign: TextAlign.center,
+        //         ),
+        //         actions: [
+        //           TextButton(
+        //             onPressed: () => Navigator.pop(context),
+        //             style: TextButton.styleFrom(
+        //               backgroundColor: Colors.red,
+        //               shape: RoundedRectangleBorder(
+        //                 borderRadius: BorderRadius.circular(8),
+        //                 side: const BorderSide(color: Colors.red),
+        //               ),
+        //             ),
+        //             child: Text(
+        //               "Skip",
+        //               style: GoogleFonts.karla(
+        //                 color: Colors.white,
+        //                 fontSize: 14,
+        //                 fontWeight: FontWeight.bold,
+        //               ),
+        //             ),
+        //           ),
+        //           TextButton(
+        //             onPressed: () {
+        //               Navigator.pop(context); // Close the dialog
+        //               Navigator.push(
+        //                 context,
+        //                 MaterialPageRoute(
+        //                   builder: (context) => const AddPinPage(),
+        //                 ),
+        //               );
+        //             },
+        //             style: TextButton.styleFrom(
+        //               backgroundColor: Colors.redAccent,
+        //               shape: RoundedRectangleBorder(
+        //                 borderRadius: BorderRadius.circular(8),
+        //               ),
+        //             ),
+        //             child: Text(
+        //               "Set PIN",
+        //               style: GoogleFonts.karla(
+        //                 color: Colors.white,
+        //                 fontSize: 14,
+        //                 fontWeight: FontWeight.bold,
+        //               ),
+        //             ),
+        //           ),
+        //         ],
+        //       ),
+        //     );
+        //   },
+        //   transitionBuilder: (context, animation, secondaryAnimation, child) {
+        //     if (animation.status == AnimationStatus.reverse) {
+        //       return child;
+        //     }
+        //     return ScaleTransition(
+        //       scale: CurvedAnimation(
+        //         parent: animation,
+        //         curve: Curves.easeOutBack,
+        //       ),
+        //       child: child,
+        //     );
+        //   },
+        // );
       }
     } else {
       setState(() {

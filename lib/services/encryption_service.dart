@@ -1,44 +1,51 @@
+import 'dart:typed_data';
+
 import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'dart:math';
 
 class EncryptionService {
-  static const _encryptionKeyStorageKey = 'encryption_key';
-  static const _secureStorage = FlutterSecureStorage();
+  static const _secretKey =
+      "MySuperSecretKey12345"; // Replace with a securely stored key
 
-  static Future<encrypt.Key> _getOrCreateKey() async {
-    final existingKey =
-        await _secureStorage.read(key: _encryptionKeyStorageKey);
-    if (existingKey != null) {
-      return encrypt.Key.fromBase64(existingKey);
-    } else {
-      final newKey = encrypt.Key.fromSecureRandom(32);
-      await _secureStorage.write(
-        key: _encryptionKeyStorageKey,
-        value: newKey.base64,
-      );
-      return newKey;
+  // Generate a user-specific key using Firebase UID and secret key
+  static Future<encrypt.Key> _getUserSpecificKey() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("User not authenticated");
     }
+
+    final userId = user.uid;
+    final combinedKey = utf8.encode(userId + _secretKey);
+    final hashedKey =
+        encrypt.Key.fromUtf8(base64Encode(combinedKey).substring(0, 32));
+    return hashedKey;
+  }
+
+  // Generate a secure random IV
+  static encrypt.IV _generateIV() {
+    final random = Random.secure();
+    final values = List<int>.generate(16, (i) => random.nextInt(256));
+    return encrypt.IV(Uint8List.fromList(values));
   }
 
   static Future<String> encryptData(String plainText) async {
-    if (plainText.isEmpty) {
-      return ''; // Handle empty passwords gracefully
-    }
+    if (plainText.isEmpty) return '';
 
-    final key = await _getOrCreateKey();
-    final iv = encrypt.IV.fromSecureRandom(16);
+    final key = await _getUserSpecificKey();
+    final iv = _generateIV();
     final encrypter =
         encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
     final encrypted = encrypter.encrypt(plainText, iv: iv);
+
     return '${iv.base64}::${encrypted.base64}';
   }
 
   static Future<String> decryptData(String encryptedText) async {
-    if (encryptedText.isEmpty) {
-      return ''; // Return empty if no password
-    }
+    if (encryptedText.isEmpty) return '';
 
-    final key = await _getOrCreateKey();
+    final key = await _getUserSpecificKey();
     final parts = encryptedText.split('::');
     if (parts.length != 2) {
       throw const FormatException('Invalid encrypted text format');
