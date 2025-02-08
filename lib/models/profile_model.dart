@@ -2,11 +2,15 @@ class ProfileModel {
   final String fullName;
   final String email;
   final String profileImage;
+  final bool isMasterPinSet;
+  final String masterPin;
 
   ProfileModel({
     required this.fullName,
     required this.email,
     required this.profileImage,
+    this.isMasterPinSet = false,
+    this.masterPin = '',
   });
 
   /// Factory constructor to create a ProfileModel instance from a map
@@ -15,6 +19,8 @@ class ProfileModel {
       fullName: map['fullName'] ?? '',
       email: map['email'] ?? '',
       profileImage: map['profileImage'] ?? '',
+      isMasterPinSet: map['isMasterPinSet'] ?? false,
+      masterPin: map['masterPin'] ?? '',
     );
   }
 
@@ -24,6 +30,8 @@ class ProfileModel {
       'fullName': fullName,
       'email': email,
       'profileImage': profileImage,
+      'isMasterPinSet': isMasterPinSet,
+      'masterPin': masterPin,
     };
   }
 }

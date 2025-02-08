@@ -25,6 +25,14 @@ class _AddPinPageState extends State<AddPinPage> {
   static const Color secondaryTextColor = Colors.grey;
 
   @override
+  void dispose() {
+    // Dispose the controllers properly.
+    pinController.dispose();
+    confirmPinController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: scaffoldBackgroundColor,
@@ -53,12 +61,11 @@ class _AddPinPageState extends State<AddPinPage> {
               const Spacer(),
               BlocConsumer<AuthenticationCubit, AuthenticationState>(
                 listener: (context, state) {
-                  if (state is PinUpdateSuccess) {
+                  if (state is SettingPinInSuccess) {
                     CustomSnackbar.show(
                       context,
-                      message: "PIN saved successfuly",
+                      message: "PIN saved successfully",
                     );
-
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
@@ -68,10 +75,13 @@ class _AddPinPageState extends State<AddPinPage> {
                   } else if (state is AuthenticationError) {
                     CustomSnackbar.show(context,
                         message: state.error, isError: true);
+                  } else if (state is ValidationError) {
+                    CustomSnackbar.show(context,
+                        message: state.error, isError: true);
                   }
                 },
                 builder: (context, state) {
-                  if (state is AuthenticationLoading) {
+                  if (state is SettingPinInProgress) {
                     return const Center(
                       child: CircularProgressIndicator(
                         color: primaryColor,
@@ -82,10 +92,12 @@ class _AddPinPageState extends State<AddPinPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: ElevatedButton(
                       onPressed: () {
-                        // authCubit.setPin(
-                        //   pinController.text,
-                        //   confirmPinController.text,
-                        // );
+                        // Call the cubit's setMasterPin method
+                        BlocProvider.of<AuthenticationCubit>(context)
+                            .setMasterPin(
+                          pin: pinController.text.trim(),
+                          confirmPin: confirmPinController.text.trim(),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,

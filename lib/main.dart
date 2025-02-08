@@ -10,7 +10,7 @@ import 'package:reauth/bloc/states/authentication_state.dart';
 
 import 'package:reauth/firebase_options.dart';
 import 'package:reauth/pages/auth/login_page.dart';
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import 'package:reauth/pages/auth/master_pin_gate.dart';
 import 'package:reauth/themes/themes.dart';
 // ... other imports
 
@@ -48,9 +48,11 @@ class InitialLoader extends StatelessWidget {
 
   Future<Widget> _getInitialPage(BuildContext context) async {
     final authCubit = context.read<AuthenticationCubit>();
-    await authCubit.initialize(); // Consider adding initialization method
+    await authCubit.initialize(); // Ensure Firebase auth is initialized
     if (authCubit.state is Authenticated) {
-      return const DashboardPage();
+      // Instead of returning DashboardPage directly,
+      // return the master PIN gateway page.
+      return const MasterPinGate();
     } else {
       return const LoginPage();
     }
@@ -66,7 +68,6 @@ class InitialLoader extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-
         if (snapshot.hasError) {
           return Scaffold(
             body: Center(
@@ -85,7 +86,6 @@ class InitialLoader extends StatelessWidget {
             ),
           );
         }
-
         return snapshot.data ?? const LoginPage();
       },
     );

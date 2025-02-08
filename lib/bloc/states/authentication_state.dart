@@ -39,9 +39,9 @@ class AuthenticationError extends AuthenticationState {
 }
 
 // PIN Operations
-class PinValidationInProgress extends AuthenticationState {}
+class SettingPinInProgress extends AuthenticationState {}
 
-class PinValidationSuccess extends AuthenticationState {}
+class SettingPinInSuccess extends AuthenticationState {}
 
 class PinUpdateSuccess extends AuthenticationState {}
 

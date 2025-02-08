@@ -4,10 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/authentication_cubit.dart';
 import 'package:reauth/bloc/cubit/popular_auth_cubit.dart';
+import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/states/popular_provider_state.dart';
+import 'package:reauth/bloc/states/profile_state.dart';
 
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/popular_auth_card.dart';
+import 'package:reauth/pages/auth/addpin_page.dart';
 import 'package:reauth/pages/dashboard/add_auth_page.dart';
 
 class NewAuthPage extends StatefulWidget {
@@ -82,28 +85,151 @@ class _NewProviderPageState extends State<NewAuthPage> {
                           width: 50,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.all(8.0),
-                                side: const BorderSide(
-                                    color: Color.fromARGB(255, 106, 172, 191)),
-                                backgroundColor:
-                                    const Color.fromARGB(255, 106, 172, 191)),
+                              padding: const EdgeInsets.all(8.0),
+                              side: const BorderSide(
+                                  color: Color.fromARGB(255, 106, 172, 191)),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 106, 172, 191),
+                            ),
                             onPressed: () async {
                               final authCubit =
                                   context.read<AuthenticationCubit>();
-                              bool isUserVerified = await authCubit
-                                  .checkEmailVerification(); // Dispatch verification check
-                              if (isUserVerified) {
-                                // ignore: use_build_context_synchronously
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const AddAuthPage(),
-                                  ),
+                              bool isUserVerified =
+                                  await authCubit.checkEmailVerification();
+                              if (!isUserVerified) {
+                                CustomSnackbar.show(
+                                  context,
+                                  message:
+                                      "You need to verify your email first.",
+                                  isError: true,
                                 );
+                                return;
+                              }
+
+                              final profileState =
+                                  context.read<ProfileCubit>().state;
+                              if (profileState is ProfileLoaded) {
+                                if (!profileState.profile.isMasterPinSet) {
+                                  // If master PIN is not set, show a dialog to prompt user.
+                                  showGeneralDialog(
+                                    context: context,
+                                    barrierDismissible: true,
+                                    barrierLabel:
+                                        MaterialLocalizations.of(context)
+                                            .modalBarrierDismissLabel,
+                                    barrierColor: Colors.black54,
+                                    transitionDuration:
+                                        const Duration(milliseconds: 300),
+                                    pageBuilder: (context, animation,
+                                        secondaryAnimation) {
+                                      return Center(
+                                        child: AlertDialog(
+                                          backgroundColor: const Color.fromARGB(
+                                              255, 72, 80, 93),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          title: Text(
+                                            "Master PIN Required",
+                                            style: GoogleFonts.karla(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          content: Text(
+                                            "You haven't set a master PIN yet. Please set one for secure access to your saved passwords.",
+                                            style: GoogleFonts.karla(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              style: TextButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  side: const BorderSide(
+                                                      color: Colors.red),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                "Cancel",
+                                                style: GoogleFonts.karla(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(
+                                                    context); // Close the dialog
+                                                // Navigate to the page where user can set the master PIN.
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const AddPinPage(),
+                                                  ),
+                                                );
+                                              },
+                                              style: TextButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.redAccent,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                "Set PIN",
+                                                style: GoogleFonts.karla(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    transitionBuilder: (context, animation,
+                                        secondaryAnimation, child) {
+                                      return ScaleTransition(
+                                        scale: CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeOutBack,
+                                        ),
+                                        child: child,
+                                      );
+                                    },
+                                  );
+                                } else {
+                                  // Email is verified and master PIN is set; navigate to AddAuthPage.
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const AddAuthPage(),
+                                    ),
+                                  );
+                                }
                               } else {
-                                CustomSnackbar.show(context,
-                                    message:
-                                        "You need to verify your email first.",
-                                    isError: true);
+                                // Profile is not loaded. You can show an error or try to fetch it.
+                                CustomSnackbar.show(
+                                  context,
+                                  message:
+                                      "Profile not loaded. Please try again later.",
+                                  isError: true,
+                                );
                               }
                             },
                             child: const Icon(

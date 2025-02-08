@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:reauth/bloc/states/authentication_state.dart';
+import 'package:reauth/services/encryption_service.dart';
 import 'package:reauth/validator/authentication_validator/authentication_field_validator.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   final FirebaseAuth _auth;
@@ -12,6 +14,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   User? get currentUser => _auth.currentUser;
   AuthenticationState? _lastEmittedState;
   StreamSubscription<User?>? _authStateSubscription;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   AuthenticationCubit({
     FirebaseAuth? auth,
@@ -113,6 +116,8 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         'fullName': fullName,
         'email': email,
         'profileImage': '',
+        'isMasterPinSet': false,
+        'masterPin': '',
       });
 
       // Pause the auth state listener temporarily
@@ -215,6 +220,53 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       emit(const AuthenticationError(
         error: 'No user Signed In',
       ));
+    }
+  }
+
+  Future<void> setMasterPin({
+    required String pin,
+    required String confirmPin,
+  }) async {
+    // Basic validation
+    if (pin.isEmpty || confirmPin.isEmpty) {
+      emit(const ValidationError("Please enter a valid PIN"));
+      return;
+    }
+    if (pin != confirmPin) {
+      emit(const ValidationError("PINs do not match"));
+      return;
+    }
+    if (pin.length < 4) {
+      // Adjust the minimum length as desired
+      emit(const ValidationError("PIN must be at least 4 digits"));
+      return;
+    }
+    try {
+      emit(SettingPinInProgress());
+
+      // Encrypt the PIN using your EncryptionService
+      final encryptedPin = await EncryptionService.encryptData(pin);
+
+      // Get the current user from Firebase Auth
+      final user = _auth.currentUser;
+      if (user == null) {
+        emit(const AccountUpdateError(error: "No user signed in"));
+        return;
+      }
+
+      // Save (or update) the encrypted PIN in the Firestore user profile.
+      // Using merge: true will update just the masterPin field without overwriting the rest.
+      await _firestore.collection('profiles').doc(user.uid).set({
+        'masterPin': encryptedPin,
+        'isMasterPinSet': true,
+      }, SetOptions(merge: true));
+
+      // Optionally, also save the encrypted PIN locally using secure storage.
+      await _secureStorage.write(key: 'master_pin', value: encryptedPin);
+
+      emit(SettingPinInSuccess());
+    } catch (e) {
+      emit(AccountUpdateError(error: _parseError(e)));
     }
   }
 
