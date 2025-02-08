@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reauth/bloc/cubit/authentication_cubit.dart';
+import 'package:reauth/bloc/cubit/profile_cubit.dart';
+import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/models/popular_auth_model.dart';
+import 'package:reauth/pages/auth/addpin_page.dart';
 import 'package:reauth/pages/dashboard/add_auth_page.dart';
 
 class PopularAuthCard extends StatelessWidget {
@@ -17,6 +20,7 @@ class PopularAuthCard extends StatelessWidget {
   const PopularAuthCard({super.key, required this.authModel});
 
   Future<void> _handleTap(BuildContext context) async {
+    // Check if user is signed in
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       CustomSnackbar.show(
@@ -24,28 +28,126 @@ class PopularAuthCard extends StatelessWidget {
         isError: true,
         message: "Please sign in first",
       );
-
       return;
     }
 
+    // 1. Check email verification first.
     final isVerified =
         await context.read<AuthenticationCubit>().checkEmailVerification();
-
-    if (!context.mounted) return;
-
-    if (isVerified) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AddAuthPage(popularAuthModel: authModel),
-          ));
-    } else {
+    if (!isVerified) {
+      // If the email is not verified, show the error and exit.
       CustomSnackbar.show(
         context,
         isError: true,
-        message: "Verify your email first",
+        message: "Verify Your Email First",
       );
+      return;
     }
+
+    // 2. Email is verified. Now check if the master PIN is set.
+    final profileState = context.read<ProfileCubit>().state;
+    if (profileState is ProfileLoaded && !profileState.profile.isMasterPinSet) {
+      // If the master PIN is not set, show the dialog to prompt user.
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Center(
+            child: AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 72, 80, 93),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Text(
+                "Master PIN Required",
+                style: GoogleFonts.karla(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Text(
+                "You haven't set a master PIN yet. Please set one for secure access to your saved passwords.",
+                style: GoogleFonts.karla(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                  ),
+                  child: Text(
+                    "Cancel",
+                    style: GoogleFonts.karla(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the dialog.
+                    // Navigate to the page where the user can set the master PIN.
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddPinPage(),
+                      ),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 111, 163, 219),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Set PIN",
+                    style: GoogleFonts.karla(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return ScaleTransition(
+            scale: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            ),
+            child: child,
+          );
+        },
+      );
+      return;
+    }
+
+    // 3. Email is verified and the master PIN is set.
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddAuthPage(popularAuthModel: authModel),
+      ),
+    );
   }
 
   @override

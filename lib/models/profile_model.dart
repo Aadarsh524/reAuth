@@ -3,6 +3,8 @@ class ProfileModel {
   final String email;
   final String profileImage;
   final bool isMasterPinSet;
+  final bool isBiometricSet;
+
   final String masterPin;
 
   ProfileModel({
@@ -10,6 +12,7 @@ class ProfileModel {
     required this.email,
     required this.profileImage,
     this.isMasterPinSet = false,
+    this.isBiometricSet = false,
     this.masterPin = '',
   });
 
@@ -21,6 +24,7 @@ class ProfileModel {
       profileImage: map['profileImage'] ?? '',
       isMasterPinSet: map['isMasterPinSet'] ?? false,
       masterPin: map['masterPin'] ?? '',
+      isBiometricSet: map['isBiometricSet'] ?? false,
     );
   }
 
@@ -32,6 +36,7 @@ class ProfileModel {
       'profileImage': profileImage,
       'isMasterPinSet': isMasterPinSet,
       'masterPin': masterPin,
+      'isBiometricSet': isBiometricSet,
     };
   }
 }

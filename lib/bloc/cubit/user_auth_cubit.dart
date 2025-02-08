@@ -34,7 +34,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
       }
 
       final snapshot = await _firestore
-          .collection('users')
+          .collection('userAuths')
           .doc(currentUser.uid)
           .collection('auths')
           .get();
@@ -104,7 +104,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
       );
 
       await _firestore
-          .collection('users')
+          .collection('userAuths')
           .doc(currentUser.uid)
           .collection('auths')
           .doc(encryptedModel.authName)
@@ -142,7 +142,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
       );
 
       await _firestore
-          .collection('users')
+          .collection('userAuths')
           .doc(currentUser.uid)
           .collection('auths')
           .doc(userAuthModel.authName)
@@ -166,7 +166,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
       }
 
       await _firestore
-          .collection('users')
+          .collection('userAuths')
           .doc(currentUser.uid)
           .collection('auths')
           .doc(userAuthId)
@@ -185,7 +185,7 @@ class UserAuthCubit extends Cubit<UserAuthState> {
     if (currentUser == null) return;
 
     await _firestore
-        .collection('users')
+        .collection('userAuths')
         .doc(currentUser.uid)
         .collection('auths')
         .doc(userAuthModel.authName)

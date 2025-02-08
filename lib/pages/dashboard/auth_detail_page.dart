@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/constants/auth_category.dart';
+import 'package:reauth/components/constants/auth_category.dart';
 import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
 import 'package:reauth/pages/dashboard/edit_auth_page.dart';

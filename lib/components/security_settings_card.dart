@@ -971,7 +971,8 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                             ? null
                             : () => Navigator.of(context).pop(),
                         style: TextButton.styleFrom(
-                          backgroundColor: Colors.red,
+                          backgroundColor:
+                              const Color.fromARGB(255, 111, 163, 219),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: const BorderSide(color: Colors.red),

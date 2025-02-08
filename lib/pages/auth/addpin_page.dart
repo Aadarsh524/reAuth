@@ -18,15 +18,13 @@ class _AddPinPageState extends State<AddPinPage> {
   final TextEditingController pinController = TextEditingController();
   final TextEditingController confirmPinController = TextEditingController();
 
-  // Constants for colors and styles
-  static const Color scaffoldBackgroundColor = Colors.black;
+  static const Color scaffoldBackgroundColor = Color.fromARGB(255, 43, 51, 63);
   static const Color textColor = Colors.white;
-  static const Color primaryColor = Colors.blue;
+  static const Color primaryColor = Color.fromARGB(255, 111, 163, 219);
   static const Color secondaryTextColor = Colors.grey;
 
   @override
   void dispose() {
-    // Dispose the controllers properly.
     pinController.dispose();
     confirmPinController.dispose();
     super.dispose();
@@ -36,26 +34,30 @@ class _AddPinPageState extends State<AddPinPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 53, 64, 79),
+        centerTitle: true,
+        elevation: 0,
+        title: Text(
+          "Set Master Pin",
+          style: GoogleFonts.karla(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                "Set PIN",
-                style: GoogleFonts.karla(
-                  color: textColor,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
               const SizedBox(height: 20),
-              _buildEmailRow(),
-              const SizedBox(height: 40),
-              _buildPinTextField("Enter PIN", pinController),
+              _buildPinTextField("Add Master PIN", pinController),
               const SizedBox(height: 20),
-              _buildPinTextField("Confirm PIN", confirmPinController),
+              _buildPinTextField(
+                  "Add Confirm Master PIN", confirmPinController),
               const SizedBox(height: 20),
               _buildDescription(),
               const Spacer(),
@@ -72,49 +74,51 @@ class _AddPinPageState extends State<AddPinPage> {
                         builder: (context) => const DashboardPage(),
                       ),
                     );
-                  } else if (state is AuthenticationError) {
+                  } else if (state is AuthenticationError ||
+                      state is ValidationError) {
                     CustomSnackbar.show(context,
-                        message: state.error, isError: true);
-                  } else if (state is ValidationError) {
-                    CustomSnackbar.show(context,
-                        message: state.error, isError: true);
+                        message: state is AuthenticationError
+                            ? state.error
+                            : (state as ValidationError).error,
+                        isError: true);
                   }
                 },
                 builder: (context, state) {
-                  if (state is SettingPinInProgress) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: primaryColor,
-                      ),
-                    );
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Call the cubit's setMasterPin method
-                        BlocProvider.of<AuthenticationCubit>(context)
-                            .setMasterPin(
-                          pin: pinController.text.trim(),
-                          confirmPin: confirmPinController.text.trim(),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                      ),
-                      child: Text(
-                        'Save',
-                        style: GoogleFonts.karla(
-                          color: textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                  final isSubmitting = state is SettingPinInProgress;
+                  return TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            BlocProvider.of<AuthenticationCubit>(context)
+                                .setMasterPin(
+                              pin: pinController.text.trim(),
+                              confirmPin: confirmPinController.text.trim(),
+                            );
+                          },
+                    style: TextButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              backgroundColor: Colors.transparent,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            "Save",
+                            style: GoogleFonts.karla(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   );
                 },
               ),
@@ -122,39 +126,6 @@ class _AddPinPageState extends State<AddPinPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmailRow() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        border: const Border(
-          bottom: BorderSide(
-            color: primaryColor,
-            width: 2,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            "aadarshghimire524@gmail.com",
-            style: TextStyle(
-              color: textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          Icon(
-            Icons.arrow_drop_down_outlined,
-            color: textColor,
-            size: 20,
-          ),
-        ],
       ),
     );
   }
@@ -174,28 +145,45 @@ class _AddPinPageState extends State<AddPinPage> {
     );
   }
 
-  Widget _buildPinTextField(String hintText, TextEditingController controller) {
+  /// Wraps a PinCodeTextField with a label above it.
+  Widget _buildPinTextField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: PinCodeTextField(
-        appContext: context,
-        length: 6,
-        obscureText: true,
-        blinkWhenObscuring: true,
-        animationType: AnimationType.fade,
-        pinTheme: PinTheme(
-          shape: PinCodeFieldShape.underline,
-          fieldHeight: 40,
-          fieldWidth: 35,
-          activeColor: primaryColor,
-          inactiveColor: secondaryTextColor,
-          selectedColor: primaryColor,
-        ),
-        cursorColor: textColor,
-        animationDuration: const Duration(milliseconds: 300),
-        controller: controller,
-        keyboardType: TextInputType.number,
-        onChanged: (value) {},
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.karla(
+              color: textColor,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          PinCodeTextField(
+            appContext: context,
+            length: 4, // 4 digits PIN
+            obscureText: true,
+            blinkWhenObscuring: true,
+            animationType: AnimationType.fade,
+            pinTheme: PinTheme(
+              shape: PinCodeFieldShape.box,
+              fieldHeight: 40, // Reduced from 50 to 40
+              fieldWidth: 35, // Reduced from 45 to 35
+              borderRadius: BorderRadius.circular(8),
+              activeColor: primaryColor,
+              inactiveColor: secondaryTextColor,
+              selectedColor: primaryColor,
+              activeFillColor: scaffoldBackgroundColor,
+            ),
+            cursorColor: textColor,
+            animationDuration: const Duration(milliseconds: 300),
+            controller: controller,
+            keyboardType: TextInputType.number,
+            onChanged: (value) {},
+          ),
+        ],
       ),
     );
   }

@@ -11,7 +11,7 @@ import 'package:reauth/components/AuthCategory/network_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/other_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/social_media_fields_widget.dart';
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/constants/auth_category.dart';
+import 'package:reauth/components/constants/auth_category.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';

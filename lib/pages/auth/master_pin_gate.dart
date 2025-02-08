@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/states/profile_state.dart';
+import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import 'package:reauth/services/biometric_services.dart';
 import 'package:reauth/services/encryption_service.dart';
 
 class MasterPinGate extends StatefulWidget {
@@ -14,151 +18,170 @@ class MasterPinGate extends StatefulWidget {
 
 class _MasterPinGateState extends State<MasterPinGate> {
   final TextEditingController pinController = TextEditingController();
-  bool isLoading = false;
-  String errorMessage = '';
+  bool isSubmitting = false;
 
-  Future<void> _verifyPin() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
+  void _verifyPin(BuildContext context) async {
+    setState(() => isSubmitting = true);
+    context.read<ProfileCubit>().fetchProfile();
+  }
 
-    // Await the fetchProfile() so that the cubit loads the profile from Firestore.
-    await context.read<ProfileCubit>().fetchProfile();
-    // After fetching, get the current state.
-    final profileState = context.read<ProfileCubit>().state;
+  Future<void> _handleBiometricUnlock() async {
+    final authenticated = await BiometricService().authenticate();
+    if (authenticated && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardPage()),
+      );
+    } else if (mounted) {
+      CustomSnackbar.show(
+        context,
+        message: 'Biometric authentication failed',
+        isError: true,
+      );
+    }
+  }
 
-    if (profileState is ProfileLoaded) {
-      if (profileState.profile.isMasterPinSet == true) {
-        // Retrieve the stored (encrypted/hashed) PIN from the profile.
-        final storedEncryptedPin = profileState.profile.masterPin;
+  void _promptSetBiometric(BuildContext context) {
+    final passwordController = TextEditingController();
+    final masterPinController = TextEditingController();
 
-        final decryptedMasterPin =
-            await EncryptionService.decryptData(storedEncryptedPin);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.fromSwatch().copyWith(
+            primary: const Color(0xFF2A6FDB),
+            secondary: const Color(0xFF2A6FDB),
+          ),
+        ),
+        child: AlertDialog(
+          title: Text(
+            "Enable Biometric Authentication",
+            style: GoogleFonts.karla(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Verify your identity to enable biometric login",
+                style: GoogleFonts.karla(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  labelStyle: GoogleFonts.karla(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              PinCodeTextField(
+                appContext: context,
+                length: 4,
+                controller: masterPinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                pinTheme: PinTheme(
+                  shape: PinCodeFieldShape.underline,
+                  fieldHeight: 40,
+                  fieldWidth: 35,
+                  activeColor: const Color(0xFF2A6FDB),
+                  inactiveColor: Colors.grey[400]!,
+                  selectedColor: const Color(0xFF2A6FDB),
+                ),
+                textStyle: GoogleFonts.karla(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                onChanged: (value) {},
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.karla(color: Colors.grey[600]),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2A6FDB),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async => _validateBiometricCredentials(
+                passwordController.text.trim(),
+                masterPinController.text.trim(),
+              ),
+              child: Text(
+                "Continue",
+                style: GoogleFonts.karla(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-        // Encrypt/hash the entered PIN (using your EncryptionService).
-        final enteredPin = pinController.text.trim();
-
-        if (enteredPin == decryptedMasterPin) {
-          // PIN verified successfully; navigate to Dashboard.
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardPage()),
-          );
-        } else {
-          setState(() {
-            errorMessage = 'Incorrect PIN. Please try again.';
-          });
-        }
-      }
-      if (profileState.profile.isMasterPinSet == true) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const DashboardPage()),
-        );
-        // The profile is loaded but no master PIN is set.
-        // showGeneralDialog(
-        //   context: context,
-        //   barrierDismissible: true,
-        //   barrierLabel:
-        //       MaterialLocalizations.of(context).modalBarrierDismissLabel,
-        //   barrierColor: Colors.black54,
-        //   transitionDuration: const Duration(milliseconds: 300),
-        //   pageBuilder: (context, animation, secondaryAnimation) {
-        //     return Center(
-        //       child: AlertDialog(
-        //         backgroundColor: const Color.fromARGB(255, 72, 80, 93),
-        //         shape: RoundedRectangleBorder(
-        //           borderRadius: BorderRadius.circular(20),
-        //         ),
-        //         title: Text(
-        //           "Set Master PIN",
-        //           style: GoogleFonts.karla(
-        //             color: Colors.white,
-        //             fontSize: 16,
-        //             fontWeight: FontWeight.bold,
-        //           ),
-        //         ),
-        //         content: Text(
-        //           "You haven't set a master PIN yet. Would you like to set one now for faster and secure access?",
-        //           style: GoogleFonts.karla(
-        //             color: Colors.white,
-        //             fontSize: 14,
-        //             fontWeight: FontWeight.bold,
-        //           ),
-        //           textAlign: TextAlign.center,
-        //         ),
-        //         actions: [
-        //           TextButton(
-        //             onPressed: () => Navigator.pop(context),
-        //             style: TextButton.styleFrom(
-        //               backgroundColor: Colors.red,
-        //               shape: RoundedRectangleBorder(
-        //                 borderRadius: BorderRadius.circular(8),
-        //                 side: const BorderSide(color: Colors.red),
-        //               ),
-        //             ),
-        //             child: Text(
-        //               "Skip",
-        //               style: GoogleFonts.karla(
-        //                 color: Colors.white,
-        //                 fontSize: 14,
-        //                 fontWeight: FontWeight.bold,
-        //               ),
-        //             ),
-        //           ),
-        //           TextButton(
-        //             onPressed: () {
-        //               Navigator.pop(context); // Close the dialog
-        //               Navigator.push(
-        //                 context,
-        //                 MaterialPageRoute(
-        //                   builder: (context) => const AddPinPage(),
-        //                 ),
-        //               );
-        //             },
-        //             style: TextButton.styleFrom(
-        //               backgroundColor: Colors.redAccent,
-        //               shape: RoundedRectangleBorder(
-        //                 borderRadius: BorderRadius.circular(8),
-        //               ),
-        //             ),
-        //             child: Text(
-        //               "Set PIN",
-        //               style: GoogleFonts.karla(
-        //                 color: Colors.white,
-        //                 fontSize: 14,
-        //                 fontWeight: FontWeight.bold,
-        //               ),
-        //             ),
-        //           ),
-        //         ],
-        //       ),
-        //     );
-        //   },
-        //   transitionBuilder: (context, animation, secondaryAnimation, child) {
-        //     if (animation.status == AnimationStatus.reverse) {
-        //       return child;
-        //     }
-        //     return ScaleTransition(
-        //       scale: CurvedAnimation(
-        //         parent: animation,
-        //         curve: Curves.easeOutBack,
-        //       ),
-        //       child: child,
-        //     );
-        //   },
-        // );
-      }
-    } else {
-      setState(() {
-        errorMessage = 'Profile not loaded. Please try again later.';
-      });
+  Future<void> _validateBiometricCredentials(
+    String password,
+    String masterPin,
+  ) async {
+    if (password.isEmpty || masterPin.length != 4) {
+      CustomSnackbar.show(context,
+          message: "Please fill all fields", isError: true);
+      return;
     }
 
-    setState(() {
-      isLoading = false;
-    });
+    // Replace with actual password validation from secure storage
+    if (password != "securePassword123") {
+      CustomSnackbar.show(context,
+          message: "Incorrect password", isError: true);
+      return;
+    }
+
+    final profileState = context.read<ProfileCubit>().state;
+    if (profileState is! ProfileLoaded) {
+      CustomSnackbar.show(context,
+          message: "Profile not loaded", isError: true);
+      return;
+    }
+
+    final decryptedPin =
+        await EncryptionService.decryptData(profileState.profile.masterPin);
+    if (masterPin != decryptedPin) {
+      CustomSnackbar.show(context,
+          message: "Incorrect master PIN", isError: true);
+      return;
+    }
+
+    final authenticated = await BiometricService().authenticate();
+    if (authenticated && mounted) {
+      // TODO: Update profile biometric setting in backend
+      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardPage()),
+      );
+    }
   }
 
   @override
@@ -171,45 +194,157 @@ class _MasterPinGateState extends State<MasterPinGate> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Enter Master PIN"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              "Please enter your master PIN to access your Dashboard",
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: pinController,
-              obscureText: true,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Master PIN",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            if (errorMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  errorMessage,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _verifyPin,
-                    child: const Text("Unlock"),
-                  ),
-          ],
+        title: Text(
+          "Master PIN Verification",
+          style: GoogleFonts.karla(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: BlocConsumer<ProfileCubit, ProfileState>(
+          listener: (context, state) async {
+            if (state is ProfileLoaded) {
+              final decryptedPin =
+                  await EncryptionService.decryptData(state.profile.masterPin);
+              if (pinController.text.trim() == decryptedPin && mounted) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DashboardPage()),
+                );
+              } else if (mounted) {
+                CustomSnackbar.show(
+                  context,
+                  message: 'Incorrect PIN. Please try again.',
+                  isError: true,
+                );
+              }
+              setState(() => isSubmitting = false);
+            } else if (state is ProfileLoadingError && mounted) {
+              CustomSnackbar.show(context,
+                  message: 'Profile load failed', isError: true);
+              setState(() => isSubmitting = false);
+            }
+          },
+          builder: (context, state) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Enter your 4-digit Master PIN to continue",
+                style: GoogleFonts.karla(
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              _buildPinInput(),
+              const SizedBox(height: 32),
+              _buildSubmitButton(),
+              const SizedBox(height: 24),
+              if (state is ProfileLoaded) _buildBiometricSection(state),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPinInput() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: PinCodeTextField(
+        appContext: context,
+        length: 4,
+        controller: pinController,
+        obscureText: true,
+        keyboardType: TextInputType.number,
+        animationType: AnimationType.fade,
+        pinTheme: PinTheme(
+          shape: PinCodeFieldShape.circle,
+          fieldHeight: 40,
+          fieldWidth: 40,
+          activeColor: const Color(0xFF2A6FDB),
+          inactiveColor: Colors.grey[300]!,
+          selectedColor: const Color(0xFF2A6FDB),
+        ),
+        textStyle: GoogleFonts.karla(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+        onChanged: (value) {},
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isSubmitting ? null : () => _verifyPin(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF2A6FDB),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: isSubmitting
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(
+                "Verify PIN",
+                style: GoogleFonts.karla(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildBiometricSection(ProfileLoaded state) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(height: 16),
+        Text(
+          "or continue with",
+          style: GoogleFonts.karla(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 16),
+        IconButton(
+          iconSize: 40,
+          icon: const Icon(Icons.fingerprint),
+          color: const Color(0xFF2A6FDB),
+          onPressed:
+              state.profile.isBiometricSet ? _handleBiometricUnlock : null,
+        ),
+        if (!state.profile.isBiometricSet) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => _promptSetBiometric(context),
+                child: Text(
+                  "Enable Biometric Authentication",
+                  style: GoogleFonts.karla(
+                    fontSize: 16,
+                    color: const Color(0xFF2A6FDB),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

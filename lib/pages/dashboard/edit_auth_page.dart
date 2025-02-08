@@ -10,7 +10,7 @@ import 'package:reauth/components/AuthCategory/network_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/other_fields_widget.dart';
 import 'package:reauth/components/AuthCategory/social_media_fields_widget.dart';
 import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/constants/auth_category.dart';
+import 'package:reauth/components/constants/auth_category.dart';
 import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/validator/auth_category_field_validator/entertainment_fields_validator.dart';
 import 'package:reauth/validator/auth_category_field_validator/financial_fields_validator.dart';

@@ -10,7 +10,6 @@ class BiometricService {
     return canCheck && isSupported;
   }
 
-  /// Authenticate using biometrics
   Future<bool> authenticate() async {
     try {
       // Check available biometrics

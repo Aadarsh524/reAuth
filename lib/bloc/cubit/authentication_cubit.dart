@@ -7,6 +7,7 @@ import 'package:reauth/bloc/states/authentication_state.dart';
 import 'package:reauth/services/encryption_service.dart';
 import 'package:reauth/validator/authentication_validator/authentication_field_validator.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   final FirebaseAuth _auth;
@@ -68,7 +69,9 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   Future<void> login(String email, String password) async {
     final validationError = validateLoginFields(email, password);
     if (validationError != null) {
-      // Emit ValidationError state only once
+      emit(AuthenticationInitial()); // Reset state first
+      await Future.delayed(
+          const Duration(milliseconds: 100)); // Allow state change
       emit(ValidationError(validationError));
       return;
     }
@@ -77,6 +80,8 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       emit(AuthenticationLoading());
       final credentials = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('just_logged_in', true);
       emit(Authenticated(credentials.user!));
     } catch (e) {
       emit(AuthenticationError(
@@ -91,9 +96,6 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     required String password,
     required String confirmPassword,
   }) async {
-    // Reset last emitted state when starting new operation
-    _lastEmittedState = null;
-
     final validationError = validateRegisterFields(
       fullName,
       email,
@@ -101,6 +103,9 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       confirmPassword,
     );
     if (validationError != null) {
+      emit(AuthenticationInitial()); // Reset state first
+      await Future.delayed(
+          const Duration(milliseconds: 100)); // Allow state change
       emit(ValidationError(validationError));
       return;
     }
@@ -284,6 +289,13 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     if (user != null && user.email != null) {
       try {
         emit(AccountUpdateInProgress());
+
+        final encryptedPin = await EncryptionService.encryptData(newPin);
+
+        await _firestore.collection('profiles').doc(user.uid).set({
+          'masterPin': encryptedPin,
+          'isMasterPinSet': true,
+        }, SetOptions(merge: true));
 
         emit(AccountUpdateSuccess());
       } catch (e) {

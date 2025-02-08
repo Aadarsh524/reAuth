@@ -7,9 +7,11 @@ import 'package:reauth/bloc/cubit/profile_cubit.dart';
 import 'package:reauth/bloc/cubit/recent_auth_cubit.dart';
 import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
 import 'package:reauth/bloc/states/authentication_state.dart';
+import 'package:reauth/bloc/states/profile_state.dart';
 import 'package:reauth/firebase_options.dart';
 import 'package:reauth/pages/auth/login_page.dart';
 import 'package:reauth/pages/auth/master_pin_gate.dart';
+import 'package:reauth/pages/dashboard/dashboard_page.dart';
 import 'package:reauth/themes/themes.dart';
 // ... other imports
 
@@ -47,14 +49,25 @@ class InitialLoader extends StatelessWidget {
 
   Future<Widget> _getInitialPage(BuildContext context) async {
     final authCubit = context.read<AuthenticationCubit>();
-    await authCubit.initialize(); // Ensure Firebase auth is initialized
+    final profileCubit = context.read<ProfileCubit>();
+
+    await authCubit.initialize();
+
     if (authCubit.state is Authenticated) {
-      // Instead of returning DashboardPage directly,
-      // return the master PIN gateway page.
-      return const MasterPinGate();
+      await profileCubit.fetchProfile();
+
+      if (profileCubit.state is ProfileLoaded) {
+        final profile = (profileCubit.state as ProfileLoaded).profile;
+        if (profile.isMasterPinSet) {
+          return const MasterPinGate();
+        } else {
+          return const DashboardPage();
+        }
+      }
     } else {
       return const LoginPage();
     }
+    return const LoginPage();
   }
 
   @override

@@ -1,4 +1,4 @@
-import 'package:reauth/constants/auth_category.dart';
+import 'package:reauth/components/constants/auth_category.dart';
 
 class UserAuthModel {
   // Required fields
