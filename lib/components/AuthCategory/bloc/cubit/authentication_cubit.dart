@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:reauth/bloc/states/authentication_state.dart';
+import 'package:reauth/components/AuthCategory/bloc/states/authentication_state.dart';
 import 'package:reauth/services/encryption_service.dart';
+import 'package:reauth/services/secure_store_services.dart';
 import 'package:reauth/validator/authentication_validator/authentication_field_validator.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -123,6 +124,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         'profileImage': '',
         'isMasterPinSet': false,
         'masterPin': '',
+        'isBiometricSet': false
       });
 
       // Pause the auth state listener temporarily
@@ -250,7 +252,6 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       emit(SettingPinInProgress());
 
       // Encrypt the PIN using your EncryptionService
-      final encryptedPin = await EncryptionService.encryptData(pin);
 
       // Get the current user from Firebase Auth
       final user = _auth.currentUser;
@@ -259,15 +260,20 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         return;
       }
 
+      String encryptedMasterPassword = await EncryptionService.encryptData(pin);
+
+      // Store the encrypted master password
+      await _secureStorage.write(
+          key: 'encrypted_master_password', value: encryptedMasterPassword);
+
       // Save (or update) the encrypted PIN in the Firestore user profile.
       // Using merge: true will update just the masterPin field without overwriting the rest.
       await _firestore.collection('profiles').doc(user.uid).set({
-        'masterPin': encryptedPin,
+        'masterPin': encryptedMasterPassword,
         'isMasterPinSet': true,
       }, SetOptions(merge: true));
 
       // Optionally, also save the encrypted PIN locally using secure storage.
-      await _secureStorage.write(key: 'master_pin', value: encryptedPin);
 
       emit(SettingPinInSuccess());
     } catch (e) {
@@ -325,6 +331,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   Future<void> logout() async {
     try {
       emit(LogoutInProgress());
+      await SecureStorageService.deleteMasterPassword();
       await _auth.signOut();
       emit(LogoutSuccess());
     } catch (e) {

@@ -3,13 +3,16 @@ import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:reauth/bloc/states/profile_state.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:reauth/components/AuthCategory/bloc/states/profile_state.dart';
 import 'package:reauth/models/profile_model.dart';
+import 'package:reauth/services/encryption_service.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   ProfileCubit({
     FirebaseAuth? auth,
@@ -39,6 +42,16 @@ class ProfileCubit extends Cubit<ProfileState> {
       }
 
       final profileModel = ProfileModel.fromMap(profileDoc.data()!);
+
+      // If master pin is set, securely store it
+      if (profileModel.isMasterPinSet && profileModel.masterPin.isNotEmpty) {
+        // Encrypt before storing
+        String encryptedMasterPassword =
+            await EncryptionService.encryptData(profileModel.masterPin);
+        await _secureStorage.write(
+            key: 'encrypted_master_password', value: encryptedMasterPassword);
+      }
+
       emit(ProfileLoaded(profile: profileModel));
     } catch (e, stackTrace) {
       addError(e, stackTrace);

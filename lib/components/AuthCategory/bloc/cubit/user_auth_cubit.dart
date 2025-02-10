@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:reauth/bloc/states/user_auth_state.dart';
+import 'package:reauth/components/AuthCategory/bloc/states/user_auth_state.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 import 'package:reauth/models/user_auth_model.dart';
 import 'package:reauth/services/encryption_service.dart';

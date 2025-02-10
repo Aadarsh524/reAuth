@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
@@ -9,7 +8,9 @@ class EncryptionService {
   static const _secretKey =
       "MySuperSecretKey12345"; // Replace with a securely stored key
 
-  // Generate a user-specific key using Firebase UID and secret key
+  // Generate a user-specific key using Firebase UID and secret key.
+  // (Since the key is based on the UID and a secret, updating the master password
+  // doesn't affect website data encryption.)
   static Future<encrypt.Key> _getUserSpecificKey() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -18,18 +19,20 @@ class EncryptionService {
 
     final userId = user.uid;
     final combinedKey = utf8.encode(userId + _secretKey);
+    // Base64-encode the combined key and take the first 32 characters.
     final hashedKey =
         encrypt.Key.fromUtf8(base64Encode(combinedKey).substring(0, 32));
     return hashedKey;
   }
 
-  // Generate a secure random IV
+  // Generate a secure random IV.
   static encrypt.IV _generateIV() {
     final random = Random.secure();
     final values = List<int>.generate(16, (i) => random.nextInt(256));
     return encrypt.IV(Uint8List.fromList(values));
   }
 
+  /// Encrypts [plainText] and returns a string in the format "iv::cipherText".
   static Future<String> encryptData(String plainText) async {
     if (plainText.isEmpty) return '';
 
@@ -42,6 +45,8 @@ class EncryptionService {
     return '${iv.base64}::${encrypted.base64}';
   }
 
+  /// Decrypts [encryptedText] (which should be in "iv::cipherText" format)
+  /// and returns the original plain text.
   static Future<String> decryptData(String encryptedText) async {
     if (encryptedText.isEmpty) return '';
 

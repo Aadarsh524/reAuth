@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/bloc/states/user_auth_state.dart';
+import 'package:reauth/components/AuthCategory/bloc/cubit/user_auth_cubit.dart';
+import 'package:reauth/components/AuthCategory/bloc/states/user_auth_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 
 import 'package:reauth/components/custom_textfield.dart';

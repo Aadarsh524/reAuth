@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/bloc/states/authentication_state.dart';
+import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
+import 'package:reauth/components/AuthCategory/bloc/states/authentication_state.dart';
 import 'package:reauth/components/custom_snackbar.dart';
 import 'package:reauth/components/custom_textfield.dart';
 import 'package:reauth/pages/auth/login_page.dart';
@@ -361,7 +361,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                     );
                     CustomSnackbar.show(
                       context,
-                      message: "Password change success",
+                      message: "Email change success",
                     );
                   }
                   if (state is AccountUpdateError) {
@@ -562,7 +562,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                     );
                     CustomSnackbar.show(
                       context,
-                      message: "Password change success",
+                      message: "Master pin change success",
                     );
                   }
                   if (state is AccountUpdateError) {

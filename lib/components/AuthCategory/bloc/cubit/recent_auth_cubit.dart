@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:reauth/bloc/states/recent_auth_state.dart';
+import 'package:reauth/components/AuthCategory/bloc/states/recent_auth_state.dart';
 import 'package:reauth/models/user_auth_model.dart';
 
 class RecentAuthCubit extends Cubit<RecentAuthState> {

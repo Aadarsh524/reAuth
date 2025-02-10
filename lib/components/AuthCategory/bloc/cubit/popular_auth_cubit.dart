@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:reauth/bloc/states/popular_provider_state.dart';
+import 'package:reauth/components/AuthCategory/bloc/states/popular_provider_state.dart';
 import 'package:reauth/components/constants/auth_category.dart';
 import 'package:reauth/models/popular_auth_model.dart';
 
