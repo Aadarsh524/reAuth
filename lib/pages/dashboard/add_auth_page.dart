@@ -3,23 +3,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/user_auth_state.dart';
-import 'package:reauth/components/AuthCategory/entertainment_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/financial_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/network_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/other_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/social_media_fields_widget.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/constants/auth_category.dart';
-import 'package:reauth/models/popular_auth_model.dart';
-import 'package:reauth/models/user_auth_model.dart';
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
-import 'package:reauth/validator/auth_category_field_validator/entertainment_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/financial_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/network_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/other_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/socialmedia_fields_validator.dart';
+import '../../bloc/cubit/user_auth_cubit.dart';
+import '../../bloc/states/user_auth_state.dart';
+import '../../components/AuthCategory/entertainment_fields_widget.dart';
+import '../../components/AuthCategory/financial_fields_widget.dart';
+import '../../components/AuthCategory/network_fields_widget.dart';
+import '../../components/AuthCategory/other_fields_widget.dart';
+import '../../components/AuthCategory/social_media_fields_widget.dart';
+import '../../components/custom_snackbar.dart';
+import '../../components/constants/auth_category.dart';
+import '../../models/popular_auth_model.dart';
+import '../../models/user_auth_model.dart';
+import 'dashboard_page.dart';
+import '../../validator/auth_category_field_validator/entertainment_fields_validator.dart';
+import '../../validator/auth_category_field_validator/financial_fields_validator.dart';
+import '../../validator/auth_category_field_validator/network_fields_validator.dart';
+import '../../validator/auth_category_field_validator/other_fields_validator.dart';
+import '../../validator/auth_category_field_validator/socialmedia_fields_validator.dart';
 
 class AddAuthPage extends StatefulWidget {
   final PopularAuthModel? popularAuthModel;
@@ -297,31 +297,43 @@ class _AddAuthPageState extends State<AddAuthPage> {
         centerTitle: true,
         elevation: 0,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10.0),
-            child: TextButton(
-              onPressed: handleSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: const BorderSide(
-                    color: Color.fromARGB(255, 111, 163, 219),
+          BlocBuilder<UserAuthCubit, UserAuthState>(builder: (context, state) {
+            final isSubmitting = state is UserAuthLoading;
+            return Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: TextButton(
+                onPressed: handleSave,
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(
+                      color: Color.fromARGB(255, 111, 163, 219),
+                    ),
                   ),
                 ),
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          backgroundColor: Colors.transparent,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        "Save",
+                        style: GoogleFonts.karla(
+                          color: const Color.fromARGB(255, 111, 163, 219),
+                          fontSize: 16,
+                          letterSpacing: .75,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
-              child: Text(
-                "Save",
-                style: GoogleFonts.karla(
-                  color: const Color.fromARGB(255, 111, 163, 219),
-                  fontSize: 16,
-                  letterSpacing: .75,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          )
+            );
+          })
         ],
       ),
       body: SafeArea(
@@ -375,13 +387,6 @@ class _AddAuthPageState extends State<AddAuthPage> {
                     }
                   },
                   builder: (context, state) {
-                    if (state is UserAuthLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: Color.fromARGB(255, 106, 172, 191),
-                        ),
-                      );
-                    }
                     return Column(
                       children: [
                         buildDropdown(),

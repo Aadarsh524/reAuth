@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/authentication_state.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import '../../bloc/cubit/authentication_cubit.dart';
+import '../../bloc/states/authentication_state.dart';
+import '../../components/custom_snackbar.dart';
+import '../dashboard/dashboard_page.dart';
 
 class AddPinPage extends StatefulWidget {
   const AddPinPage({Key? key}) : super(key: key);

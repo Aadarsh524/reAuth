@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/user_auth_state.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/constants/auth_category.dart';
-import 'package:reauth/models/user_auth_model.dart';
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
-import 'package:reauth/pages/dashboard/edit_auth_page.dart';
+import '../../bloc/cubit/user_auth_cubit.dart';
+import '../../bloc/states/user_auth_state.dart';
+import '../../components/custom_snackbar.dart';
+import '../../components/constants/auth_category.dart';
+import '../../models/user_auth_model.dart';
+import 'dashboard_page.dart';
+import 'edit_auth_page.dart';
 
 class AuthDetailPage extends StatefulWidget {
   final UserAuthModel authModel;
@@ -160,19 +160,26 @@ class _AuthDetailPageState extends State<AuthDetailPage> {
   }
 
   Widget _buildHeader() {
+    final faviconUrl = authModel.userAuthFavicon;
     return Center(
       child: Column(
         children: [
-          CachedNetworkImage(
-            imageUrl: authModel.userAuthFavicon!,
-            height: 60,
-            fit: BoxFit.contain,
-            errorWidget: (context, url, error) => Image.asset(
-              'assets/error.png',
-              height: 60,
-              fit: BoxFit.contain,
-            ),
-          ),
+          faviconUrl == null || faviconUrl.isEmpty
+              ? Image.asset(
+                  'assets/error.png',
+                  height: 60,
+                  fit: BoxFit.contain,
+                )
+              : CachedNetworkImage(
+                  imageUrl: faviconUrl,
+                  height: 60,
+                  fit: BoxFit.contain,
+                  errorWidget: (context, url, error) => Image.asset(
+                    'assets/error.png',
+                    height: 60,
+                    fit: BoxFit.contain,
+                  ),
+                ),
           const SizedBox(height: 10),
           Text(
             authModel.authName.toUpperCase(),

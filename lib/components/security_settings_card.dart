@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/authentication_state.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/custom_textfield.dart';
-import 'package:reauth/pages/auth/login_page.dart';
-import 'package:reauth/services/biometric_services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../bloc/cubit/authentication_cubit.dart';
+import '../bloc/states/authentication_state.dart';
+import 'custom_snackbar.dart';
+import 'custom_textfield.dart';
+import '../pages/auth/login_page.dart';
 
 class SecuritySettingsCard extends StatefulWidget {
   const SecuritySettingsCard({Key? key}) : super(key: key);
@@ -69,11 +67,6 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
                     onTap: () => _changeMasterPin(context),
                   ),
                   _buildSettingItem(
-                    icon: Icons.fingerprint,
-                    title: 'Set up Biometric Authentication',
-                    onTap: () => _setupBiometricAuth(context),
-                  ),
-                  _buildSettingItem(
                     icon: Icons.delete_forever,
                     title: 'Delete Account',
                     onTap: () => _deleteAccount(context),
@@ -132,7 +125,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54, // Dark overlay color
+      barrierColor: const Color(0xFF242D3A),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Center(
@@ -342,7 +335,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54, // Dark overlay color
+      barrierColor: const Color(0xFF242D3A),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Center(
@@ -543,7 +536,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54, // Dark overlay color
+      barrierColor: const Color(0xFF242D3A),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Center(
@@ -739,139 +732,6 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
     );
   }
 
-  void _setupBiometricAuth(BuildContext context) async {
-    void _setupBiometricAuth(BuildContext context) async {
-      final biometricService = BiometricService();
-      bool isAvailable = await biometricService.isBiometricAvailable();
-
-      if (!isAvailable) {
-        CustomSnackbar.show(
-          context,
-          message: "Biometric authentication is not available.",
-        );
-        return;
-      }
-
-      showGeneralDialog(
-        context: context,
-        barrierDismissible: true,
-        barrierLabel:
-            MaterialLocalizations.of(context).modalBarrierDismissLabel,
-        barrierColor: Colors.black54,
-        transitionDuration: const Duration(milliseconds: 300),
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return Center(
-            child: StatefulBuilder(
-              builder: (context, setDialogState) {
-                return AlertDialog(
-                  backgroundColor: const Color.fromARGB(255, 72, 80, 93),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  title: Text(
-                    "Enable Biometric Login",
-                    style: GoogleFonts.karla(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  content: Text(
-                    "Do you want to enable fingerprint login for faster access?",
-                    style: GoogleFonts.karla(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(color: Colors.red),
-                        ),
-                      ),
-                      child: Text(
-                        "Cancel",
-                        style: GoogleFonts.karla(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.pop(context); // Close the dialog
-                        bool isAuthenticated =
-                            await biometricService.authenticate();
-
-                        if (isAuthenticated) {
-                          // Save biometric preference
-                          SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          await prefs.setBool("biometricEnabled", true);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Biometric login enabled!",
-                                style: GoogleFonts.karla(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          );
-                        } else {
-                          CustomSnackbar.show(
-                            context,
-                            message: "Authentication failed.",
-                          );
-                        }
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        "Enable",
-                        style: GoogleFonts.karla(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          );
-        },
-        transitionBuilder: (context, animation, secondaryAnimation, child) {
-          if (animation.status == AnimationStatus.reverse) {
-            return child;
-          }
-          return ScaleTransition(
-            scale: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutBack,
-            ),
-            child: child,
-          );
-        },
-      );
-    }
-  }
-
   void _deleteAccount(BuildContext context) {
     String errorMessage = '';
     bool isSubmitting = false;
@@ -880,7 +740,7 @@ class _SecuritySettingsCardState extends State<SecuritySettingsCard> {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54,
+      barrierColor: const Color(0xFF242D3A),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Center(

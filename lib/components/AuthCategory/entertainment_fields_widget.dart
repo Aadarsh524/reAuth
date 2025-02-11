@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:reauth/components/custom_tags_field.dart';
-import 'package:reauth/components/custom_textfield.dart';
+import '../custom_tags_field.dart';
+import '../custom_textfield.dart';
 
 class EntertainmentFieldsWidget extends StatefulWidget {
   final TextEditingController authNameController;
@@ -62,7 +62,7 @@ class _EntertainmentFieldsWidgetState extends State<EntertainmentFieldsWidget> {
           labelText: "Password",
           hintText: "Enter Password",
           obscureText: !isPasswordVisible,
-            isFormTypePassword: true,
+          isFormTypePassword: true,
           passwordVisibility: (e) {
             setState(() {
               isPasswordVisible = !isPasswordVisible;

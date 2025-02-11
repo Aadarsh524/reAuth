@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/profile_state.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/custom_textfield.dart';
-import 'package:reauth/models/profile_model.dart';
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import '../../bloc/cubit/profile_cubit.dart';
+import '../../bloc/states/profile_state.dart';
+import '../../components/custom_snackbar.dart';
+import '../../components/custom_textfield.dart';
+import '../../models/profile_model.dart';
+import 'dashboard_page.dart';
 
 class EditProfilePage extends StatefulWidget {
   final ProfileModel profileModel;

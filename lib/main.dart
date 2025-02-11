@@ -1,18 +1,18 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/popular_auth_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/recent_auth_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/authentication_state.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/profile_state.dart';
-import 'package:reauth/firebase_options.dart';
-import 'package:reauth/pages/auth/login_page.dart';
-import 'package:reauth/pages/auth/master_pin_gate.dart';
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
-import 'package:reauth/themes/themes.dart';
+import 'bloc/cubit/authentication_cubit.dart';
+import 'bloc/cubit/popular_auth_cubit.dart';
+import 'bloc/cubit/profile_cubit.dart';
+import 'bloc/cubit/recent_auth_cubit.dart';
+import 'bloc/cubit/user_auth_cubit.dart';
+import 'bloc/states/authentication_state.dart';
+import 'bloc/states/profile_state.dart';
+import 'firebase_options.dart';
+import 'pages/auth/login_page.dart';
+import 'pages/auth/master_pin_gate.dart';
+import 'pages/dashboard/dashboard_page.dart';
+import 'themes/themes.dart';
 // ... other imports
 
 void main() async {

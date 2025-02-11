@@ -2,21 +2,21 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/user_auth_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/user_auth_state.dart';
-import 'package:reauth/components/AuthCategory/entertainment_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/financial_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/network_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/other_fields_widget.dart';
-import 'package:reauth/components/AuthCategory/social_media_fields_widget.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/constants/auth_category.dart';
-import 'package:reauth/models/user_auth_model.dart';
-import 'package:reauth/validator/auth_category_field_validator/entertainment_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/financial_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/network_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/other_fields_validator.dart';
-import 'package:reauth/validator/auth_category_field_validator/socialmedia_fields_validator.dart';
+import '../../bloc/cubit/user_auth_cubit.dart';
+import '../../bloc/states/user_auth_state.dart';
+import '../../components/AuthCategory/entertainment_fields_widget.dart';
+import '../../components/AuthCategory/financial_fields_widget.dart';
+import '../../components/AuthCategory/network_fields_widget.dart';
+import '../../components/AuthCategory/other_fields_widget.dart';
+import '../../components/AuthCategory/social_media_fields_widget.dart';
+import '../../components/custom_snackbar.dart';
+import '../../components/constants/auth_category.dart';
+import '../../models/user_auth_model.dart';
+import '../../validator/auth_category_field_validator/entertainment_fields_validator.dart';
+import '../../validator/auth_category_field_validator/financial_fields_validator.dart';
+import '../../validator/auth_category_field_validator/network_fields_validator.dart';
+import '../../validator/auth_category_field_validator/other_fields_validator.dart';
+import '../../validator/auth_category_field_validator/socialmedia_fields_validator.dart';
 
 class EditAuthPage extends StatefulWidget {
   final UserAuthModel userAuthModel;
@@ -229,6 +229,7 @@ class _EditAuthPageState extends State<EditAuthPage> {
 
   @override
   Widget build(BuildContext context) {
+    final faviconUrl = widget.userAuthModel.userAuthFavicon;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -279,15 +280,22 @@ class _EditAuthPageState extends State<EditAuthPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            CachedNetworkImage(
-              imageUrl: widget.userAuthModel.userAuthFavicon!,
-              height: 50,
-              width: 50,
-              placeholder: (_, __) => const CircularProgressIndicator(),
-              errorWidget: (context, url, error) => Image.asset(
-                'assets/error.png',
-              ),
-            ),
+            faviconUrl == null || faviconUrl.isEmpty
+                ? Image.asset(
+                    'assets/error.png',
+                    height: 60,
+                    fit: BoxFit.contain,
+                  )
+                : CachedNetworkImage(
+                    imageUrl: faviconUrl,
+                    height: 60,
+                    fit: BoxFit.contain,
+                    errorWidget: (context, url, error) => Image.asset(
+                      'assets/error.png',
+                      height: 60,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
             const SizedBox(height: 10),
             Text(
               widget.userAuthModel.authName.toUpperCase(),

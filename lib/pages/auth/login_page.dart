@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/authentication_state.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/custom_textfield.dart';
-import 'package:reauth/pages/auth/register_page.dart';
-import 'package:reauth/pages/dashboard/dashboard_page.dart';
+import '../../bloc/cubit/authentication_cubit.dart';
+import '../../bloc/states/authentication_state.dart';
+import '../../components/custom_snackbar.dart';
+import '../../components/custom_textfield.dart';
+import 'register_page.dart';
+import '../dashboard/dashboard_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -55,6 +55,10 @@ class _LoginPageState extends State<LoginPage> {
                 (route) => false,
               );
               CustomSnackbar.show(context, message: "Login Success");
+            }
+            if (state is PasswordResetSent) {
+              CustomSnackbar.show(context,
+                  message: "Password reset link is send to you email.");
             } else if (state is AuthenticationError) {
               CustomSnackbar.show(context, message: state.error, isError: true);
             } else if (state is ValidationError) {

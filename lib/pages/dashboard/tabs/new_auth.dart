@@ -2,16 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/popular_auth_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/popular_provider_state.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/profile_state.dart';
+import '../../../bloc/cubit/authentication_cubit.dart';
+import '../../../bloc/cubit/popular_auth_cubit.dart';
+import '../../../bloc/cubit/profile_cubit.dart';
+import '../../../bloc/states/popular_provider_state.dart';
+import '../../../bloc/states/profile_state.dart';
 
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/popular_auth_card.dart';
-import 'package:reauth/pages/auth/addpin_page.dart';
-import 'package:reauth/pages/dashboard/add_auth_page.dart';
+import '../../../components/custom_snackbar.dart';
+import '../../../components/popular_auth_card.dart';
+import '../../auth/addpin_page.dart';
+import '../add_auth_page.dart';
 
 class NewAuthPage extends StatefulWidget {
   const NewAuthPage({Key? key}) : super(key: key);

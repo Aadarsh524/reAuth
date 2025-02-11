@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/components/custom_textfield.dart';
-import 'package:reauth/services/feedback_services.dart';
+import '../components/custom_snackbar.dart';
+import '../components/custom_textfield.dart';
+import '../services/feedback_services.dart';
 
 class FeedbackPage extends StatelessWidget {
   const FeedbackPage({super.key});

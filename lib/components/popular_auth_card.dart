@@ -3,13 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/profile_state.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/models/popular_auth_model.dart';
-import 'package:reauth/pages/auth/addpin_page.dart';
-import 'package:reauth/pages/dashboard/add_auth_page.dart';
+import '../bloc/cubit/authentication_cubit.dart';
+import '../bloc/cubit/profile_cubit.dart';
+import '../bloc/states/profile_state.dart';
+import 'custom_snackbar.dart';
+import '../models/popular_auth_model.dart';
+import '../pages/auth/addpin_page.dart';
+import '../pages/dashboard/add_auth_page.dart';
 
 class PopularAuthCard extends StatelessWidget {
   static const _cardColor = Color.fromARGB(255, 53, 64, 79);

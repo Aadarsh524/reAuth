@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:reauth/pages/dashboard/tabs/new_auth.dart';
-import 'package:reauth/pages/dashboard/tabs/home_page.dart';
-import 'package:reauth/pages/dashboard/tabs/notification_page.dart';
-import 'package:reauth/pages/dashboard/tabs/security_page.dart';
-import 'package:reauth/pages/dashboard/tabs/settings_page.dart';
+import 'tabs/new_auth.dart';
+import 'tabs/home_page.dart';
+import 'tabs/notification_page.dart';
+import 'tabs/security_page.dart';
+import 'tabs/settings_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);

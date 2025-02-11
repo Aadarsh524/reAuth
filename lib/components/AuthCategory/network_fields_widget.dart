@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:reauth/components/custom_tags_field.dart';
-import 'package:reauth/components/custom_textfield.dart';
+import '../custom_tags_field.dart';
+import '../custom_textfield.dart';
 
 class NetworkFieldsWidget extends StatefulWidget {
   final TextEditingController authNameController;

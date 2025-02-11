@@ -1,4 +1,4 @@
-import 'package:reauth/components/constants/auth_category.dart';
+import '../components/constants/auth_category.dart';
 
 class PopularAuthModel {
   String authName; // Name of the provider

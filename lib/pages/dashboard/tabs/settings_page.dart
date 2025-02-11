@@ -3,14 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/authentication_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/cubit/profile_cubit.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/authentication_state.dart';
-import 'package:reauth/components/AuthCategory/bloc/states/profile_state.dart';
-import 'package:reauth/components/about_settings_card.dart';
-import 'package:reauth/components/general_settings_card.dart';
-import 'package:reauth/components/security_settings_card.dart';
-import 'package:reauth/pages/auth/login_page.dart';
+import '../../../bloc/cubit/authentication_cubit.dart';
+import '../../../bloc/cubit/profile_cubit.dart';
+import '../../../bloc/states/authentication_state.dart';
+import '../../../bloc/states/profile_state.dart';
+import '../../../components/about_settings_card.dart';
+import '../../../components/general_settings_card.dart';
+import '../../../components/security_settings_card.dart';
+import '../../auth/login_page.dart';
+import '../../upgrade_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -47,9 +48,24 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 40, 50, 65),
-        title: const Text("Settings"),
-      ),
+          backgroundColor: const Color.fromARGB(255, 40, 50, 65),
+          title: const Text("Settings"),
+          leading: null,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: IconButton(
+                onPressed: () {
+                  _showLogoutDialog(context);
+                },
+                icon: const Icon(
+                  Icons.logout,
+                  size: 32,
+                ),
+                color: Colors.redAccent,
+              ),
+            ),
+          ]),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: ListView(
@@ -57,7 +73,6 @@ class _SettingsPageState extends State<SettingsPage> {
             PersonalInfoCard(
               verifiedEmail: verifiedEmail,
               screenWidth: screenWidth,
-              onLogout: () => _showLogoutDialog(context),
             ),
             const SecuritySettingsCard(),
             const GeneralSettingsCard(),
@@ -72,7 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.of(context).push(PageRouteBuilder(
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54, // Dark overlay color
+      barrierColor: const Color(0xFF242D3A), // Dark overlay color
       transitionDuration:
           const Duration(milliseconds: 300), // Opening animation duration
       pageBuilder: (context, animation, secondaryAnimation) {
@@ -198,13 +213,11 @@ class _SettingsPageState extends State<SettingsPage> {
 class PersonalInfoCard extends StatelessWidget {
   final bool verifiedEmail;
   final double screenWidth;
-  final VoidCallback onLogout;
 
   const PersonalInfoCard({
     Key? key,
     required this.verifiedEmail,
     required this.screenWidth,
-    required this.onLogout,
   }) : super(key: key);
 
   @override
@@ -303,39 +316,36 @@ class PersonalInfoCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 20),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // Implement upgrade functionality if needed.
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFCC00),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: const Icon(
-                              Icons.arrow_upward,
-                              size: 20,
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                            label: Text(
-                              "Upgrade",
-                              style: GoogleFonts.karla(
-                                color: const Color.fromARGB(255, 0, 0, 0),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
-                      IconButton(
-                        onPressed: onLogout,
-                        icon: const Icon(
-                          Icons.logout,
-                          size: 32,
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const UpgradePage(),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFCC00),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                        color: Colors.redAccent,
+                        icon: const Icon(
+                          Icons.arrow_upward,
+                          size: 20,
+                          color: Color.fromARGB(255, 0, 0, 0),
+                        ),
+                        label: Text(
+                          "Upgrade",
+                          style: GoogleFonts.karla(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ],
                   ),

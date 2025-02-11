@@ -7,6 +7,8 @@ class AppearanceSettingsPage extends StatelessWidget {
   static const _contentPadding =
       EdgeInsets.symmetric(horizontal: 20, vertical: 10);
 
+  const AppearanceSettingsPage({super.key});
+
   static TextStyle get _headerStyle => GoogleFonts.karla(
         color: _textColor,
         fontSize: 18,
@@ -22,7 +24,6 @@ class AppearanceSettingsPage extends StatelessWidget {
         padding: _contentPadding,
         child: Column(
           children: [
-            _buildSettingItem(Icons.dark_mode, "Dark Mode", () {}),
             _buildSettingItem(Icons.format_size, "Font Size", () {}),
             _buildSettingItem(Icons.color_lens, "Theme Color", () {}),
           ],

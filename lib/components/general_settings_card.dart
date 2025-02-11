@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/pages/notification_settings_page.dart';
-import 'package:reauth/pages/password_generator_page.dart';
-import 'package:reauth/pages/appearance_settings_page.dart';
+import '../pages/notification_settings_page.dart';
+import '../pages/password_generator_page.dart';
+import '../pages/appearance_settings_page.dart';
 
 class GeneralSettingsCard extends StatefulWidget {
   const GeneralSettingsCard({super.key});
@@ -78,7 +78,7 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => PasswordGeneratorPage()),
+                      builder: (context) => const PasswordGeneratorPage()),
                 );
               }),
           SettingsItem(
@@ -88,7 +88,7 @@ class _GeneralSettingsCardState extends State<GeneralSettingsCard> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => AppearanceSettingsPage()),
+                      builder: (context) => const AppearanceSettingsPage()),
                 );
               }),
           SettingsItem(

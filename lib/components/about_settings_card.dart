@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reauth/components/custom_snackbar.dart';
-import 'package:reauth/pages/about_page.dart';
-import 'package:reauth/pages/feedback_page.dart';
-import 'package:reauth/pages/help_page.dart';
-import 'package:reauth/services/rating_services.dart';
+import 'custom_snackbar.dart';
+import '../pages/about_page.dart';
+import '../pages/feedback_page.dart';
+import '../pages/help_page.dart';
+import '../services/rating_services.dart';
 
 class AboutSettingsCard extends StatefulWidget {
   const AboutSettingsCard({super.key});
@@ -113,7 +113,7 @@ void showRateDialog(BuildContext context) {
     context: context,
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.black54,
+    barrierColor: const Color(0xFF242D3A),
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, animation, secondaryAnimation) {
       return Center(
